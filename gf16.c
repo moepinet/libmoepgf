@@ -33,8 +33,8 @@
 #include "gf16.h"
 
 static pthread_once_t _init_done_ = PTHREAD_ONCE_INIT;
-static __thread uint8_t inverses[GF16_SIZE];
-static __thread uint8_t mul[GF16_SIZE][GF16_SIZE];
+static uint8_t inverses[GF16_SIZE];
+static uint8_t mul[GF16_SIZE][GF16_SIZE];
 static uint8_t pt[16][4];
 
 uint8_t 

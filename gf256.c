@@ -89,14 +89,14 @@ ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 	p = pt[constant];
 
 	for (; length; region1++, region2++, length--) {
-		r[0] = (*region2 &   1) ? p[0] : 0;
-		r[1] = (*region2 &   2) ? p[1] : 0;
-		r[2] = (*region2 &   4) ? p[2] : 0;
-		r[3] = (*region2 &   8) ? p[3] : 0;
-		r[4] = (*region2 &  16) ? p[4] : 0;
-		r[5] = (*region2 &  32) ? p[5] : 0;
-		r[6] = (*region2 &  64) ? p[6] : 0;
-		r[7] = (*region2 & 128) ? p[7] : 0;
+		r[0] = (*region2 &   1) ? pt[constant][0] : 0;
+		r[1] = (*region2 &   2) ? pt[constant][1] : 0;
+		r[2] = (*region2 &   4) ? pt[constant][2] : 0;
+		r[3] = (*region2 &   8) ? pt[constant][3] : 0;
+		r[4] = (*region2 &  16) ? pt[constant][4] : 0;
+		r[5] = (*region2 &  32) ? pt[constant][5] : 0;
+		r[6] = (*region2 &  64) ? pt[constant][6] : 0;
+		r[7] = (*region2 & 128) ? pt[constant][7] : 0;
 		*region1 ^= r[0]^r[1]^r[2]^r[3]^r[4]^r[5]^r[6]^r[7];
 	}
 }
