@@ -311,8 +311,8 @@ init()
 	
 	for (i=0; i<16; i++) {	
 		pt[i][0] = i;
-		for (j=1; j<8; j++) {
-			pt[i][j] = (pt[i][j-1] << 1) & 0x0f;
+		for (j=1; j<4; j++) {
+			pt[i][j] = ((pt[i][j-1] << 1) & 0x0f);
 			if (pt[i][j-1] & 0x08)
 				pt[i][j] ^= (GF16_PRIMITIVE_POLYNOMIAL & 0x0f);
 		}
