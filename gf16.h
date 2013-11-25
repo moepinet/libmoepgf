@@ -28,13 +28,13 @@
 #define GF16_BITMASK			(GF16_SIZE - 1);
 
 uint8_t
-ffadd16 (const uint8_t summand1, const uint8_t summand2);
+ffadd16(const uint8_t summand1, const uint8_t summand2);
 
 uint8_t
-ffdiv16 (uint8_t dividend, const uint8_t divisor);
+ffdiv16(uint8_t dividend, const uint8_t divisor);
 
 uint8_t
-ffmul16 (uint8_t factor1, const uint8_t factor2);
+ffmul16(uint8_t factor1, const uint8_t factor2);
 
 void 
 ffadd16_region(uint8_t *region1, const uint8_t *region2, const int length);
