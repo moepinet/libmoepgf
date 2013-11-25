@@ -22,6 +22,12 @@
 
 #include <stdint.h>
 
+enum GF_SIZE {
+	GF2	= 0,
+	GF16	= 1,
+	GF256	= 2
+};
+
 void
 ffdisplay(char* name, void *data, size_t length);
 
