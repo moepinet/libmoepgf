@@ -34,7 +34,7 @@ ffdiv16(uint8_t dividend, uint8_t divisor);
 uint8_t
 ffmul16(uint8_t factor1, uint8_t factor2);
 
-void 
+void
 ffadd16_region(uint8_t *region1, const uint8_t *region2, int length);
 
 void

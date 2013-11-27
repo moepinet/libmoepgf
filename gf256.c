@@ -82,7 +82,7 @@ ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	uint8_t *p;
-	uint8_t r[8]; 
+	uint8_t r[8];
 
 	if (constant == 0)
 		return;
@@ -116,19 +116,19 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 
 	if (constant == 0)
 		return;
-	
+
 	if (constant == 1) {
 		ffxor_region(region1, region2, length);
 		return;
 	}
 
 	p = pt[constant];
-	
+
 #if __GNUC_PREREQ(4,7)
 #if defined __SSE4_1__
 	register __m128i t1, t2, m1, m2, in1, in2, out, l, h;
-	t1 = _mm_loadu_si128((void *)tl[constant]);	
-	t2 = _mm_loadu_si128((void *)th[constant]);	
+	t1 = _mm_loadu_si128((void *)tl[constant]);
+	t2 = _mm_loadu_si128((void *)th[constant]);
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
 
@@ -238,7 +238,7 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 void ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length)
 {
 	uint8_t *p;
-	uint8_t r[8]; 
+	uint8_t r[8];
 
 	if (constant == 0) {
 		memset(region, 0, length);
@@ -274,7 +274,7 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 		memset(region, 0, length);
 		return;
 	}
-	
+
 	if(constant == 1)
 		return;
 	p = pt[constant];
@@ -282,8 +282,8 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 #if __GNUC_PREREQ(4,7)
 #if defined __SSE4_1__
 	register __m128i t1, t2, m1, m2, in, out, l, h;
-	t1 = _mm_loadu_si128((void *)tl[constant]);	
-	t2 = _mm_loadu_si128((void *)th[constant]);	
+	t1 = _mm_loadu_si128((void *)tl[constant]);
+	t2 = _mm_loadu_si128((void *)th[constant]);
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
 
@@ -358,7 +358,7 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 	}
 #endif
 #endif
-	
+
 	for (; length & 0xfffffff8; region+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region & 0x0101010101010101)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region & 0x0202020202020202)>>1)*p[1];
@@ -390,8 +390,8 @@ init()
 {
 	int i, j;
 	uint8_t r;
-	
-	for (i=0; i<256; i++) {	
+
+	for (i=0; i<256; i++) {
 		pt[i][0] = i;
 		for (j=1; j<8; j++) {
 			pt[i][j] = pt[i][j-1] << 1;

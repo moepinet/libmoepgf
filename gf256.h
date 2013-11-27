@@ -41,11 +41,11 @@ void
 ffdiv256_region_c(uint8_t *region, uint8_t constant, int length);
 
 void
-ffmadd256_region_c(uint8_t *region1, const uint8_t *region2, 
+ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
-ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2, 
+ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void

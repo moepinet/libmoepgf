@@ -107,7 +107,7 @@ ffdisplay(char *name, void *data, size_t length)
 }
 
 uint64_t
-ffpow(const uint64_t base, const uint64_t previous, const int exponent, 
+ffpow(const uint64_t base, const uint64_t previous, const int exponent,
 						const uint64_t polynomial)
 {
 	uint64_t result = previous * 2;
@@ -151,7 +151,7 @@ ffxor_region(uint8_t *region1, const uint8_t *region2, int length)
 	}
 #endif
 #endif
-	
+
 	for(; length & 0xfffffff8; region1+=8, region2+=8, length-=8)
 		*(uint64_t *)region1 ^= *(uint64_t *)region2;
 

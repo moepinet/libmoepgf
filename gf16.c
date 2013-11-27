@@ -44,7 +44,7 @@ inverse16(uint8_t element)
 	return inverses[element];
 }
 
-inline uint8_t 
+inline uint8_t
 ffadd16(uint8_t summand1, uint8_t summand2)
 {
 	return summand1 ^ summand2;
@@ -67,7 +67,7 @@ ffmul16(uint8_t factor1, uint8_t factor2)
 
 	if (factor2 == 1)
 		return factor1;
-	
+
 	p = pt[factor2];
 
 	r[0] = (factor1 & 1) ? p[0] : 0;
@@ -92,11 +92,11 @@ ffdiv16_region_c(uint8_t* region, uint8_t constant, int length)
 }
 
 void
-ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2, 
+ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	uint8_t r[4], *p;
-	
+
 	if (constant == 0)
 		return;
 
@@ -106,7 +106,7 @@ ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 	}
 
 	p = pt[constant];
-	
+
 	for (; length; region1++, region2++, length--) {
 		r[0] = ((*region2 & 0x11) >> 0) * p[0];
 		r[1] = ((*region2 & 0x22) >> 1) * p[1];
@@ -117,7 +117,7 @@ ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 }
 
 void
-ffmadd16_region_c(uint8_t* region1, const uint8_t* region2, 
+ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	uint64_t r64[4];
@@ -130,7 +130,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 		ffxor_region(region1, region2, length);
 		return;
 	}
-	
+
 	p = pt[constant];
 
 #if __GNUC_PREREQ(4,7)
@@ -186,7 +186,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 	}
 #endif
 #endif
-	
+
 	for (; length & 0xffffffff8; region1+=8, region2+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x1111111111111111)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region2 & 0x2222222222222222)>>1)*p[1];
@@ -194,7 +194,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 		r64[3] = ((*(uint64_t *)region2 & 0x8888888888888888)>>3)*p[3];
 		*((uint64_t *)region1) ^= r64[0] ^ r64[1] ^ r64[2] ^ r64[3];
 	}
-	
+
 	for (; length; region1++, region2++, length--) {
 		r[0] = ((*region2 & 0x11) >> 0) * p[0];
 		r[1] = ((*region2 & 0x22) >> 1) * p[1];
@@ -208,7 +208,7 @@ void
 ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
 {
 	uint8_t r[4], *p;
-	
+
 	if (constant == 0) {
 		memset(region, 0, length);
 		return;
@@ -218,7 +218,7 @@ ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
 		return;
 
 	p = pt[constant];
-	
+
 	for (; length; region++, length--) {
 		r[0] = ((*region & 0x11) >> 0) * p[0];
 		r[1] = ((*region & 0x22) >> 1) * p[1];
@@ -301,7 +301,7 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 		r64[3] = ((*(uint64_t *)region & 0x8888888888888888)>>3)*p[3];
 		*((uint64_t *)region) = r64[0] ^ r64[1] ^ r64[2] ^ r64[3];
 	}
-	
+
 	for (; length; region++, length--) {
 		r[0] = ((*region & 0x11) >> 0) * p[0];
 		r[1] = ((*region & 0x22) >> 1) * p[1];
@@ -315,8 +315,8 @@ static void
 init()
 {
 	int i, j;
-	
-	for (i=0; i<16; i++) {	
+
+	for (i=0; i<16; i++) {
 		pt[i][0] = i;
 		for (j=1; j<4; j++) {
 			pt[i][j] = ((pt[i][j-1] << 1) & 0x0f);
@@ -333,7 +333,7 @@ init()
 			}
 		}
 	}
-	
+
 }
 
 void

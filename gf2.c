@@ -60,7 +60,7 @@ ffdiv2_region_c(uint8_t *region, uint8_t constant, int length)
 }
 
 inline void
-ffmadd2_region_c(uint8_t *region1, const uint8_t *region2, 
+ffmadd2_region_c(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
