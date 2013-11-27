@@ -40,6 +40,12 @@ static uint8_t tl[GF256_SIZE][16];
 static uint8_t th[GF256_SIZE][16];
 
 inline uint8_t
+inverse256(uint8_t element)
+{
+	return inverses[element];
+}
+
+inline uint8_t
 ffadd256(uint8_t summand1, uint8_t summand2)
 {
 	return summand1 ^ summand2;

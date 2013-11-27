@@ -23,6 +23,9 @@
 #include <stdint.h>
 
 uint8_t
+inverse16(uint8_t element);
+
+uint8_t
 ffadd16(uint8_t summand1, uint8_t summand2);
 
 uint8_t

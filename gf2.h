@@ -23,13 +23,16 @@
 #include <stdint.h>
 
 uint8_t
-ffadd2 (uint8_t summand1, uint8_t summand2);
+inverse2(uint8_t element);
 
 uint8_t
-ffdiv2 (uint8_t dividend, uint8_t divisor);
+ffadd2(uint8_t summand1, uint8_t summand2);
 
 uint8_t
-ffmul2 (uint8_t factor1, uint8_t factor2);
+ffdiv2(uint8_t dividend, uint8_t divisor);
+
+uint8_t
+ffmul2(uint8_t factor1, uint8_t factor2);
 
 void
 ffadd2_region(uint8_t *region1, const uint8_t *region2, int length);

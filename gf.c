@@ -28,25 +28,60 @@
 #include <stdio.h>
 
 #include "gf.h"
+#include "gf2.h"
+#include "gf16.h"
+#include "gf256.h"
 
 const struct galois_field __galois_fields[3] = {
 	{
 	.polynomial	= GF2_POLYNOMIAL,
 	.exponent	= GF2_EXPONENT,
 	.size		= GF2_SIZE,
-	.mask		= GF2_MASK
+	.mask		= GF2_MASK,
+
+	.inverse	= inverse2,
+	.fadd		= ffadd2,
+	.fdiv		= ffdiv2,
+	.fmul		= ffmul2,
+	.faddr		= ffadd2_region,
+	.fdivrc		= ffdiv2_region_c,
+	.fmulrc		= ffmul2_region_c,
+	.fmaddrc	= ffmadd2_region_c,
+	.init		= gf2_init,
 	},
+
 	{
 	.polynomial	= GF16_POLYNOMIAL,
 	.exponent	= GF16_EXPONENT,
 	.size		= GF16_SIZE,
-	.mask		= GF16_MASK
+	.mask		= GF16_MASK,
+
+	.inverse	= inverse16,
+	.fadd		= ffadd16,
+	.fdiv		= ffdiv16,
+	.fmul		= ffmul16,
+	.faddr		= ffadd16_region,
+	.fdivrc		= ffdiv16_region_c,
+	.fmulrc		= ffmul16_region_c,
+	.fmaddrc	= ffmadd16_region_c,
+	.init		= gf16_init,
 	},
+
 	{
 	.polynomial	= GF256_POLYNOMIAL,
 	.exponent	= GF256_EXPONENT,
 	.size		= GF256_SIZE,
-	.mask		= GF256_MASK
+	.mask		= GF256_MASK,
+
+	.inverse	= inverse256,
+	.fadd		= ffadd256,
+	.fdiv		= ffdiv256,
+	.fmul		= ffmul256,
+	.faddr		= ffadd256_region,
+	.fdivrc		= ffdiv256_region_c,
+	.fmulrc		= ffmul256_region_c,
+	.fmaddrc	= ffmadd256_region_c,
+	.init		= gf256_init,
 	}
 };
 

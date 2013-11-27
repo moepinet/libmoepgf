@@ -38,13 +38,19 @@ static uint8_t inverses[GF16_SIZE];
 static uint8_t mul[GF16_SIZE][GF16_SIZE];
 static uint8_t pt[GF16_SIZE][GF16_SIZE];
 
-uint8_t 
+inline uint8_t
+inverse16(uint8_t element)
+{
+	return inverses[element];
+}
+
+inline uint8_t 
 ffadd16(uint8_t summand1, uint8_t summand2)
 {
 	return summand1 ^ summand2;
 }
 
-uint8_t
+inline uint8_t
 ffdiv16(uint8_t dividend, uint8_t divisor)
 {
 	ffmul16_region_c(&dividend, inverses[divisor], 1);
@@ -73,13 +79,13 @@ ffmul16(uint8_t factor1, uint8_t factor2)
 	return factor1;
 }
 
-void
+inline void
 ffadd16_region(uint8_t* region1, const uint8_t* region2, int length)
 {
 	ffxor_region(region1, region2, length);
 }
 
-void
+inline void
 ffdiv16_region_c(uint8_t* region, uint8_t constant, int length)
 {
 	ffmul16_region_c(region, inverses[constant], length);

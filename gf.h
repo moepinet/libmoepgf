@@ -48,6 +48,16 @@ struct galois_field {
 	int	exponent;
 	int	size;
 	int	mask;
+
+	uint8_t (* inverse)(uint8_t);
+	uint8_t	(* fadd)(uint8_t, uint8_t);
+	uint8_t	(* fdiv)(uint8_t, uint8_t);
+	uint8_t	(* fmul)(uint8_t, uint8_t);
+	void	(* faddr)(uint8_t *, const uint8_t *, int);
+	void	(* fdivrc)(uint8_t *, uint8_t, int);
+	void	(* fmulrc)(uint8_t *, uint8_t, int);
+	void	(* fmaddrc)(uint8_t *, const uint8_t *, uint8_t, int);
+	void	(* init)(void);
 };
 
 const struct galois_field __galois_fields[3];

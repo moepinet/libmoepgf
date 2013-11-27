@@ -23,37 +23,43 @@
 #include "gf2.h"
 #include "gf.h"
 
-uint8_t
+inline uint8_t
+inverse2(uint8_t element)
+{
+	return element;
+}
+
+inline uint8_t
 ffadd2(uint8_t summand1, uint8_t summand2)
 {
 	return summand1 ^ summand2;
 }
 
-uint8_t
+inline uint8_t
 ffdiv2(uint8_t dividend, uint8_t divisor)
 {
 	return dividend;
 }
 
-uint8_t
+inline uint8_t
 ffmul2(uint8_t factor1, uint8_t factor2)
 {
 	return factor1 & factor2;
 }
 
-void
+inline void
 ffadd2_region(uint8_t *region1, const uint8_t *region2, int length)
 {
 	ffxor_region(region1, region2, length);
 }
 
-void
+inline void
 ffdiv2_region_c(uint8_t *region, uint8_t constant, int length)
 {
 	return;
 }
 
-void
+inline void
 ffmadd2_region_c(uint8_t *region1, const uint8_t *region2, 
 				uint8_t constant, int length)
 {
@@ -61,7 +67,7 @@ ffmadd2_region_c(uint8_t *region1, const uint8_t *region2,
 		ffxor_region(region1, region2, length);
 }
 
-void
+inline void
 ffmul2_region_c(uint8_t *region, uint8_t constant, int length)
 {
 	if (constant == 0)
