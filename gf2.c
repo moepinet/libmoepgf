@@ -24,45 +24,45 @@
 #include "gf.h"
 
 uint8_t
-ffadd2(const uint8_t summand1, const uint8_t summand2)
+ffadd2(uint8_t summand1, uint8_t summand2)
 {
 	return summand1 ^ summand2;
 }
 
 uint8_t
-ffdiv2(const uint8_t dividend, const uint8_t divisor)
+ffdiv2(uint8_t dividend, uint8_t divisor)
 {
 	return dividend;
 }
 
 uint8_t
-ffmul2(const uint8_t factor1, const uint8_t factor2)
+ffmul2(uint8_t factor1, uint8_t factor2)
 {
 	return factor1 & factor2;
 }
 
 void
-ffadd2_region(uint8_t *region1, const uint8_t *region2, const int length)
+ffadd2_region(uint8_t *region1, const uint8_t *region2, int length)
 {
 	ffxor_region(region1, region2, length);
 }
 
 void
-ffdiv2_region_c(uint8_t *region, const uint8_t constant, const int length)
+ffdiv2_region_c(uint8_t *region, uint8_t constant, int length)
 {
 	return;
 }
 
 void
 ffmadd2_region_c(uint8_t *region1, const uint8_t *region2, 
-				const uint8_t constant, const int length)
+				uint8_t constant, int length)
 {
 	if (constant != 0)
 		ffxor_region(region1, region2, length);
 }
 
 void
-ffmul2_region_c(uint8_t *region, const uint8_t constant, const int length)
+ffmul2_region_c(uint8_t *region, uint8_t constant, int length)
 {
 	if (constant == 0)
 		memset(region, 0, length);

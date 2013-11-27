@@ -40,40 +40,40 @@ static uint8_t tl[GF256_SIZE][16];
 static uint8_t th[GF256_SIZE][16];
 
 inline uint8_t
-ffadd256(const uint8_t summand1, const uint8_t summand2)
+ffadd256(uint8_t summand1, uint8_t summand2)
 {
 	return summand1 ^ summand2;
 }
 
 inline uint8_t
-ffdiv256(uint8_t dividend, const uint8_t divisor)
+ffdiv256(uint8_t dividend, uint8_t divisor)
 {
 	ffmul256_region_c(&dividend, inverses[divisor], 1);
 	return dividend;
 }
 
 inline uint8_t
-ffmul256(uint8_t factor1, const uint8_t factor2)
+ffmul256(uint8_t factor1, uint8_t factor2)
 {
 	ffmul256_region_c(&factor1, factor2, 1);
 	return factor1;
 }
 
 inline void
-ffadd256_region(uint8_t *region1, const uint8_t *region2, const int length)
+ffadd256_region(uint8_t *region1, const uint8_t *region2, int length)
 {
 	ffxor_region(region1, region2, length);
 }
 
 inline void
-ffdiv256_region_c(uint8_t *region, const uint8_t constant, const int length)
+ffdiv256_region_c(uint8_t *region, uint8_t constant, int length)
 {
 	ffmul256_region_c(region, inverses[constant], length);
 }
 
 void
 ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
-					const uint8_t constant, int length)
+					uint8_t constant, int length)
 {
 	uint8_t *p;
 	uint8_t r[8]; 
@@ -103,7 +103,7 @@ ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 
 void
 ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
-					const uint8_t constant, int length)
+					uint8_t constant, int length)
 {
 	uint8_t r[8], *p;
 	uint64_t r64[8];
@@ -229,7 +229,7 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 	}
 }
 
-void ffmul256_region_c_slow(uint8_t *region, const uint8_t constant, int length)
+void ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length)
 {
 	uint8_t *p;
 	uint8_t r[8]; 
@@ -258,7 +258,7 @@ void ffmul256_region_c_slow(uint8_t *region, const uint8_t constant, int length)
 }
 
 void
-ffmul256_region_c(uint8_t *region, const uint8_t constant, int length)
+ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 {
 	uint8_t r[8];
 	uint8_t *p;

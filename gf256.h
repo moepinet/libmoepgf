@@ -23,33 +23,33 @@
 #include <stdint.h>
 
 uint8_t
-ffadd256 (const uint8_t summand1, const uint8_t summand2);
+ffadd256 (uint8_t summand1, uint8_t summand2);
 
 uint8_t
-ffdiv256(uint8_t dividend, const uint8_t divisor);
+ffdiv256(uint8_t dividend, uint8_t divisor);
 
 uint8_t
-ffmul256(uint8_t factor1, const uint8_t factor2);
+ffmul256(uint8_t factor1, uint8_t factor2);
 
 void
-ffadd256_region(uint8_t *region1, const uint8_t *region2, const int length);
+ffadd256_region(uint8_t *region1, const uint8_t *region2, int length);
 
 void
-ffdiv256_region_c(uint8_t *region, const uint8_t constant, const int length);
+ffdiv256_region_c(uint8_t *region, uint8_t constant, int length);
 
 void
 ffmadd256_region_c(uint8_t *region1, const uint8_t *region2, 
-					const uint8_t constant, int length);
+					uint8_t constant, int length);
 
 void
 ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2, 
-					const uint8_t constant, int length);
+					uint8_t constant, int length);
 
 void
-ffmul256_region_c(uint8_t *region, const uint8_t constant, int length);
+ffmul256_region_c(uint8_t *region, uint8_t constant, int length);
 
 void
-ffmul256_region_c_slow(uint8_t *region, const uint8_t constant, int length);
+ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length);
 
 void
 gf256_init();

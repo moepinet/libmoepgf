@@ -23,26 +23,26 @@
 #include <stdint.h>
 
 uint8_t
-ffadd2 (const uint8_t summand1, const uint8_t summand2);
+ffadd2 (uint8_t summand1, uint8_t summand2);
 
 uint8_t
-ffdiv2 (const uint8_t dividend, const uint8_t divisor);
+ffdiv2 (uint8_t dividend, uint8_t divisor);
 
 uint8_t
-ffmul2 (const uint8_t factor1, const uint8_t factor2);
+ffmul2 (uint8_t factor1, uint8_t factor2);
 
 void
-ffadd2_region(uint8_t *region1, const uint8_t *region2, const int length);
+ffadd2_region(uint8_t *region1, const uint8_t *region2, int length);
 
 void
-ffdiv2_region_c(uint8_t *region, const uint8_t constant, const int length);
+ffdiv2_region_c(uint8_t *region, uint8_t constant, int length);
 
 void
 ffmadd2_region_c(uint8_t *region1, const uint8_t *region2,
-				const uint8_t constant, const int length);
+				uint8_t constant, int length);
 
 void
-ffmul2_region_c(uint8_t *region, const uint8_t constant, const int length);
+ffmul2_region_c(uint8_t *region, uint8_t constant, int length);
 
 void
 gf2_init();

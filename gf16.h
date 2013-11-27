@@ -23,33 +23,33 @@
 #include <stdint.h>
 
 uint8_t
-ffadd16(const uint8_t summand1, const uint8_t summand2);
+ffadd16(uint8_t summand1, uint8_t summand2);
 
 uint8_t
-ffdiv16(uint8_t dividend, const uint8_t divisor);
+ffdiv16(uint8_t dividend, uint8_t divisor);
 
 uint8_t
-ffmul16(uint8_t factor1, const uint8_t factor2);
+ffmul16(uint8_t factor1, uint8_t factor2);
 
 void 
-ffadd16_region(uint8_t *region1, const uint8_t *region2, const int length);
+ffadd16_region(uint8_t *region1, const uint8_t *region2, int length);
 
 void
-ffdiv16_region_c(uint8_t *region, const uint8_t constant, const int length);
+ffdiv16_region_c(uint8_t *region, const uint8_t constant, int length);
 
 void
 ffmadd16_region_c_slow(uint8_t *region1, const uint8_t *region2,
-					const uint8_t constant, int length);
+					uint8_t constant, int length);
 
 void
 ffmadd16_region_c(uint8_t *region1, const uint8_t *region2,
-					const uint8_t constant, int length);
+					uint8_t constant, int length);
 
 void
-ffmul16_region_c_slow(uint8_t *region, const uint8_t constant, int length);
+ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length);
 
 void
-ffmul16_region_c(uint8_t *region, const uint8_t constant, int length);
+ffmul16_region_c(uint8_t *region, uint8_t constant, int length);
 
 void
 gf16_init();

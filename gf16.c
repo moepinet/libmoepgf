@@ -39,20 +39,20 @@ static uint8_t mul[GF16_SIZE][GF16_SIZE];
 static uint8_t pt[GF16_SIZE][GF16_SIZE];
 
 uint8_t 
-ffadd16(const uint8_t summand1, const uint8_t summand2)
+ffadd16(uint8_t summand1, uint8_t summand2)
 {
 	return summand1 ^ summand2;
 }
 
 uint8_t
-ffdiv16(uint8_t dividend, const uint8_t divisor)
+ffdiv16(uint8_t dividend, uint8_t divisor)
 {
 	ffmul16_region_c(&dividend, inverses[divisor], 1);
 	return dividend;
 }
 
 uint8_t
-ffmul16(uint8_t factor1, const uint8_t factor2)
+ffmul16(uint8_t factor1, uint8_t factor2)
 {
 	uint8_t r[4], *p;
 
@@ -74,20 +74,20 @@ ffmul16(uint8_t factor1, const uint8_t factor2)
 }
 
 void
-ffadd16_region(uint8_t* region1, const uint8_t* region2, const int length)
+ffadd16_region(uint8_t* region1, const uint8_t* region2, int length)
 {
 	ffxor_region(region1, region2, length);
 }
 
 void
-ffdiv16_region_c(uint8_t* region, const uint8_t constant, const int length)
+ffdiv16_region_c(uint8_t* region, uint8_t constant, int length)
 {
 	ffmul16_region_c(region, inverses[constant], length);
 }
 
 void
 ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2, 
-					const uint8_t constant, int length)
+					uint8_t constant, int length)
 {
 	uint8_t r[4], *p;
 	
@@ -112,7 +112,7 @@ ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 
 void
 ffmadd16_region_c(uint8_t* region1, const uint8_t* region2, 
-					const uint8_t constant, int length)
+					uint8_t constant, int length)
 {
 	uint64_t r64[4];
 	uint8_t r[4], *p;
@@ -199,7 +199,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 }
 
 void
-ffmul16_region_c_slow(uint8_t *region, const uint8_t constant, int length)
+ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
 {
 	uint8_t r[4], *p;
 	
@@ -223,7 +223,7 @@ ffmul16_region_c_slow(uint8_t *region, const uint8_t constant, int length)
 }
 
 void
-ffmul16_region_c(uint8_t *region, const uint8_t constant, int length)
+ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 {
 	uint8_t r[4], *p;
 	uint64_t r64[4];
