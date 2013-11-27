@@ -20,12 +20,7 @@
 #ifndef _GF16_H_
 #define _GF16_H_
 
-#include "gf.h"
-
-#define GF16_PRIMITIVE_POLYNOMIAL	(19 & 0x0f)
-#define GF16_EXPONENT			4
-#define GF16_SIZE			(1 << GF16_EXPONENT)
-#define GF16_BITMASK			(GF16_SIZE - 1);
+#include <stdint.h>
 
 uint8_t
 ffadd16(const uint8_t summand1, const uint8_t summand2);
@@ -55,7 +50,6 @@ ffmul16_region_c_slow(uint8_t *region, const uint8_t constant, int length);
 
 void
 ffmul16_region_c(uint8_t *region, const uint8_t constant, int length);
-
 
 void
 gf16_init();

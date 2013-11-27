@@ -22,11 +22,6 @@
 
 #include <stdint.h>
 
-#define GF256_PRIMITIVE_POLYNOMIAL	285
-#define GF256_EXPONENT			8
-#define GF256_SIZE			(1 << GF256_EXPONENT)
-#define GF256_BITMASK			(GF256_SIZE - 1);
-
 uint8_t
 ffadd256 (const uint8_t summand1, const uint8_t summand2);
 

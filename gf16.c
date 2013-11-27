@@ -30,12 +30,13 @@
 #include <pthread.h>
 #include <stddef.h>
 
+#include "gf.h"
 #include "gf16.h"
 
 static pthread_once_t _init_done_ = PTHREAD_ONCE_INIT;
 static uint8_t inverses[GF16_SIZE];
 static uint8_t mul[GF16_SIZE][GF16_SIZE];
-static uint8_t pt[16][4];
+static uint8_t pt[GF16_SIZE][GF16_SIZE];
 
 uint8_t 
 ffadd16(const uint8_t summand1, const uint8_t summand2)
@@ -314,7 +315,7 @@ init()
 		for (j=1; j<4; j++) {
 			pt[i][j] = ((pt[i][j-1] << 1) & 0x0f);
 			if (pt[i][j-1] & 0x08)
-				pt[i][j] ^= (GF16_PRIMITIVE_POLYNOMIAL & 0x0f);
+				pt[i][j] ^= (GF16_POLYNOMIAL & 0x0f);
 		}
 	}
 

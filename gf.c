@@ -21,12 +21,34 @@
 #include <emmintrin.h>
 #endif
 
+#include <string.h>
 #include <features.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 
 #include "gf.h"
+
+const struct galois_field __galois_fields[3] = {
+	{
+	.polynomial	= GF2_POLYNOMIAL,
+	.exponent	= GF2_EXPONENT,
+	.size		= GF2_SIZE,
+	.mask		= GF2_MASK
+	},
+	{
+	.polynomial	= GF16_POLYNOMIAL,
+	.exponent	= GF16_EXPONENT,
+	.size		= GF16_SIZE,
+	.mask		= GF16_MASK
+	},
+	{
+	.polynomial	= GF256_POLYNOMIAL,
+	.exponent	= GF256_EXPONENT,
+	.size		= GF256_SIZE,
+	.mask		= GF256_MASK
+	}
+};
 
 void
 ffdisplay(char *name, void *data, size_t length)

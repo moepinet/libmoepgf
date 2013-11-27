@@ -22,11 +22,35 @@
 
 #include <stdint.h>
 
-enum GF_SIZE {
+#define GF2_POLYNOMIAL		3
+#define GF2_EXPONENT		1
+#define GF2_SIZE		(1 << GF2_EXPONENT)
+#define GF2_MASK		(GF2_SIZE - 1)
+
+#define GF16_POLYNOMIAL		19
+#define GF16_EXPONENT		4
+#define GF16_SIZE		(1 << GF16_EXPONENT)
+#define GF16_MASK		(GF16_SIZE - 1)
+
+#define GF256_POLYNOMIAL	285
+#define GF256_EXPONENT		8
+#define GF256_SIZE		(1 << GF256_EXPONENT)
+#define GF256_MASK		(GF256_SIZE - 1)
+
+enum GF_TYPE {
 	GF2	= 0,
 	GF16	= 1,
 	GF256	= 2
 };
+
+struct galois_field {
+	int	polynomial;
+	int	exponent;
+	int	size;
+	int	mask;
+};
+
+const struct galois_field __galois_fields[3];
 
 void
 ffdisplay(char* name, void *data, size_t length);

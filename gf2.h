@@ -22,11 +22,6 @@
 
 #include <stdint.h>
 
-#define GF2_PRIMITIVE_POLYNOMIAL	3
-#define GF2_EXPONENT			1
-#define GF2_SIZE			(1 << GF2_EXPONENT)
-#define GF2_BITMASK			(GF2_SIZE - 1);
-
 uint8_t
 ffadd2 (const uint8_t summand1, const uint8_t summand2);
 

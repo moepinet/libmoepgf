@@ -34,10 +34,10 @@
 #include "gf.h"
 
 static pthread_once_t _init_done_ = PTHREAD_ONCE_INIT;
-static uint8_t inverses[GF256_SIZE];
-static uint8_t pt[256][8];
-static uint8_t tl[256][16];
-static uint8_t th[256][16];
+static uint8_t inverses[GF256_POLYNOMIAL];
+static uint8_t pt[GF256_SIZE][GF256_POLYNOMIAL];
+static uint8_t tl[GF256_SIZE][16];
+static uint8_t th[GF256_SIZE][16];
 
 inline uint8_t
 ffadd256(const uint8_t summand1, const uint8_t summand2)
@@ -390,7 +390,7 @@ init()
 		for (j=1; j<8; j++) {
 			pt[i][j] = pt[i][j-1] << 1;
 			if (pt[i][j-1] & 0x80)
-				pt[i][j] ^= GF256_PRIMITIVE_POLYNOMIAL;
+				pt[i][j] ^= GF256_POLYNOMIAL;
 		}
 	}
 
