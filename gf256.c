@@ -34,8 +34,8 @@
 #include "gf.h"
 
 static pthread_once_t _init_done_ = PTHREAD_ONCE_INIT;
-static uint8_t inverses[GF256_POLYNOMIAL];
-static uint8_t pt[GF256_SIZE][GF256_POLYNOMIAL];
+static uint8_t inverses[GF256_SIZE];
+static uint8_t pt[GF256_SIZE][GF256_EXPONENT];
 static uint8_t tl[GF256_SIZE][16];
 static uint8_t th[GF256_SIZE][16];
 

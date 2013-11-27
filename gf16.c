@@ -36,7 +36,7 @@
 static pthread_once_t _init_done_ = PTHREAD_ONCE_INIT;
 static uint8_t inverses[GF16_SIZE];
 static uint8_t mul[GF16_SIZE][GF16_SIZE];
-static uint8_t pt[GF16_SIZE][GF16_SIZE];
+static uint8_t pt[GF16_SIZE][GF16_EXPONENT];
 
 inline uint8_t
 inverse16(uint8_t element)
