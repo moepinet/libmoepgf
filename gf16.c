@@ -39,7 +39,7 @@ static uint8_t mul[GF16_SIZE][GF16_SIZE];
 static uint8_t pt[GF16_SIZE][GF16_EXPONENT];
 
 inline uint8_t
-inverse16(uint8_t element)
+ffinv16(uint8_t element)
 {
 	return inverses[element];
 }

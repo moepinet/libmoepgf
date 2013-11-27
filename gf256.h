@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 uint8_t
-inverse256(uint8_t element);
+ffinv256(uint8_t element);
 
 uint8_t
 ffadd256(uint8_t summand1, uint8_t summand2);

@@ -39,7 +39,7 @@ const struct galois_field __galois_fields[3] = {
 	.size		= GF2_SIZE,
 	.mask		= GF2_MASK,
 
-	.inverse	= inverse2,
+	.finv		= ffinv2,
 	.fadd		= ffadd2,
 	.fdiv		= ffdiv2,
 	.fmul		= ffmul2,
@@ -56,7 +56,7 @@ const struct galois_field __galois_fields[3] = {
 	.size		= GF16_SIZE,
 	.mask		= GF16_MASK,
 
-	.inverse	= inverse16,
+	.finv		= ffinv16,
 	.fadd		= ffadd16,
 	.fdiv		= ffdiv16,
 	.fmul		= ffmul16,
@@ -73,7 +73,7 @@ const struct galois_field __galois_fields[3] = {
 	.size		= GF256_SIZE,
 	.mask		= GF256_MASK,
 
-	.inverse	= inverse256,
+	.finv		= ffinv256,
 	.fadd		= ffadd256,
 	.fdiv		= ffdiv256,
 	.fmul		= ffmul256,

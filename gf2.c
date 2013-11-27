@@ -24,7 +24,7 @@
 #include "gf.h"
 
 inline uint8_t
-inverse2(uint8_t element)
+ffinv2(uint8_t element)
 {
 	return element;
 }

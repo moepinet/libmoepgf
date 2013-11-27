@@ -40,7 +40,7 @@ static uint8_t tl[GF256_SIZE][16];
 static uint8_t th[GF256_SIZE][16];
 
 inline uint8_t
-inverse256(uint8_t element)
+ffinv256(uint8_t element)
 {
 	return inverses[element];
 }

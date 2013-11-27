@@ -49,7 +49,7 @@ struct galois_field {
 	int	size;
 	int	mask;
 
-	uint8_t (* inverse)(uint8_t);
+	uint8_t (* finv)(uint8_t);
 	uint8_t	(* fadd)(uint8_t, uint8_t);
 	uint8_t	(* fdiv)(uint8_t, uint8_t);
 	uint8_t	(* fmul)(uint8_t, uint8_t);
