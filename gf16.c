@@ -33,10 +33,14 @@
 #include "gf16.h"
 
 #if GF16_POLYNOMIAL == 19
-#include "gf16polynomial19.h"
+#include "gf16tables19.h"
 #else
-#error "Invalid prim polynomial."
+#error "Invalid prim polynomial or tables not available."
 #endif
+
+static const uint8_t inverses[GF16_SIZE] = GF16_INVERSE_ELEMENT_TABLE;
+static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIVISION_TABLE;
+static const uint8_t mul[GF16_SIZE][GF16_SIZE] = GF16_MULTIPLICATION_TABLE;
 
 inline uint8_t
 ffinv16(uint8_t element)

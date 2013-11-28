@@ -33,10 +33,15 @@
 #include "gf.h"
 
 #if GF256_POLYNOMIAL == 285
-#include "gf256polynomial285.h"
+#include "gf256tables285.h"
 #else
-#error "Invalid prim polynomial."
+#error "Invalid prim polynomial or tables not available."
 #endif
+
+static const uint8_t inverses[GF256_SIZE] = GF256_INVERSE_ELEMENT_TABLE;
+static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIVISION_TABLE;
+static const uint8_t tl[GF256_SIZE][16] = GF256_SHUFFLE_LOW_TABLE;
+static const uint8_t th[GF256_SIZE][16] = GF256_SHUFFLE_HIGH_TABLE;
 
 inline uint8_t
 ffinv256(uint8_t element)
