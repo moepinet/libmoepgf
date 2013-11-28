@@ -54,7 +54,4 @@ ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length);
 void
 ffmul16_region_c(uint8_t *region, uint8_t constant, int length);
 
-void
-gf16_init();
-
 #endif

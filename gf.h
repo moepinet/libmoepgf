@@ -57,13 +57,12 @@ struct galois_field {
 	void	(* fdivrc)(uint8_t *, uint8_t, int);
 	void	(* fmulrc)(uint8_t *, uint8_t, int);
 	void	(* fmaddrc)(uint8_t *, const uint8_t *, uint8_t, int);
-	void	(* init)(void);
 };
 
 const struct galois_field __galois_fields[3];
 
 void
-ffdisplay(char* name, void *data, size_t length);
+ffdisplay(char* name, void *data, int length);
 
 uint64_t
 ffpow(const uint64_t base, const uint64_t previous, const int exponent,

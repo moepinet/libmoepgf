@@ -24,19 +24,19 @@
 #include <smmintrin.h>
 #endif
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-#include <stddef.h>
 
 #include "gf.h"
 #include "gf16.h"
 
-static pthread_once_t _init_done_ = PTHREAD_ONCE_INIT;
-static uint8_t inverses[GF16_SIZE];
-static uint8_t mul[GF16_SIZE][GF16_SIZE];
-static uint8_t pt[GF16_SIZE][GF16_EXPONENT];
+#if GF16_POLYNOMIAL == 19
+#include "gf16polynomial19.h"
+#else
+#error "Invalid prim polynomial."
+#endif
 
 inline uint8_t
 ffinv16(uint8_t element)
@@ -57,25 +57,10 @@ ffdiv16(uint8_t dividend, uint8_t divisor)
 	return dividend;
 }
 
-uint8_t
+inline uint8_t
 ffmul16(uint8_t factor1, uint8_t factor2)
 {
-	uint8_t r[4], *p;
-
-	if (factor2 == 0)
-		return 0;
-
-	if (factor2 == 1)
-		return factor1;
-
-	p = pt[factor2];
-
-	r[0] = (factor1 & 1) ? p[0] : 0;
-	r[1] = (factor1 & 2) ? p[1] : 0;
-	r[2] = (factor1 & 4) ? p[2] : 0;
-	r[3] = (factor1 & 8) ? p[3] : 0;
-	factor1 = r[0] ^ r[1] ^ r[2] ^ r[3];
-
+	ffmul16_region_c(&factor1, factor2, 1);
 	return factor1;
 }
 
@@ -95,7 +80,8 @@ void
 ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
-	uint8_t r[4], *p;
+	const uint8_t *p = pt[constant];
+	uint8_t r[4];
 
 	if (constant == 0)
 		return;
@@ -104,8 +90,6 @@ ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 		ffxor_region(region1, region2, length);
 		return;
 	}
-
-	p = pt[constant];
 
 	for (; length; region1++, region2++, length--) {
 		r[0] = ((*region2 & 0x11) >> 0) * p[0];
@@ -120,8 +104,9 @@ void
 ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
+	const uint8_t *p = pt[constant];
+	uint8_t r[4];
 	uint64_t r64[4];
-	uint8_t r[4], *p;
 
 	if (constant == 0)
 		return;
@@ -130,8 +115,6 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 		ffxor_region(region1, region2, length);
 		return;
 	}
-
-	p = pt[constant];
 
 #if __GNUC_PREREQ(4,7)
 #if defined __SSE4_1__
@@ -207,7 +190,8 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 void
 ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
 {
-	uint8_t r[4], *p;
+	const uint8_t *p = pt[constant];
+	uint8_t r[4];
 
 	if (constant == 0) {
 		memset(region, 0, length);
@@ -216,8 +200,6 @@ ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
 
 	if (constant == 1)
 		return;
-
-	p = pt[constant];
 
 	for (; length; region++, length--) {
 		r[0] = ((*region & 0x11) >> 0) * p[0];
@@ -231,7 +213,8 @@ ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
 void
 ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 {
-	uint8_t r[4], *p;
+	const uint8_t *p = pt[constant];
+	uint8_t r[4];
 	uint64_t r64[4];
 
 	if (constant == 0) {
@@ -241,8 +224,6 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 
 	if (constant == 1)
 		return;
-
-	p = pt[constant];
 
 #if __GNUC_PREREQ(4,7)
 #if defined __SSE4_1__
@@ -309,35 +290,4 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 		r[3] = ((*region & 0x88) >> 3) * p[3];
 		*region = r[0] ^ r[1] ^ r[2] ^ r[3];
 	}
-}
-
-static void
-init()
-{
-	int i, j;
-
-	for (i=0; i<16; i++) {
-		pt[i][0] = i;
-		for (j=1; j<4; j++) {
-			pt[i][j] = ((pt[i][j-1] << 1) & 0x0f);
-			if (pt[i][j-1] & 0x08)
-				pt[i][j] ^= (GF16_POLYNOMIAL & 0x0f);
-		}
-	}
-
-	for(i = 0; i < 16; i++){
-		for(j = 0; j < 16; j++){
-			mul[i][j] = ffmul16(i,j);
-			if(mul[i][j] == 1){
-				inverses[i] = j;
-			}
-		}
-	}
-
-}
-
-void
-gf16_init()
-{
-	pthread_once(&_init_done_, init);
 }

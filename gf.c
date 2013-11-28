@@ -47,7 +47,6 @@ const struct galois_field __galois_fields[3] = {
 	.fdivrc		= ffdiv2_region_c,
 	.fmulrc		= ffmul2_region_c,
 	.fmaddrc	= ffmadd2_region_c,
-	.init		= gf2_init,
 	},
 
 	{
@@ -64,7 +63,6 @@ const struct galois_field __galois_fields[3] = {
 	.fdivrc		= ffdiv16_region_c,
 	.fmulrc		= ffmul16_region_c,
 	.fmaddrc	= ffmadd16_region_c,
-	.init		= gf16_init,
 	},
 
 	{
@@ -81,12 +79,11 @@ const struct galois_field __galois_fields[3] = {
 	.fdivrc		= ffdiv256_region_c,
 	.fmulrc		= ffmul256_region_c,
 	.fmaddrc	= ffmadd256_region_c,
-	.init		= gf256_init,
 	}
 };
 
 void
-ffdisplay(char *name, void *data, size_t length)
+ffdisplay(char *name, void *data, int length)
 {
 	fprintf(stderr, "%s:", name);
 	while (length) {

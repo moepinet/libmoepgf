@@ -28,16 +28,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
 
 #include "gf256.h"
 #include "gf.h"
 
-static pthread_once_t _init_done_ = PTHREAD_ONCE_INIT;
-static uint8_t inverses[GF256_SIZE];
-static uint8_t pt[GF256_SIZE][GF256_EXPONENT];
-static uint8_t tl[GF256_SIZE][16];
-static uint8_t th[GF256_SIZE][16];
+#if GF256_POLYNOMIAL == 285
+#include "gf256polynomial285.h"
+#else
+#error "Invalid prim polynomial."
+#endif
 
 inline uint8_t
 ffinv256(uint8_t element)
@@ -81,7 +80,7 @@ void
 ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
-	uint8_t *p;
+	const uint8_t *p = pt[constant];
 	uint8_t r[8];
 
 	if (constant == 0)
@@ -91,8 +90,6 @@ ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 		ffxor_region(region1, region2, length);
 		return ;
 	}
-
-	p = pt[constant];
 
 	for (; length; region1++, region2++, length--) {
 		r[0] = (*region2 &   1) ? p[0] : 0;
@@ -111,7 +108,8 @@ void
 ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
-	uint8_t r[8], *p;
+	const uint8_t *p = pt[constant];
+	uint8_t r[8];
 	uint64_t r64[8];
 
 	if (constant == 0)
@@ -121,8 +119,6 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 		ffxor_region(region1, region2, length);
 		return;
 	}
-
-	p = pt[constant];
 
 #if __GNUC_PREREQ(4,7)
 #if defined __SSE4_1__
@@ -237,7 +233,7 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 
 void ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length)
 {
-	uint8_t *p;
+	const uint8_t *p = pt[constant];
 	uint8_t r[8];
 
 	if (constant == 0) {
@@ -247,8 +243,6 @@ void ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length)
 
 	if (constant == 1)
 		return;
-
-	p = pt[constant];
 
 	for (; length; region++, length--) {
 		r[0] = (*region &   1) ? p[0] : 0;
@@ -266,8 +260,8 @@ void ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length)
 void
 ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 {
+	const uint8_t *p = pt[constant];
 	uint8_t r[8];
-	uint8_t *p;
 	uint64_t r64[8];
 
 	if (constant == 0) {
@@ -277,7 +271,6 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 
 	if(constant == 1)
 		return;
-	p = pt[constant];
 
 #if __GNUC_PREREQ(4,7)
 #if defined __SSE4_1__
@@ -383,38 +376,4 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 		r[7] = ((*region & 0x80) >> 7) * p[7];
 		*region = r[0]^r[1]^r[2]^r[3]^r[4]^r[5]^r[6]^r[7];
 	}
-}
-
-static void
-init()
-{
-	int i, j;
-	uint8_t r;
-
-	for (i=0; i<256; i++) {
-		pt[i][0] = i;
-		for (j=1; j<8; j++) {
-			pt[i][j] = pt[i][j-1] << 1;
-			if (pt[i][j-1] & 0x80)
-				pt[i][j] ^= GF256_POLYNOMIAL;
-		}
-	}
-
-	for (i=0; i<256; i++) {
-		for (j=0; j<256; j++) {
-			r = ffmul256(i,j);
-			if (r == 1)
-				inverses[i] = j;
-			if ((j & 0xf0) == 0)
-				tl[i][j] = r;
-			if ((j & 0x0f) == 0)
-				th[i][j >> 4] = r;
-		}
-	}
-}
-
-void
-gf256_init()
-{
-	pthread_once(&_init_done_, init);
 }
