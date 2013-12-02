@@ -1,4 +1,4 @@
-CCFLAGS:= -O2 -Wall -msse4.1
+CFLAGS:= -O2 -Wall -msse4.1
 LDFLAGS:= -lpthread -lrt
 SRCDIR:=src
 CC:=gcc
