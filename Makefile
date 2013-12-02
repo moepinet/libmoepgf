@@ -1,6 +1,6 @@
-CCFLAGS:= -O2 -Wall
+CCFLAGS:= -O2 -Wall -msse4.1
 LDFLAGS:= -lpthread -lrt
-SRCDIR:=.
+SRCDIR:=src
 CC:=gcc
 
 OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
