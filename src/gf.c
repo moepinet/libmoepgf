@@ -118,33 +118,12 @@ ffxor_region(uint8_t *region1, const uint8_t *region2, int length)
 {
 #if __GNUC_PREREQ(4,7)
 #ifdef __SSE2__
-	register __m128i in0, in1, in2, in3;
-	register __m128i out0, out1, out2, out3;
+	register __m128i in, out;
 
-	for (; length & 0xffffffc0; region1+=64, region2+=64, length-=64) {
-		in0 = _mm_loadu_si128((void *)region2 + 0);
-		in1 = _mm_loadu_si128((void *)region2 + 16);
-		in2 = _mm_loadu_si128((void *)region2 + 32);
-		in3 = _mm_loadu_si128((void *)region2 + 48);
-		out0 = _mm_loadu_si128((void *)region1 + 0);
-		out1 = _mm_loadu_si128((void *)region1 + 16);
-		out2 = _mm_loadu_si128((void *)region1 + 32);
-		out3 = _mm_loadu_si128((void *)region1 + 48);
-		out0 = _mm_xor_si128(in0, out0);
-		out1 = _mm_xor_si128(in1, out1);
-		out2 = _mm_xor_si128(in2, out2);
-		out3 = _mm_xor_si128(in3, out3);
-		_mm_store_si128((void *)region1 + 0, out0);
-		_mm_store_si128((void *)region1 + 16, out1);
-		_mm_store_si128((void *)region1 + 32, out2);
-		_mm_store_si128((void *)region1 + 48, out3);
-	}
-
-	for(; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
-		in0 = _mm_loadu_si128((void *)region2);
-		out0 = _mm_loadu_si128((void *)region1);
-		out0 = _mm_xor_si128(in0, out0);
-		_mm_store_si128((void *)region1, out0);
+	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+		in  = _mm_load_si128((void *)region2);
+		out = _mm_load_si128((void *)region1);
+		_mm_store_si128((void *)region1, out);
 	}
 #endif
 #endif
