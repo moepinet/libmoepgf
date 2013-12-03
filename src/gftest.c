@@ -135,7 +135,7 @@ main(int argc, char **argv)
 	
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-		//	exit(-1);
+			exit(-1);
 		}
 	}
 	fprintf(stderr, "PASS\n");
@@ -148,7 +148,7 @@ main(int argc, char **argv)
 	
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-		//	exit(-1);
+			exit(-1);
 		}
 	}
 	fprintf(stderr, "PASS\n");
@@ -161,7 +161,7 @@ main(int argc, char **argv)
 	
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-		//	exit(-1);
+			exit(-1);
 		}
 	}
 	fprintf(stderr, "PASS\n");
@@ -174,7 +174,7 @@ main(int argc, char **argv)
 	
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-		//	exit(-1);
+			exit(-1);
 		}
 	}
 	fprintf(stderr, "PASS\n");
@@ -212,7 +212,7 @@ main(int argc, char **argv)
 
 	if (memcmp(buffer1, buffer2, tlen)) {
 		fprintf(stderr,"FAIL: results differ");
-	//	exit(-1);
+		exit(-1);
 	}
 
 	fprintf(stderr, "\nGF16 ffmadd benchmark...\n");
@@ -232,7 +232,7 @@ main(int argc, char **argv)
 
 	if (memcmp(buffer1, buffer2, tlen)) {
 		fprintf(stderr,"FAIL: results differ");
-	//	exit(-1);
+		exit(-1);
 	}
 	
 	fprintf(stderr, "\nGF256 ffmul benchmark...\n");
@@ -252,7 +252,7 @@ main(int argc, char **argv)
 
 	if (memcmp(buffer1, buffer2, tlen)) {
 		fprintf(stderr,"FAIL: results differ");
-	//	exit(-1);
+		exit(-1);
 	}
 
 	fprintf(stderr, "\nGF256 ffmadd benchmark...\n");
@@ -272,7 +272,7 @@ main(int argc, char **argv)
 
 	if (memcmp(buffer1, buffer2, tlen)) {
 		fprintf(stderr,"FAIL: results differ");
-	//	exit(-1);
+		exit(-1);
 	}
 	
 	fprintf(stderr, "\nGF2 ffmadd benchmark... (c=1)\n");
