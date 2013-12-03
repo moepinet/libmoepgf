@@ -8,21 +8,11 @@
 #include "gf16.h"
 #include "gf256.h"
 
+#ifdef __MACH__
 #include <mach/mach_time.h>
 #define ORWL_NANO (+1.0E-9)
 #define ORWL_GIGA UINT64_C(1000000000)
-
-
-#ifdef __MACH__
 #define CLOCK_MONOTONIC 0
-//static int clock_gettime(int clk_id, struct timespec* t) {
-//    struct timeval now;
-//    int rv = gettimeofday(&now, NULL);
-//    if (rv) return rv;
-//    t->tv_sec  = now.tv_sec;
-//    t->tv_nsec = now.tv_usec * 1000;
-//    return 0;
-//}
 static double orwl_timebase = 0.0;
 static uint64_t orwl_timestart = 0;
 
@@ -40,8 +30,6 @@ void clock_gettime(int clk_id, struct timespec *t) {
   t->tv_nsec = diff - (t->tv_sec * ORWL_GIGA);
 }
 #endif
-
-
 
 #define timespecclear(tvp)	((tvp)->tv_sec = (tvp)->tv_nsec = 0)
 #define timespecisset(tvp)	((tvp)->tv_sec || (tvp)->tv_nsec)

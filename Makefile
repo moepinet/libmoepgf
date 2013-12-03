@@ -1,4 +1,4 @@
-CFLAGS:= -O2 -Wall -msse2
+CFLAGS:= -O2 -Wall -mavx2
 LDFLAGS:=
 SRCDIR:=src
 CC:=gcc
