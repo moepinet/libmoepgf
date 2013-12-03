@@ -88,13 +88,13 @@ init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 	}
 }
 
-static void
+static inline void
 encode(uint8_t *dst, uint8_t **buffer, int len, int count, int field)
 {
 	int i, c;
 
 	for (i=0; i<count; i++) {
-		c = rand();
+		c = rand() & __galois_fields[field].mask;
 		__galois_fields[field].fmaddrc(dst, buffer[i], c, len);
 	}
 }
@@ -288,6 +288,10 @@ main(int argc, char **argv)
 	free(buffer3);
 
 
+	// -----------------------------------------------------------------
+	// Throughput benchmark
+	// -----------------------------------------------------------------
+
 	int len = 2048;
 	int count = 16;
 	int repeat = 1024;
@@ -321,13 +325,17 @@ main(int argc, char **argv)
 		}
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		timespecsub(&end, &start);
-		mbps = 1.0/((double)end.tv_sec + (double)end.tv_nsec*1e-9);
-		mbps *= len*repeat;
+		mbps = (double)repeat/((double)end.tv_sec + (double)end.tv_nsec*1e-9);
+		mbps *= len;
 		mbps /= 1024*1024;
 
 		fprintf(stderr, "%lu sec %lu nsec (%.2f MiB/s)\n",
 			(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec, mbps);
 	}
+
+	for (i=0; i<count; i++)
+		free(generation[i]);
+	free(frame);
 
 	return 0;
 }

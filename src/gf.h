@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-#undef __SSE2__
+//#undef __SSE2__
 	
 
 
