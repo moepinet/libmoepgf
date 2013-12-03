@@ -172,7 +172,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 	sp[2] = _mm_set1_epi16(p[2]);
 	sp[3] = _mm_set1_epi16(p[3]);
 
-	for (; length & 0xffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
 		reg2 = _mm_load_si128((void *)region2);
 		reg1 = _mm_load_si128((void *)region1);
 		ri[0] = _mm_and_si128(reg2, mi[0]);
@@ -194,7 +194,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 	}
 #endif
 
-	for (; length & 0xffffffff8; region1+=8, region2+=8, length-=8) {
+	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x1111111111111111)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region2 & 0x2222222222222222)>>1)*p[1];
 		r64[2] = ((*(uint64_t *)region2 & 0x4444444444444444)>>2)*p[2];
@@ -297,7 +297,7 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 	}
 #endif
 
-	for (; length & 0xffffffff8; region+=8, length-=8) {
+	for (; length & 0xfffffff8; region+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region & 0x1111111111111111)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region & 0x2222222222222222)>>1)*p[1];
 		r64[2] = ((*(uint64_t *)region & 0x4444444444444444)>>2)*p[2];
