@@ -22,6 +22,10 @@
 
 #include <stdint.h>
 
+#undef __SSE2__
+	
+
+
 #define GF2_POLYNOMIAL		3
 #define GF2_EXPONENT		1
 #define GF2_SIZE		(1 << GF2_EXPONENT)

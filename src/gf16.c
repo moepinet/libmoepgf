@@ -23,6 +23,9 @@
 #ifdef __SSE4_1__
 #include <smmintrin.h>
 #endif
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
 
 #include <stdio.h>
 #include <stdint.h>
@@ -120,15 +123,33 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 		return;
 	}
 
-#if __GNUC_PREREQ(4,7)
-#if defined __SSE4_1__
+#if defined __AVX2__
+	register __m256i in1, in2, out, table1, table2, mask1, mask2, l, h;
+	table1 = __builtin_ia32_vbroadcastsi256((void *)mul[constant]);
+	table2 = _mm256_slli_epi64(table1, 4);
+	mask1 = _mm256_set1_epi8(0x0f);
+	mask2 = _mm256_set1_epi8(0xf0);
+
+	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {
+		in2 = _mm256_load_si256((void *)region2);
+		in1 = _mm256_load_si256((void *)region1);
+		l = _mm256_and_si256(in2, mask1);
+		l = _mm256_shuffle_epi8(table1, l);
+		h = _mm256_and_si256(in2, mask2);
+		h = _mm256_srli_epi64(h, 4);
+		h = _mm256_shuffle_epi8(table2, h);
+		out = _mm256_xor_si256(h,l);
+		out = _mm256_xor_si256(out, in1);
+		_mm256_store_si256((void *)region1, out);
+	}
+#elif defined __SSE4_1__
 	register __m128i in1, in2, out, table1, table2, mask1, mask2, l, h;
 	table1 = _mm_loadu_si128((void *)mul[constant]);
 	table2 = _mm_slli_epi64(table1, 4);
 	mask1 = _mm_set1_epi8(0x0f);
 	mask2 = _mm_set1_epi8(0xf0);
 
-	for (; length & 0xffffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
 		in2 = _mm_load_si128((void *)region2);
 		in1 = _mm_load_si128((void *)region1);
 		l = _mm_and_si128(in2, mask1);
@@ -151,7 +172,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 	sp[2] = _mm_set1_epi16(p[2]);
 	sp[3] = _mm_set1_epi16(p[3]);
 
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length & 0xffffff0; region1+=16, region2+=16, length-=16) {
 		reg2 = _mm_load_si128((void *)region2);
 		reg1 = _mm_load_si128((void *)region1);
 		ri[0] = _mm_and_si128(reg2, mi[0]);
@@ -171,7 +192,6 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 		ri[0] = _mm_xor_si128(ri[0], reg1);
 		_mm_store_si128((void *)region1, ri[0]);
 	}
-#endif
 #endif
 
 	for (; length & 0xffffffff8; region1+=8, region2+=8, length-=8) {
@@ -229,7 +249,6 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-#if __GNUC_PREREQ(4,7)
 #if defined __SSE4_1__
 	register __m128i in, out, t1, t2, m1, m2, l, h;
 	t1 = _mm_loadu_si128((void *)mul[constant]);
@@ -276,7 +295,6 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 		ri[0] = _mm_xor_si128(ri[0], ri[2]);
 		_mm_store_si128((void *)region, ri[0]);
 	}
-#endif
 #endif
 
 	for (; length & 0xffffffff8; region+=8, length-=8) {

@@ -20,9 +20,11 @@
 #ifdef __SSE2__
 #include <emmintrin.h>
 #endif
+#ifdef __AVX2__
+#include <immintrin.h>
+#endif
 
 #include <string.h>
-#include <features.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -116,8 +118,16 @@ ffpow(const uint64_t base, const uint64_t previous, const int exponent,
 void
 ffxor_region(uint8_t *region1, const uint8_t *region2, int length)
 {
-#if __GNUC_PREREQ(4,7)
-#ifdef __SSE2__
+#if defined __AVX2__
+	register __m256i in, out;
+
+	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {
+		in  = _mm256_load_si256((void *)region2);
+		out = _mm256_load_si256((void *)region1);
+		out = _mm256_xor_si256(in, out);
+		_mm256_store_si256((void *)region1, out);
+	}
+#elif defined __SSE2__
 	register __m128i in, out;
 
 	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
@@ -126,7 +136,6 @@ ffxor_region(uint8_t *region1, const uint8_t *region2, int length)
 		out = _mm_xor_si128(in, out);
 		_mm_store_si128((void *)region1, out);
 	}
-#endif
 #endif
 
 	for(; length & 0xfffffff8; region1+=8, region2+=8, length-=8)

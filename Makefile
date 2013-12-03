@@ -1,5 +1,5 @@
-CFLAGS:= -O2 -Wall -msse4.1
-LDFLAGS:= -lpthread -lrt
+CFLAGS:= -O2 -Wall -msse2
+LDFLAGS:=
 SRCDIR:=src
 CC:=gcc
 
