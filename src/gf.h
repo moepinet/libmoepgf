@@ -23,7 +23,7 @@
 #include <stdint.h>
 
 //#undef __SSE2__
-	
+
 
 
 #define GF2_POLYNOMIAL		3
