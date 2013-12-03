@@ -200,14 +200,14 @@ main(int argc, char **argv)
 	ffmul16_region_c_slow(buffer1, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "old: %lu sec %lu nsec\n",
+	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 	
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF16].fmulrc(buffer2, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "new: %lu sec %lu nsec\n",
+	fprintf(stderr, "new: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 
 	if (memcmp(buffer1, buffer2, tlen)) {
@@ -220,14 +220,14 @@ main(int argc, char **argv)
 	ffmadd16_region_c_slow(buffer1, buffer3, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "old: %lu sec %lu nsec\n",
+	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 	
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF16].fmaddrc(buffer2, buffer3, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "new: %lu sec %lu nsec\n",
+	fprintf(stderr, "new: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 
 	if (memcmp(buffer1, buffer2, tlen)) {
@@ -240,14 +240,14 @@ main(int argc, char **argv)
 	ffmul256_region_c_slow(buffer1, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "old: %lu sec %lu nsec\n",
+	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 	
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF256].fmulrc(buffer2, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "new: %lu sec %lu nsec\n",
+	fprintf(stderr, "new: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 
 	if (memcmp(buffer1, buffer2, tlen)) {
@@ -260,14 +260,14 @@ main(int argc, char **argv)
 	ffmadd256_region_c_slow(buffer1, buffer3, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "old: %lu sec %lu nsec\n",
+	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 	
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF256].fmaddrc(buffer2, buffer3, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "new: %lu sec %lu nsec\n",
+	fprintf(stderr, "new: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 
 	if (memcmp(buffer1, buffer2, tlen)) {
@@ -280,7 +280,7 @@ main(int argc, char **argv)
 	__galois_fields[GF2].fmaddrc(buffer2, buffer3, 1, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	timespecsub(&end, &start);
-	fprintf(stderr, "new: %lu sec %lu nsec\n",
+	fprintf(stderr, "new: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
 
 	free(buffer1);
@@ -329,7 +329,7 @@ main(int argc, char **argv)
 		mbps *= len;
 		mbps /= 1024*1024;
 
-		fprintf(stderr, "%lu sec %lu nsec (%.2f MiB/s)\n",
+		fprintf(stderr, "%llu sec %llu nsec (%.2f MiB/s)\n",
 			(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec, mbps);
 	}
 
