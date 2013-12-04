@@ -1,7 +1,7 @@
-#define GF16_INVERSE_ELEMENT_TABLE { \
+#define GF16_INV_TABLE { \
 	0,1,9,14,13,11,7,6,15,2,12,5,10,4,3,8, \
 }
-#define GF16_POLYNOMIAL_DIVISION_TABLE { \
+#define GF16_POLYNOMIAL_DIV_TABLE { \
 	{0,0,0,0,}, \
 	{1,2,4,8,}, \
 	{2,4,8,3,}, \
@@ -19,7 +19,7 @@
 	{14,15,13,9,}, \
 	{15,13,9,1,}, \
 }
-#define GF16_MULTIPLICATION_TABLE { \
+#define GF16_MUL_TABLE { \
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,}, \
 	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,}, \
 	{0,2,4,6,8,10,12,14,3,1,7,5,11,9,15,13,}, \

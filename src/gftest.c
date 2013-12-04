@@ -319,10 +319,8 @@ main(int argc, char **argv)
 	encode(frame, generation, len, count, GF2);
 	for (i=0; i<3; i++) {
 		clock_gettime(CLOCK_MONOTONIC, &start);
-		for (j=0; j<repeat; j++) {
+		for (j=0; j<repeat; j++)
 			encode(frame, generation, len, count, i);
-//			fprintf(stdout, "%02x %02x %02x\n", frame[0], frame[1], frame[2]);
-		}
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		timespecsub(&end, &start);
 		mbps = (double)repeat/((double)end.tv_sec + (double)end.tv_nsec*1e-9);
