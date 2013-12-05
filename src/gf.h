@@ -22,9 +22,19 @@
 
 #include <stdint.h>
 
-//#undef __SSE2__
-
-
+#define GF_MEMORY_ALIGNMENT	8
+#ifdef __SSE2__
+#undef GF_MEMORY_ALIGNMENT
+#define GF_MEMORY_ALIGNMENT	16
+#endif
+#ifdef __SSE4_1__
+#undef GF_MEMORY_ALIGNMENT
+#define GF_MEMORY_ALIGNMENT	16
+#endif
+#ifdef __AVX2__
+#undef GF_MEMORY_ALIGNMENT
+#define GF_MEMORY_ALIGNMENT	32
+#endif
 
 #define GF2_POLYNOMIAL		3
 #define GF2_EXPONENT		1
