@@ -335,6 +335,7 @@ main(int argc, char **argv)
 
 	for (i=0; i<count; i++)
 		free(generation[i]);
+	free(generation);
 	free(frame);
 
 	return 0;
