@@ -69,11 +69,11 @@ void clock_gettime(int clk_id, struct timespec *t) {
 
 #define u8_to_float(x)				\
 	({					\
-	 	(float)(x)/255.0;               \
+		(float)(x)/255.0;               \
 	})
 #define float_to_u8(x)				\
 	({					\
-	 	(u8)((x)*255.0);                \
+		(u8)((x)*255.0);                \
 	})
 
 
@@ -118,7 +118,7 @@ main(int argc, char **argv)
 	}
 
 	uint8_t *buffer1, *buffer2, *buffer3;
-       	uint8_t	*test1, *test2, *test3;
+	uint8_t	*test1, *test2, *test3;
 
 	if (posix_memalign((void *)&test1, 32, tlen))
 		exit(-1);
@@ -132,46 +132,46 @@ main(int argc, char **argv)
 	for (i=15; i>=0; i--) {
 		ffmul16_region_c_slow(test1, i, tlen);
 		ffmul16_region_c(test2, i, tlen);
-	
+
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
 			exit(-1);
 		}
 	}
 	fprintf(stderr, "PASS\n");
-	
+
 	fprintf(stderr, "GF16 ffmadd self check... ");
 	init_test_buffers(test1, test2, test3, tlen);
 	for (i=15; i>=0; i--) {
 		ffmadd16_region_c_slow(test1, test3, i, tlen);
 		ffmadd16_region_c(test2, test3, i, tlen);
-	
+
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
 			exit(-1);
 		}
 	}
 	fprintf(stderr, "PASS\n");
-	
+
 	fprintf(stderr, "GF256 ffmul self check... ");
 	init_test_buffers(test1, test2, test3, tlen);
 	for (i=255; i>=0; i--) {
 		ffmul256_region_c_slow(test1, i, tlen);
 		ffmul256_region_c(test2, i, tlen);
-	
+
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
 			exit(-1);
 		}
 	}
 	fprintf(stderr, "PASS\n");
-	
+
 	fprintf(stderr, "GF256 ffmadd self check... ");
 	init_test_buffers(test1, test2, test3, tlen);
 	for (i=15; i>=0; i--) {
 		ffmadd256_region_c_slow(test1, test3, i, tlen);
 		ffmadd256_region_c(test2, test3, i, tlen);
-	
+
 		if (memcmp(test1, test2, tlen)) {
 			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
 			exit(-1);
@@ -183,7 +183,7 @@ main(int argc, char **argv)
 	free(test2);
 	free(test3);
 
-	fprintf(stderr, "\nallocating buffers for benchmark... ");	
+	fprintf(stderr, "\nallocating buffers for benchmark... ");
 	if (posix_memalign((void *)&buffer1, 32, BSIZE))
 		exit(-1);
 	if (posix_memalign((void *)&buffer2, 32, BSIZE))
@@ -193,7 +193,7 @@ main(int argc, char **argv)
 
 	init_test_buffers(buffer1, buffer2, buffer3, BSIZE);
 
-	fprintf(stderr, "done\n");	
+	fprintf(stderr, "done\n");
 
 	fprintf(stderr, "\nGF16 ffmul benchmark...\n");
 	clock_gettime(CLOCK_MONOTONIC, &start);
@@ -202,7 +202,7 @@ main(int argc, char **argv)
 	timespecsub(&end, &start);
 	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-	
+
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF16].fmulrc(buffer2, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
@@ -222,7 +222,7 @@ main(int argc, char **argv)
 	timespecsub(&end, &start);
 	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-	
+
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF16].fmaddrc(buffer2, buffer3, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
@@ -234,7 +234,7 @@ main(int argc, char **argv)
 		fprintf(stderr,"FAIL: results differ");
 		exit(-1);
 	}
-	
+
 	fprintf(stderr, "\nGF256 ffmul benchmark...\n");
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	ffmul256_region_c_slow(buffer1, 7, BSIZE);
@@ -242,7 +242,7 @@ main(int argc, char **argv)
 	timespecsub(&end, &start);
 	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-	
+
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF256].fmulrc(buffer2, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
@@ -262,7 +262,7 @@ main(int argc, char **argv)
 	timespecsub(&end, &start);
 	fprintf(stderr, "old: %llu sec %llu nsec\n",
 		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-	
+
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF256].fmaddrc(buffer2, buffer3, 7, BSIZE);
 	clock_gettime(CLOCK_MONOTONIC, &end);
@@ -274,7 +274,7 @@ main(int argc, char **argv)
 		fprintf(stderr,"FAIL: results differ");
 		exit(-1);
 	}
-	
+
 	fprintf(stderr, "\nGF2 ffmadd benchmark... (c=1)\n");
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	__galois_fields[GF2].fmaddrc(buffer2, buffer3, 1, BSIZE);
@@ -333,6 +333,7 @@ main(int argc, char **argv)
 
 	for (i=0; i<count; i++)
 		free(generation[i]);
+	free(generation);
 	free(frame);
 
 	return 0;
