@@ -1,5 +1,5 @@
 CFLAGS:= -O2 -Wall -mavx2
-LDFLAGS:=
+LDFLAGS:= -lrt
 SRCDIR:=src
 CC:=gcc
 

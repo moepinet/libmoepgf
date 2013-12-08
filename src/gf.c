@@ -31,15 +31,21 @@
 
 #include "gf.h"
 #include "gf2.h"
+#include "gf4.h"
 #include "gf16.h"
 #include "gf256.h"
 
-const struct galois_field __galois_fields[3] = {
+const struct galois_field __galois_fields[4] = {
 	{
+	.name		= "GF2",
+
 	.polynomial	= GF2_POLYNOMIAL,
 	.exponent	= GF2_EXPONENT,
 	.size		= GF2_SIZE,
 	.mask		= GF2_MASK,
+
+	.fmulrctest	= ffmul2_region_c,
+	.fmaddrctest	= ffmadd2_region_c,
 
 	.finv		= ffinv2,
 	.fadd		= ffadd2,
@@ -52,10 +58,36 @@ const struct galois_field __galois_fields[3] = {
 	},
 
 	{
+	.name		= "GF4",
+
+	.polynomial	= GF4_POLYNOMIAL,
+	.exponent	= GF4_EXPONENT,
+	.size		= GF4_SIZE,
+	.mask		= GF4_MASK,
+	
+	.fmulrctest	= ffmul4_region_c_slow,
+	.fmaddrctest	= ffmadd4_region_c_slow,
+
+	.finv		= ffinv4,
+	.fadd		= ffadd4,
+	.fdiv		= ffdiv4,
+	.fmul		= ffmul4,
+	.faddr		= ffadd4_region,
+	.fdivrc		= ffdiv4_region_c,
+	.fmulrc		= ffmul4_region_c,
+	.fmaddrc	= ffmadd4_region_c,
+	},
+
+	{
+	.name		= "GF16",
+
 	.polynomial	= GF16_POLYNOMIAL,
 	.exponent	= GF16_EXPONENT,
 	.size		= GF16_SIZE,
 	.mask		= GF16_MASK,
+	
+	.fmulrctest	= ffmul16_region_c_slow,
+	.fmaddrctest	= ffmadd16_region_c_slow,
 
 	.finv		= ffinv16,
 	.fadd		= ffadd16,
@@ -68,10 +100,15 @@ const struct galois_field __galois_fields[3] = {
 	},
 
 	{
+	.name		= "GF256",
+
 	.polynomial	= GF256_POLYNOMIAL,
 	.exponent	= GF256_EXPONENT,
 	.size		= GF256_SIZE,
 	.mask		= GF256_MASK,
+	
+	.fmulrctest	= ffmul256_region_c_slow,
+	.fmaddrctest	= ffmadd256_region_c_slow,
 
 	.finv		= ffinv256,
 	.fadd		= ffadd256,

@@ -125,7 +125,9 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 
 #if defined __AVX2__
 	register __m256i in1, in2, out, t1, t2, m1, m2, l, h;
-	t1 = __builtin_ia32_vbroadcastsi256((void *)mul[constant]);
+	register __m128i bc;
+	bc = _mm_load_si128((void *)mul[constant]);
+	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	t2 = _mm256_slli_epi64(t1, 4);
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
@@ -251,7 +253,9 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 
 #if defined __AVX2__
 	register __m256i in, out, t1, t2, m1, m2, l, h;
-	t1 = __builtin_ia32_vbroadcastsi256((void *)mul[constant]);
+	register __m128i bc;
+	bc = _mm_load_si128((void *)mul[constant]);
+	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	t2 = _mm256_slli_epi64(t1, 4);
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);

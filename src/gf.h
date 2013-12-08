@@ -41,6 +41,11 @@
 #define GF2_SIZE		(1 << GF2_EXPONENT)
 #define GF2_MASK		(GF2_SIZE - 1)
 
+#define GF4_POLYNOMIAL		7
+#define GF4_EXPONENT		2
+#define GF4_SIZE		(1 << GF4_EXPONENT)
+#define GF4_MASK		(GF4_SIZE - 1)
+
 #define GF16_POLYNOMIAL		19
 #define GF16_EXPONENT		4
 #define GF16_SIZE		(1 << GF16_EXPONENT)
@@ -53,15 +58,21 @@
 
 enum GF_TYPE {
 	GF2	= 0,
-	GF16	= 1,
-	GF256	= 2
+	GF4	= 1,
+	GF16	= 2,
+	GF256	= 3
 };
 
 struct galois_field {
+	char	name[16];
+
 	int	polynomial;
 	int	exponent;
 	int	size;
 	int	mask;
+	
+	void	(* fmulrctest)(uint8_t *, uint8_t, int);
+	void	(* fmaddrctest)(uint8_t *, const uint8_t *, uint8_t, int);
 
 	uint8_t (* finv)(uint8_t);
 	uint8_t	(* fadd)(uint8_t, uint8_t);
@@ -73,7 +84,7 @@ struct galois_field {
 	void	(* fmaddrc)(uint8_t *, const uint8_t *, uint8_t, int);
 };
 
-const struct galois_field __galois_fields[3];
+const struct galois_field __galois_fields[4];
 
 void
 ffdisplay(char* name, void *data, int length);

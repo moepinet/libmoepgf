@@ -99,25 +99,11 @@ encode(uint8_t *dst, uint8_t **buffer, int len, int count, int field)
 	}
 }
 
-int
-main(int argc, char **argv)
+static void
+selftest()
 {
-	int i;
-	struct timespec start, end;
-	uint64_t BSIZE = 1024*1024*10;
+	int i,j;
 	int tlen = 64+19;
-
-	fprintf(stdout, "%d\n", __galois_fields[1].polynomial);
-
-	if (argc > 1)
-		BSIZE = atoi(argv[1]);
-
-	if (BSIZE <= 0 || BSIZE >= 1024UL*1024UL*1024UL*5UL) {
-		fprintf(stderr, "invalid test size");
-		exit(-1);
-	}
-
-	uint8_t *buffer1, *buffer2, *buffer3;
 	uint8_t	*test1, *test2, *test3;
 
 	if (posix_memalign((void *)&test1, 32, tlen))
@@ -127,166 +113,47 @@ main(int argc, char **argv)
 	if (posix_memalign((void *)&test3, 32, tlen))
 		exit(-1);
 
-	fprintf(stderr, "GF16 ffmul self check... ");
-	init_test_buffers(test1, test2, test3, tlen);
-	for (i=15; i>=0; i--) {
-		ffmul16_region_c_slow(test1, i, tlen);
-		ffmul16_region_c(test2, i, tlen);
+	for (i=0; i<4; i++) {
+		fprintf(stderr, "%s fmulrc selftest... ", __galois_fields[i].name);
+		for (j=__galois_fields[i].size-1; j>=0; j--) {
+			init_test_buffers(test1, test2, test3, tlen);
 
-		if (memcmp(test1, test2, tlen)) {
-			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-			exit(-1);
+			__galois_fields[i].fmulrctest(test1, j, tlen);
+			__galois_fields[i].fmulrc(test2, j, tlen);
+
+			if (memcmp(test1, test2, tlen)){
+				fprintf(stderr,"FAIL: results differ, c = %d\n", j);
+				exit(-1);
+			}
 		}
-	}
-	fprintf(stderr, "PASS\n");
+		fprintf(stderr, "PASS\n");
+		fprintf(stderr, "%s fmaddrc selftest... ", __galois_fields[i].name);
+		for (j=__galois_fields[i].size-1; j>=0; j--) {
+			init_test_buffers(test1, test2, test3, tlen);
 
-	fprintf(stderr, "GF16 ffmadd self check... ");
-	init_test_buffers(test1, test2, test3, tlen);
-	for (i=15; i>=0; i--) {
-		ffmadd16_region_c_slow(test1, test3, i, tlen);
-		ffmadd16_region_c(test2, test3, i, tlen);
+			__galois_fields[i].fmaddrctest(test1, test3, j, tlen);
+			__galois_fields[i].fmaddrc(test2, test3, j, tlen);
 
-		if (memcmp(test1, test2, tlen)) {
-			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-			exit(-1);
+			if (memcmp(test1, test2, tlen)){
+				fprintf(stderr,"FAIL: results differ, c = %d\n", j);
+				exit(-1);
+			}
 		}
+		fprintf(stderr, "PASS\n");
 	}
-	fprintf(stderr, "PASS\n");
-
-	fprintf(stderr, "GF256 ffmul self check... ");
-	init_test_buffers(test1, test2, test3, tlen);
-	for (i=255; i>=0; i--) {
-		ffmul256_region_c_slow(test1, i, tlen);
-		ffmul256_region_c(test2, i, tlen);
-
-		if (memcmp(test1, test2, tlen)) {
-			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-			exit(-1);
-		}
-	}
-	fprintf(stderr, "PASS\n");
-
-	fprintf(stderr, "GF256 ffmadd self check... ");
-	init_test_buffers(test1, test2, test3, tlen);
-	for (i=15; i>=0; i--) {
-		ffmadd256_region_c_slow(test1, test3, i, tlen);
-		ffmadd256_region_c(test2, test3, i, tlen);
-
-		if (memcmp(test1, test2, tlen)) {
-			fprintf(stderr,"FAIL: results differ, c = %d\n",i);
-			exit(-1);
-		}
-	}
-	fprintf(stderr, "PASS\n");
 
 	free(test1);
 	free(test2);
 	free(test3);
+}
 
-	fprintf(stderr, "\nallocating buffers for benchmark... ");
-	if (posix_memalign((void *)&buffer1, 32, BSIZE))
-		exit(-1);
-	if (posix_memalign((void *)&buffer2, 32, BSIZE))
-		exit(-1);
-	if (posix_memalign((void *)&buffer3, 32, BSIZE))
-		exit(-1);
+int
+main(int argc, char **argv)
+{
+	int i,j;
+	struct timespec start, end;
 
-	init_test_buffers(buffer1, buffer2, buffer3, BSIZE);
-
-	fprintf(stderr, "done\n");
-
-	fprintf(stderr, "\nGF16 ffmul benchmark...\n");
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	ffmul16_region_c_slow(buffer1, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "old: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	__galois_fields[GF16].fmulrc(buffer2, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "new: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	if (memcmp(buffer1, buffer2, tlen)) {
-		fprintf(stderr,"FAIL: results differ");
-		exit(-1);
-	}
-
-	fprintf(stderr, "\nGF16 ffmadd benchmark...\n");
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	ffmadd16_region_c_slow(buffer1, buffer3, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "old: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	__galois_fields[GF16].fmaddrc(buffer2, buffer3, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "new: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	if (memcmp(buffer1, buffer2, tlen)) {
-		fprintf(stderr,"FAIL: results differ");
-		exit(-1);
-	}
-
-	fprintf(stderr, "\nGF256 ffmul benchmark...\n");
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	ffmul256_region_c_slow(buffer1, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "old: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	__galois_fields[GF256].fmulrc(buffer2, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "new: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	if (memcmp(buffer1, buffer2, tlen)) {
-		fprintf(stderr,"FAIL: results differ");
-		exit(-1);
-	}
-
-	fprintf(stderr, "\nGF256 ffmadd benchmark...\n");
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	ffmadd256_region_c_slow(buffer1, buffer3, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "old: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	__galois_fields[GF256].fmaddrc(buffer2, buffer3, 7, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "new: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	if (memcmp(buffer1, buffer2, tlen)) {
-		fprintf(stderr,"FAIL: results differ");
-		exit(-1);
-	}
-
-	fprintf(stderr, "\nGF2 ffmadd benchmark... (c=1)\n");
-	clock_gettime(CLOCK_MONOTONIC, &start);
-	__galois_fields[GF2].fmaddrc(buffer2, buffer3, 1, BSIZE);
-	clock_gettime(CLOCK_MONOTONIC, &end);
-	timespecsub(&end, &start);
-	fprintf(stderr, "new: %llu sec %llu nsec\n",
-		(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec);
-
-	free(buffer1);
-	free(buffer2);
-	free(buffer3);
-
+	selftest();
 
 	// -----------------------------------------------------------------
 	// Throughput benchmark
@@ -294,8 +161,7 @@ main(int argc, char **argv)
 
 	int len = 2048;
 	int count = 16;
-	int repeat = 1024;
-	int j;
+	int repeat = 1024*128;
 	uint8_t **generation;
 	uint8_t *frame;
 	double mbps;
@@ -317,7 +183,7 @@ main(int argc, char **argv)
 
 	// dry-run to avoid caching panelties for gf2
 	encode(frame, generation, len, count, GF2);
-	for (i=0; i<3; i++) {
+	for (i=0; i<4; i++) {
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		for (j=0; j<repeat; j++)
 			encode(frame, generation, len, count, i);
