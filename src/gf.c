@@ -38,6 +38,7 @@
 const struct galois_field __galois_fields[4] = {
 	{
 	.name		= "GF2",
+	.type		= GF2,
 
 	.polynomial	= GF2_POLYNOMIAL,
 	.exponent	= GF2_EXPONENT,
@@ -59,6 +60,7 @@ const struct galois_field __galois_fields[4] = {
 
 	{
 	.name		= "GF4",
+	.type		= GF4,
 
 	.polynomial	= GF4_POLYNOMIAL,
 	.exponent	= GF4_EXPONENT,
@@ -80,6 +82,7 @@ const struct galois_field __galois_fields[4] = {
 
 	{
 	.name		= "GF16",
+	.type		= GF16,
 
 	.polynomial	= GF16_POLYNOMIAL,
 	.exponent	= GF16_EXPONENT,
@@ -101,6 +104,7 @@ const struct galois_field __galois_fields[4] = {
 
 	{
 	.name		= "GF256",
+	.type		= GF256,
 
 	.polynomial	= GF256_POLYNOMIAL,
 	.exponent	= GF256_EXPONENT,

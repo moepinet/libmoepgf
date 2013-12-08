@@ -103,7 +103,7 @@ static void
 selftest()
 {
 	int i,j;
-	int tlen = 64+19;
+	int tlen = 16384+19;
 	uint8_t	*test1, *test2, *test3;
 
 	if (posix_memalign((void *)&test1, 32, tlen))
@@ -114,7 +114,7 @@ selftest()
 		exit(-1);
 
 	for (i=0; i<4; i++) {
-		fprintf(stderr, "%s fmulrc selftest... ", __galois_fields[i].name);
+		fprintf(stderr, "%s fmulrc selftest...   ", __galois_fields[i].name);
 		for (j=__galois_fields[i].size-1; j>=0; j--) {
 			init_test_buffers(test1, test2, test3, tlen);
 
@@ -126,8 +126,8 @@ selftest()
 				exit(-1);
 			}
 		}
-		fprintf(stderr, "PASS\n");
-		fprintf(stderr, "%s fmaddrc selftest... ", __galois_fields[i].name);
+		fprintf(stderr, "\tPASS\n");
+		fprintf(stderr, "%s fmaddrc selftest...  ", __galois_fields[i].name);
 		for (j=__galois_fields[i].size-1; j>=0; j--) {
 			init_test_buffers(test1, test2, test3, tlen);
 
@@ -139,7 +139,7 @@ selftest()
 				exit(-1);
 			}
 		}
-		fprintf(stderr, "PASS\n");
+		fprintf(stderr, "\tPASS\n");
 	}
 
 	free(test1);
@@ -161,12 +161,12 @@ main(int argc, char **argv)
 
 	int len = 2048;
 	int count = 16;
-	int repeat = 1024*128;
+	int repeat = 1024*512;
 	uint8_t **generation;
 	uint8_t *frame;
 	double mbps;
 
-	// Allocate generation and fill with ranomd data
+	// Allocate generation and fill with random data
 	generation = malloc(count*sizeof(uint8_t *));
 	for (i=0; i<count; i++) {
 		if (posix_memalign((void *)&generation[i], 32, len))
@@ -179,10 +179,9 @@ main(int argc, char **argv)
 	if (posix_memalign((void *)&frame, 32, len))
 		exit(-1);
 
-	fprintf(stderr, "\nEncoding benchmark, len=%d, count=%d\n", len, count);
+	fprintf(stderr, "\nEncoding benchmark, len=%d, count=%d, repetitions=%d\n", 
+			len, count, repeat);
 
-	// dry-run to avoid caching panelties for gf2
-	encode(frame, generation, len, count, GF2);
 	for (i=0; i<4; i++) {
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		for (j=0; j<repeat; j++)
@@ -193,8 +192,9 @@ main(int argc, char **argv)
 		mbps *= len;
 		mbps /= 1024*1024;
 
-		fprintf(stderr, "%llu sec %llu nsec (%.2f MiB/s)\n",
-			(uint64_t)end.tv_sec, (uint64_t)end.tv_nsec, mbps);
+		fprintf(stderr, "%s: %llu sec %llu nsec \t(%.2f MiB/s)\n",
+			__galois_fields[i].name, (uint64_t)end.tv_sec,
+			(uint64_t)end.tv_nsec, mbps);
 	}
 
 	for (i=0; i<count; i++)
