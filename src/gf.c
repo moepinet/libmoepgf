@@ -23,6 +23,9 @@
 #ifdef __AVX2__
 #include <immintrin.h>
 #endif
+#ifdef __ARM_NEON__
+#include <arm_neon.h>
+#endif
 
 #include <string.h>
 #include <stddef.h>
@@ -159,7 +162,16 @@ ffpow(const uint64_t base, const uint64_t previous, const int exponent,
 void
 ffxor_region(uint8_t *region1, const uint8_t *region2, int length)
 {
-#if defined __AVX2__
+#if defined __ARM_NEON__
+	register uint64x2_t in, out;
+	
+	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+		in  = vld1q_u64((void *)region2);
+		out = vld1q_u64((void *)region1);
+		out = veorq_u64(in, out);
+		vst1q_u64((void *)region1, out);
+	}
+#elif defined __AVX2__
 	register __m256i in, out;
 
 	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {

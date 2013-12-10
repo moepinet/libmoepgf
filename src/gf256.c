@@ -26,6 +26,9 @@
 #ifdef __AVX2__
 #include <immintrin.h>
 #endif
+#ifdef __ARM_NEON__
+#include <arm_neon.h>
+#endif
 
 #include <stdio.h>
 #include <stdint.h>
@@ -119,7 +122,7 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 	const uint8_t *p = pt[constant];
 	uint8_t r[8];
 	uint64_t r64[8];
-
+	
 	if (constant == 0)
 		return;
 
@@ -128,7 +131,38 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 		return;
 	}
 
-#if defined __AVX2__
+#if defined __ARM_NEON__
+	uint8_t _th[16];
+	uint8_t _tl[16];
+	int i;
+	for (i=0; i<8; i++) {
+		_th[2*i] = th[constant][i];
+		_th[2*i+1] = th[constant][i+8];
+
+		_tl[2*i] = tl[constant][i];
+		_tl[2*i+1] = tl[constant][i+8];
+	}
+
+	register uint8x8x2_t t1, t2;
+	register uint8x8_t m1, m2, in1, in2, out, l, h;
+	t1 = vld2_u8((void *)_tl);
+	t2 = vld2_u8((void *)_th);
+	m1 = vdup_n_u8(0x0f);
+	m2 = vdup_n_u8(0xf0);
+
+	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+		in2 = vld1_u8((void *)region2);
+		in1 = vld1_u8((void *)region1);
+		l = vand_u8(in2, m1);
+		l = vtbl2_u8(t1, l);
+		h = vand_u8(in2, m2);
+		h = vshr_n_u8(h, 4);
+		h = vtbl2_u8(t2, h);
+		out = veor_u8(h, l);
+		out = veor_u8(out, in1);
+		vst1_u8(region1, out);
+	}
+#elif defined __AVX2__
 	register __m256i t1, t2, m1, m2, in1, in2, out, l, h;
 	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
@@ -297,10 +331,40 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 		return;
 	}
 
-	if(constant == 1)
+	if (constant == 1)
 		return;
 
-#if defined __AVX2__
+#if defined __ARM_NEON__
+	uint8_t _th[16];
+	uint8_t _tl[16];
+	int i;
+	
+	for (i=0; i<8; i++) {
+		_th[2*i] = th[constant][i];
+		_th[2*i+1] = th[constant][i+8];
+
+		_tl[2*i] = tl[constant][i];
+		_tl[2*i+1] = tl[constant][i+8];
+	}
+
+	register uint8x8x2_t t1, t2;
+	register uint8x8_t m1, m2, in, out, l, h;
+	t1 = vld2_u8((void *)_tl);
+	t2 = vld2_u8((void *)_th);
+	m1 = vdup_n_u8(0x0f);
+	m2 = vdup_n_u8(0xf0);
+
+	for (; length & 0xfffffff8; region+=8, length-=8) {
+		in = vld1_u8((void *)region);
+		l = vand_u8(in, m1);
+		l = vtbl2_u8(t1, l);
+		h = vand_u8(in, m2);
+		h = vshr_n_u8(h, 4);
+		h = vtbl2_u8(t2, h);
+		out = veor_u8(h, l);
+		vst1_u8((void *)region, out);
+	}
+#elif defined __AVX2__
 	register __m256i t1, t2, m1, m2, in, out, l, h;
 	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
