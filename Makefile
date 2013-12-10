@@ -3,9 +3,9 @@ LDFLAGS:= -lrt
 SRCDIR:=src
 CC:=gcc
 
-SSE2:=$(shell cat /proc/cpuinfo | grep '^flags' | grep -o sse2 | head -n1)
-SSE41:=$(shell cat /proc/cpuinfo | grep '^flags' | grep -o sse4_1 | head -n1)
-AVX2:=$(shell cat /proc/cpuinfo | grep '^flags' | grep -o avx2 | head -n1)
+SSE2:=$(shell cat /proc/cpuinfo | grep -o sse2 | head -n1)
+SSE41:=$(shell cat /proc/cpuinfo | grep -o sse4_1 | head -n1)
+AVX2:=$(shell cat /proc/cpuinfo | grep -o avx2 | head -n1)
 NEON:=$(shell cat /proc/cpuinfo | grep -o neon | head -n1)
 
 ifeq ($(NEON),neon)
