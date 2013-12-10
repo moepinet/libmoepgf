@@ -132,21 +132,10 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 	}
 
 #if defined __ARM_NEON__
-	uint8_t _th[16];
-	uint8_t _tl[16];
-	int i;
-	for (i=0; i<8; i++) {
-		_th[2*i] = th[constant][i];
-		_th[2*i+1] = th[constant][i+8];
-
-		_tl[2*i] = tl[constant][i];
-		_tl[2*i+1] = tl[constant][i+8];
-	}
-
 	register uint8x8x2_t t1, t2;
 	register uint8x8_t m1, m2, in1, in2, out, l, h;
-	t1 = vld2_u8((void *)_tl);
-	t2 = vld2_u8((void *)_th);
+	t1 = vld2_u8((void *)tl[constant]);
+	t2 = vld2_u8((void *)th[constant]);
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
@@ -335,22 +324,10 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 		return;
 
 #if defined __ARM_NEON__
-	uint8_t _th[16];
-	uint8_t _tl[16];
-	int i;
-	
-	for (i=0; i<8; i++) {
-		_th[2*i] = th[constant][i];
-		_th[2*i+1] = th[constant][i+8];
-
-		_tl[2*i] = tl[constant][i];
-		_tl[2*i+1] = tl[constant][i+8];
-	}
-
 	register uint8x8x2_t t1, t2;
 	register uint8x8_t m1, m2, in, out, l, h;
-	t1 = vld2_u8((void *)_tl);
-	t2 = vld2_u8((void *)_th);
+	t1 = vld2_u8((void *)tl[constant]);
+	t2 = vld2_u8((void *)th[constant]);
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
