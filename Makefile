@@ -1,6 +1,6 @@
 #CFLAGS:= -O2 -Wall -mavx2
-#CFLAGS:= -O2 -Wall -mfpu=neon -mfloat-abi=softfp
-CFLAGS:= -O2 -Wall
+CFLAGS:= -O2 -Wall -mfpu=neon -mfloat-abi=softfp
+#CFLAGS:= -O2 -Wall
 LDFLAGS:= -lrt
 SRCDIR:=src
 CC:=gcc

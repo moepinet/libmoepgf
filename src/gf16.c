@@ -26,6 +26,9 @@
 #ifdef __AVX2__
 #include <immintrin.h>
 #endif
+#ifdef __ARM_NEON__
+#include <arm_neon.h>
+#endif
 
 #include <stdio.h>
 #include <stdint.h>
@@ -43,7 +46,8 @@
 
 static const uint8_t inverses[GF16_SIZE] = GF16_INV_TABLE;
 static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
-static const uint8_t mul[GF16_SIZE][GF16_SIZE] = GF16_MUL_TABLE;
+static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
+static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
 
 inline uint8_t
 ffinv16(uint8_t element)
@@ -123,10 +127,30 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 		return;
 	}
 
-#if defined __AVX2__
+#if defined __ARM_NEON__
+	register uint8x8x2_t t1, t2;
+	register uint8x8_t m1, m2, in1, in2, out, l, h;
+	t1 = vld2_u8((void *)tl[constant]);
+	t2 = vld2_u8((void *)th[constant]);
+	m1 = vdup_n_u8(0x0f);
+	m2 = vdup_n_u8(0xf0);
+
+	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+		in2 = vld1_u8((void *)region2);
+		in1 = vld1_u8((void *)region1);
+		l = vand_u8(in2, m1);
+		l = vtbl2_u8(t1, l);
+		h = vand_u8(in2, m2);
+		h = vshr_n_u8(h, 4);
+		h = vtbl2_u8(t2, h);
+		out = veor_u8(h, l);
+		out = veor_u8(out, in1);
+		vst1_u8(region1, out);
+	}
+#elif defined __AVX2__
 	register __m256i in1, in2, out, t1, t2, m1, m2, l, h;
 	register __m128i bc;
-	bc = _mm_load_si128((void *)mul[constant]);
+	bc = _mm_load_si128((void *)tl[constant]);
 	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	t2 = _mm256_slli_epi64(t1, 4);
 	m1 = _mm256_set1_epi8(0x0f);
@@ -146,7 +170,7 @@ ffmadd16_region_c(uint8_t* region1, const uint8_t* region2,
 	}
 #elif defined __SSE4_1__
 	register __m128i in1, in2, out, t1, t2, m1, m2, l, h;
-	t1 = _mm_loadu_si128((void *)mul[constant]);
+	t1 = _mm_loadu_si128((void *)tl[constant]);
 	t2 = _mm_slli_epi64(t1, 4);
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
@@ -251,10 +275,28 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-#if defined __AVX2__
+#if defined __ARM_NEON__
+	register uint8x8x2_t t1, t2;
+	register uint8x8_t m1, m2, in, out, l, h;
+	t1 = vld2_u8((void *)tl[constant]);
+	t2 = vld2_u8((void *)th[constant]);
+	m1 = vdup_n_u8(0x0f);
+	m2 = vdup_n_u8(0xf0);
+
+	for (; length & 0xfffffff8; region+=8, length-=8) {
+		in = vld1_u8((void *)region);
+		l = vand_u8(in, m1);
+		l = vtbl2_u8(t1, l);
+		h = vand_u8(in, m2);
+		h = vshr_n_u8(h, 4);
+		h = vtbl2_u8(t2, h);
+		out = veor_u8(h, l);
+		vst1_u8((void *)region, out);
+	}
+#elif defined __AVX2__
 	register __m256i in, out, t1, t2, m1, m2, l, h;
 	register __m128i bc;
-	bc = _mm_load_si128((void *)mul[constant]);
+	bc = _mm_load_si128((void *)tl[constant]);
 	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	t2 = _mm256_slli_epi64(t1, 4);
 	m1 = _mm256_set1_epi8(0x0f);
@@ -272,7 +314,7 @@ ffmul16_region_c(uint8_t *region, uint8_t constant, int length)
 	}
 #elif defined __SSE4_1__
 	register __m128i in, out, t1, t2, m1, m2, l, h;
-	t1 = _mm_loadu_si128((void *)mul[constant]);
+	t1 = _mm_loadu_si128((void *)tl[constant]);
 	t2 = _mm_slli_epi64(t1, 4);
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
