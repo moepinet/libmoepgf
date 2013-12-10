@@ -41,8 +41,8 @@
 #error "Invalid prim polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF256_SIZE] = GF256_INVERSE_ELEMENT_TABLE;
-static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIVISION_TABLE;
+static const uint8_t inverses[GF256_SIZE] = GF256_INV_TABLE;
+static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIV_TABLE;
 static const uint8_t tl[GF256_SIZE][16] = GF256_SHUFFLE_LOW_TABLE;
 static const uint8_t th[GF256_SIZE][16] = GF256_SHUFFLE_HIGH_TABLE;
 
@@ -130,8 +130,11 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 
 #if defined __AVX2__
 	register __m256i t1, t2, m1, m2, in1, in2, out, l, h;
-	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
-	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
+	register __m128i bc;
+	bc = _mm_load_si128((void *)tl[constant]);
+	t1 = __builtin_ia32_vbroadcastsi256(bc);
+	bc = _mm_load_si128((void *)th[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256(bc);
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
 
@@ -143,7 +146,7 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 		h = _mm256_and_si256(in2, m2);
 		h = _mm256_srli_epi64(h, 4);
 		h = _mm256_shuffle_epi8(t2, h);
-		out = _mm256_xor_si256(h,l);
+		out = _mm256_xor_si256(h, l);
 		out = _mm256_xor_si256(out, in1);
 		_mm256_store_si256((void *)region1, out);
 	}
@@ -162,7 +165,7 @@ ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
 		h = _mm_and_si128(in2, m2);
 		h = _mm_srli_epi64(h, 4);
 		h = _mm_shuffle_epi8(t2, h);
-		out = _mm_xor_si128(h,l);
+		out = _mm_xor_si128(h, l);
 		out = _mm_xor_si128(out, in1);
 		_mm_store_si128((void *)region1, out);
 	}
@@ -297,7 +300,27 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 	if(constant == 1)
 		return;
 
-#if defined __SSE4_1__
+#if defined __AVX2__
+	register __m256i t1, t2, m1, m2, in, out, l, h;
+	register __m128i bc;
+	bc = _mm_load_si128((void *)tl[constant]);
+	t1 = __builtin_ia32_vbroadcastsi256(bc);
+	bc = _mm_load_si128((void *)th[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256(bc);
+	m1 = _mm256_set1_epi8(0x0f);
+	m2 = _mm256_set1_epi8(0xf0);
+
+	for (; length & 0xffffffe0; region+=32, length-=32) {
+		in = _mm256_load_si256((void *)region);
+		l = _mm256_and_si256(in, m1);
+		l = _mm256_shuffle_epi8(t1, l);
+		h = _mm256_and_si256(in, m2);
+		h = _mm256_srli_epi64(h, 4);
+		h = _mm256_shuffle_epi8(t2, h);
+		out = _mm256_xor_si256(h, l);
+		_mm256_store_si256((void *)region, out);
+	}
+#elif defined __SSE4_1__
 	register __m128i t1, t2, m1, m2, in, out, l, h;
 	t1 = _mm_loadu_si128((void *)tl[constant]);
 	t2 = _mm_loadu_si128((void *)th[constant]);
@@ -311,7 +334,7 @@ ffmul256_region_c(uint8_t *region, uint8_t constant, int length)
 		h = _mm_and_si128(in, m2);
 		h = _mm_srli_epi64(h, 4);
 		h = _mm_shuffle_epi8(t2, h);
-		out = _mm_xor_si128(h,l);
+		out = _mm_xor_si128(h, l);
 		_mm_store_si128((void *)region, out);
 	}
 #elif defined __SSE2__

@@ -1,12 +1,15 @@
 CFLAGS:= -O2 -Wall
-LDFLAGS:=
+LDFLAGS:= -lrt
 SRCDIR:=src
 CC:=gcc
 
 SSE2:=$(shell cat /proc/cpuinfo | grep '^flags' | grep -o sse2 | head -n1)
 SSE41:=$(shell cat /proc/cpuinfo | grep '^flags' | grep -o sse4_1 | head -n1)
 AVX2:=$(shell cat /proc/cpuinfo | grep '^flags' | grep -o avx2 | head -n1)
+NEON:=
 
+ifeq ($(NEON),neon)
+#CFLAGS+= -m???
 ifeq ($(AVX2),avx2)
 CFLAGS+= -mavx2
 else ifeq ($(SSE41),sse4_1)
