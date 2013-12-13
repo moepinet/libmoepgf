@@ -38,7 +38,7 @@
 #include "gf.h"
 #include "gf4.h"
 
-#if GF16_POLYNOMIAL == 19
+#if GF4_POLYNOMIAL == 7
 #include "gf4tables7.h"
 #else
 #error "Invalid prim polynomial or tables not available."
