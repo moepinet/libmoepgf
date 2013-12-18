@@ -36,12 +36,6 @@ ffadd2(uint8_t summand1, uint8_t summand2)
 }
 
 inline uint8_t
-ffdiv2(uint8_t dividend, uint8_t divisor)
-{
-	return dividend;
-}
-
-inline uint8_t
 ffmul2(uint8_t factor1, uint8_t factor2)
 {
 	return factor1 & factor2;
@@ -51,12 +45,6 @@ inline void
 ffadd2_region_gpr(uint8_t *region1, const uint8_t *region2, int length)
 {
 	ffxor_region_gpr(region1, region2, length);
-}
-
-inline void
-ffdiv2_region_c(uint8_t *region, uint8_t constant, int length)
-{
-	return;
 }
 
 inline void

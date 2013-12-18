@@ -89,7 +89,7 @@ init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 
 static inline void
 encode(const struct galois_field *gf, uint8_t *dst, uint8_t **buffer, int len,
-							int count, int field)
+							int count)
 {
 	int i, c;
 
@@ -181,7 +181,7 @@ selftest()
 }
 
 int
-main(int argc, char **argv)
+main()
 {
 	int i,j,k,fset;
 	struct timespec start, end;
@@ -236,7 +236,7 @@ main(int argc, char **argv)
 
 			clock_gettime(CLOCK_MONOTONIC, &start);
 			for (j=0; j<repeat; j++)
-				encode(&gf, frame, generation, len, count, i);
+				encode(&gf, frame, generation, len, count);
 			clock_gettime(CLOCK_MONOTONIC, &end);
 			timespecsub(&end, &start);
 			mbps = (double)repeat/((double)end.tv_sec + (double)end.tv_nsec*1e-9);

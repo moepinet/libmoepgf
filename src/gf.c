@@ -258,37 +258,6 @@ get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset)
 }
 
 void
-ffdisplay(char *name, void *data, int length)
-{
-	fprintf(stderr, "%s:", name);
-	while (length) {
-		fprintf(stderr, " %d%d%d%d%d%d%d%d",
-			*(uint8_t *)data &   1 ? 1 : 0,
-			*(uint8_t *)data &   2 ? 1 : 0,
-			*(uint8_t *)data &   4 ? 1 : 0,
-			*(uint8_t *)data &   8 ? 1 : 0,
-			*(uint8_t *)data &  16 ? 1 : 0,
-			*(uint8_t *)data &  32 ? 1 : 0,
-			*(uint8_t *)data &  64 ? 1 : 0,
-			*(uint8_t *)data & 128 ? 1 : 0
-		);
-		length--;
-		data++;
-	}
-	fprintf(stderr, "\n");
-}
-
-uint64_t
-ffpow(const uint64_t base, const uint64_t previous, const int exponent,
-						const uint64_t polynomial)
-{
-	uint64_t result = previous * 2;
-	if (result >= (1 << exponent))
-		result = result ^ polynomial;
-	return result;
-}
-
-void
 ffxor_region_gpr(uint8_t *region1, const uint8_t *region2, int length)
 {
 	for(; length & 0xfffffff8; region1+=8, region2+=8, length-=8)

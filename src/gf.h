@@ -80,13 +80,6 @@ int
 get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset);
 
 void
-ffdisplay(char* name, void *data, int length);
-
-uint64_t
-ffpow(const uint64_t base, const uint64_t previous, const int exponent,
-						const uint64_t polynomial);
-
-void
 ffxor_region_gpr(uint8_t *region1, const uint8_t *region2, int length);
 
 #ifdef __x86_64__
