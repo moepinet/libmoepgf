@@ -4,9 +4,6 @@
 #include <time.h>
 
 #include "gf.h"
-#include "gf2.h"
-#include "gf16.h"
-#include "gf256.h"
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -17,17 +14,18 @@ static double orwl_timebase = 0.0;
 static uint64_t orwl_timestart = 0;
 
 void clock_gettime(int clk_id, struct timespec *t) {
-  // be more careful in a multithreaded environement
-  if (!orwl_timestart) {
-    mach_timebase_info_data_t tb = { 0 };
-    mach_timebase_info(&tb);
-    orwl_timebase = tb.numer;
-    orwl_timebase /= tb.denom;
-    orwl_timestart = mach_absolute_time();
-  }
-  double diff = (mach_absolute_time() - orwl_timestart) * orwl_timebase;
-  t->tv_sec = diff * ORWL_NANO;
-  t->tv_nsec = diff - (t->tv_sec * ORWL_GIGA);
+	// be more careful in a multithreaded environement
+	double diff;
+	if (!orwl_timestart) {
+		mach_timebase_info_data_t tb = { 0 };
+		mach_timebase_info(&tb);
+		orwl_timebase = tb.numer;
+		orwl_timebase /= tb.denom;
+		orwl_timestart = mach_absolute_time();
+	}
+	diff = (mach_absolute_time() - orwl_timestart) * orwl_timebase;
+	t->tv_sec = diff * ORWL_NANO;
+	t->tv_nsec = diff - (t->tv_sec * ORWL_GIGA);
 }
 #endif
 
