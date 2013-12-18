@@ -76,7 +76,6 @@ void clock_gettime(int clk_id, struct timespec *t) {
 		(u8)((x)*255.0);                \
 	})
 
-
 static void
 init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 {
@@ -89,22 +88,36 @@ init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 }
 
 static inline void
-encode(uint8_t *dst, uint8_t **buffer, int len, int count, int field)
+encode(const struct galois_field *gf, uint8_t *dst, uint8_t **buffer, int len,
+							int count, int field)
 {
 	int i, c;
 
 	for (i=0; i<count; i++) {
-		c = rand() & __galois_fields[field].mask;
-		__galois_fields[field].fmaddrc(dst, buffer[i], c, len);
+		c = rand() & gf->mask;
+		gf->fmaddrc(dst, buffer[i], c, len);
 	}
 }
 
 static void
 selftest()
 {
-	int i,j;
+	int i,j,k,fset;
 	int tlen = 16384+19;
 	uint8_t	*test1, *test2, *test3;
+	struct galois_field gf;
+
+	fset = check_available_simd_extensions();
+	fprintf(stderr, "CPU SIMD extensions detected: ");
+	if (fset & HWCAPS_SIMD_SSE2)
+		fprintf(stderr, "SSE2 ");
+	if (fset & HWCAPS_SIMD_SSE41)
+		fprintf(stderr, "SSE4.1 ");
+	if (fset & HWCAPS_SIMD_AVX2)
+		fprintf(stderr, "AVX2 ");
+	if (fset & HWCAPS_SIMD_NEON)
+		fprintf(stderr, "NEON ");
+	fprintf(stderr, "\n\n");
 
 	if (posix_memalign((void *)&test1, 32, tlen))
 		exit(-1);
@@ -113,33 +126,53 @@ selftest()
 	if (posix_memalign((void *)&test3, 32, tlen))
 		exit(-1);
 
-	for (i=0; i<4; i++) {
-		fprintf(stderr, "%s fmulrc selftest...   ", __galois_fields[i].name);
-		for (j=__galois_fields[i].size-1; j>=0; j--) {
-			init_test_buffers(test1, test2, test3, tlen);
+	for (k=0; k<5; k++) {
+		if (!((1 << k) & fset))
+			continue;
+		fprintf(stderr, "CPU SIMD extensions: ");
+		if ((1 << k) == HWCAPS_SIMD_NONE)
+			fprintf(stderr, "NONE\n");
+		else if ((1 << k) == HWCAPS_SIMD_SSE2)
+			fprintf(stderr, "SSE2\n");
+		else if ((1 << k) == HWCAPS_SIMD_SSE41)
+			fprintf(stderr, "SSE4.1\n");
+		else if ((1 << k) == HWCAPS_SIMD_AVX2)
+			fprintf(stderr, "AVX2\n");
+		else if ((1 << k) == HWCAPS_SIMD_NEON)
+			fprintf(stderr, "NEON\n");
 
-			__galois_fields[i].fmulrctest(test1, j, tlen);
-			__galois_fields[i].fmulrc(test2, j, tlen);
-
-			if (memcmp(test1, test2, tlen)){
-				fprintf(stderr,"FAIL: results differ, c = %d\n", j);
-				exit(-1);
+		for (i=0; i<4; i++) {
+			get_galois_field(&gf, i, (1 << k));
+	
+			fprintf(stderr, "%s fmulrc selftest...   ", gf.name);
+			for (j=gf.size-1; j>=0; j--) {
+				init_test_buffers(test1, test2, test3, tlen);
+	
+				gf.fmulrctest(test1, j, tlen);
+				gf.fmulrc(test2, j, tlen);
+	
+				if (memcmp(test1, test2, tlen)){
+					fprintf(stderr,"FAIL: results differ, c = %d\n", j);
+					exit(-1);
+				}
 			}
-		}
-		fprintf(stderr, "\tPASS\n");
-		fprintf(stderr, "%s fmaddrc selftest...  ", __galois_fields[i].name);
-		for (j=__galois_fields[i].size-1; j>=0; j--) {
-			init_test_buffers(test1, test2, test3, tlen);
-
-			__galois_fields[i].fmaddrctest(test1, test3, j, tlen);
-			__galois_fields[i].fmaddrc(test2, test3, j, tlen);
-
-			if (memcmp(test1, test2, tlen)){
-				fprintf(stderr,"FAIL: results differ, c = %d\n", j);
-				exit(-1);
+			fprintf(stderr, "\tPASS\n");
+			fprintf(stderr, "%s fmaddrc selftest...  ", gf.name);
+			for (j=gf.size-1; j>=0; j--) {
+				init_test_buffers(test1, test2, test3, tlen);
+	
+				gf.fmaddrctest(test1, test3, j, tlen);
+				gf.fmaddrc(test2, test3, j, tlen);
+	
+				if (memcmp(test1, test2, tlen)){
+					fprintf(stderr,"FAIL: results differ, c = %d\n", j);
+					exit(-1);
+				}
 			}
+			fprintf(stderr, "\tPASS\n");
 		}
-		fprintf(stderr, "\tPASS\n");
+
+		fprintf(stderr, "\n");
 	}
 
 	free(test1);
@@ -150,14 +183,16 @@ selftest()
 int
 main(int argc, char **argv)
 {
-	int i,j;
+	int i,j,k,fset;
 	struct timespec start, end;
+	struct galois_field gf;
 
 	selftest();
 
 	// -----------------------------------------------------------------
 	// Throughput benchmark
 	// -----------------------------------------------------------------
+	fset = check_available_simd_extensions();
 
 	int len = 2048;
 	int count = 16;
@@ -182,19 +217,37 @@ main(int argc, char **argv)
 	fprintf(stderr, "\nEncoding benchmark, len=%d, count=%d, repetitions=%d\n", 
 			len, count, repeat);
 
-	for (i=0; i<4; i++) {
-		clock_gettime(CLOCK_MONOTONIC, &start);
-		for (j=0; j<repeat; j++)
-			encode(frame, generation, len, count, i);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		timespecsub(&end, &start);
-		mbps = (double)repeat/((double)end.tv_sec + (double)end.tv_nsec*1e-9);
-		mbps *= len;
-		mbps /= 1024*1024;
+	for (k=0; k<5; k++) {
+		if (!((1 << k) & fset))
+			continue;
+		fprintf(stderr, "CPU SIMD extensions: ");
+		if ((1 << k) == HWCAPS_SIMD_NONE)
+			fprintf(stderr, "NONE\n");
+		else if ((1 << k) == HWCAPS_SIMD_SSE2)
+			fprintf(stderr, "SSE2\n");
+		else if ((1 << k) == HWCAPS_SIMD_SSE41)
+			fprintf(stderr, "SSE4.1\n");
+		else if ((1 << k) == HWCAPS_SIMD_AVX2)
+			fprintf(stderr, "AVX2\n");
+		else if ((1 << k) == HWCAPS_SIMD_NEON)
+			fprintf(stderr, "NEON\n");
+		for (i=0; i<4; i++) {
+			get_galois_field(&gf, i, (1 << k));
 
-		fprintf(stderr, "%s: %llu sec %llu nsec \t(%.2f MiB/s)\n",
-			__galois_fields[i].name, (uint64_t)end.tv_sec,
-			(uint64_t)end.tv_nsec, mbps);
+			clock_gettime(CLOCK_MONOTONIC, &start);
+			for (j=0; j<repeat; j++)
+				encode(&gf, frame, generation, len, count, i);
+			clock_gettime(CLOCK_MONOTONIC, &end);
+			timespecsub(&end, &start);
+			mbps = (double)repeat/((double)end.tv_sec + (double)end.tv_nsec*1e-9);
+			mbps *= len;
+			mbps /= 1024*1024;
+
+			fprintf(stderr, "%s: %llu sec %llu nsec \t(%.2f MiB/s)\n",
+				gf.name, (long long unsigned int)end.tv_sec,
+				(long long unsigned int)end.tv_nsec, mbps);
+		}
+		fprintf(stderr, "\n");
 	}
 
 	for (i=0; i<count; i++)

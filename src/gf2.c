@@ -48,9 +48,9 @@ ffmul2(uint8_t factor1, uint8_t factor2)
 }
 
 inline void
-ffadd2_region(uint8_t *region1, const uint8_t *region2, int length)
+ffadd2_region_gpr(uint8_t *region1, const uint8_t *region2, int length)
 {
-	ffxor_region(region1, region2, length);
+	ffxor_region_gpr(region1, region2, length);
 }
 
 inline void
@@ -60,11 +60,11 @@ ffdiv2_region_c(uint8_t *region, uint8_t constant, int length)
 }
 
 inline void
-ffmadd2_region_c(uint8_t *region1, const uint8_t *region2,
+ffmadd2_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
-		ffxor_region(region1, region2, length);
+		ffxor_region_gpr(region1, region2, length);
 }
 
 inline void
@@ -79,3 +79,50 @@ gf2_init()
 {
 	return;
 }
+
+#ifdef __x86_64__
+inline void
+ffadd2_region_sse2(uint8_t *region1, const uint8_t *region2, int length)
+{
+	ffxor_region_sse2(region1, region2, length);
+}
+
+inline void
+ffadd2_region_avx2(uint8_t *region1, const uint8_t *region2, int length)
+{
+	ffxor_region_avx2(region1, region2, length);
+}
+
+inline void
+ffmadd2_region_c_sse2(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, int length)
+{
+	if (constant != 0)
+		ffxor_region_sse2(region1, region2, length);
+}
+
+inline void
+ffmadd2_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, int length)
+{
+	if (constant != 0)
+		ffxor_region_avx2(region1, region2, length);
+}
+#endif
+
+#ifdef __arm__
+inline void
+ffadd2_region_neon(uint8_t *region1, const uint8_t *region2, int length)
+{
+	ffxor_region_neon(region1, region2, length);
+}
+
+inline void
+ffmadd2_region_c_neon(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, int length)
+{
+	if (constant != 0)
+		ffxor_region_neon(region1, region2, length);
+}
+#endif
+

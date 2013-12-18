@@ -25,33 +25,51 @@
 uint8_t
 ffinv4(uint8_t element);
 
-uint8_t
-ffadd4(uint8_t summand1, uint8_t summand2);
-
-uint8_t
-ffdiv4(uint8_t dividend, uint8_t divisor);
-
-uint8_t
-ffmul4(uint8_t factor1, uint8_t factor2);
-
 void
 ffadd4_region(uint8_t *region1, const uint8_t *region2, int length);
 
 void
-ffdiv4_region_c(uint8_t *region, const uint8_t constant, int length);
-
-void
 ffmadd4_region_c_slow(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
-
 void
-ffmadd4_region_c(uint8_t *region1, const uint8_t *region2,
+ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
 ffmul4_region_c_slow(uint8_t *region, uint8_t constant, int length);
 
 void
-ffmul4_region_c(uint8_t *region, uint8_t constant, int length);
+ffmul4_region_c_gpr(uint8_t *region, uint8_t constant, int length);
+
+#ifdef __x86_64__
+void
+ffadd4_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
+
+void
+ffadd4_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
+
+void
+ffmul4_region_c_sse2(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmul4_region_c_avx2(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmadd4_region_c_sse2(uint8_t *region1, const uint8_t *region2,
+
+					uint8_t constant, int length);
+void
+ffmadd4_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+#endif
+
+#ifdef __arm__
+void
+ffmul4_region_c_neon(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmadd4_region_c_neon(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+#endif
 
 #endif

@@ -21,19 +21,11 @@
 
 #include <stdint.h>
 
-#define GF_MEMORY_ALIGNMENT	8
-#ifdef __SSE2__
-#undef GF_MEMORY_ALIGNMENT
-#define GF_MEMORY_ALIGNMENT	16
-#endif
-#ifdef __SSE4_1__
-#undef GF_MEMORY_ALIGNMENT
-#define GF_MEMORY_ALIGNMENT	16
-#endif
-#ifdef __AVX2__
-#undef GF_MEMORY_ALIGNMENT
-#define GF_MEMORY_ALIGNMENT	32
-#endif
+#define HWCAPS_SIMD_NONE	(1 << 0)
+#define HWCAPS_SIMD_SSE2	(1 << 1)
+#define HWCAPS_SIMD_SSE41	(1 << 2)
+#define HWCAPS_SIMD_AVX2	(1 << 3)
+#define HWCAPS_SIMD_NEON	(1 << 4)
 
 #define GF2_POLYNOMIAL		3
 #define GF2_EXPONENT		1
@@ -64,6 +56,7 @@ enum GF_TYPE {
 
 struct galois_field {
 	char		name[16];
+	uint32_t	simd;
 	enum GF_TYPE	type;
 
 	int	polynomial;
@@ -75,16 +68,16 @@ struct galois_field {
 	void	(* fmaddrctest)(uint8_t *, const uint8_t *, uint8_t, int);
 
 	uint8_t (* finv)(uint8_t);
-	uint8_t	(* fadd)(uint8_t, uint8_t);
-	uint8_t	(* fdiv)(uint8_t, uint8_t);
-	uint8_t	(* fmul)(uint8_t, uint8_t);
 	void	(* faddr)(uint8_t *, const uint8_t *, int);
-	void	(* fdivrc)(uint8_t *, uint8_t, int);
 	void	(* fmulrc)(uint8_t *, uint8_t, int);
 	void	(* fmaddrc)(uint8_t *, const uint8_t *, uint8_t, int);
 };
 
-const struct galois_field __galois_fields[4];
+uint32_t
+check_available_simd_extensions();
+
+int
+get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset);
 
 void
 ffdisplay(char* name, void *data, int length);
@@ -94,6 +87,20 @@ ffpow(const uint64_t base, const uint64_t previous, const int exponent,
 						const uint64_t polynomial);
 
 void
-ffxor_region(uint8_t *region1, const uint8_t *region2, int length);
+ffxor_region_gpr(uint8_t *region1, const uint8_t *region2, int length);
+
+#ifdef __x86_64__
+void
+ffxor_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
+
+void
+ffxor_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
+#endif
+
+#ifdef __arm__
+void
+ffxor_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
+#endif
 
 #endif
+

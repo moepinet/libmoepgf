@@ -3,35 +3,49 @@ LDFLAGS:= -lrt
 SRCDIR:=src
 CC:=gcc
 
-SSE2:=$(shell cat /proc/cpuinfo | grep -o sse2 | head -n1)
-SSE41:=$(shell cat /proc/cpuinfo | grep -o sse4_1 | head -n1)
-AVX2:=$(shell cat /proc/cpuinfo | grep -o avx2 | head -n1)
-NEON:=$(shell cat /proc/cpuinfo | grep -o neon | head -n1)
+ALL_SOURCES=$(wildcard $(SRCDIR)/*.c)
+SOURCES=$(filter-out %_sse2.c %_sse41.c %_avx2.c %_neon.c, $(ALL_SOURCES))
 
-ifeq ($(NEON),neon)
-CFLAGS+= -mfpu=neon -mfloat-abi=softfp
-else ifeq ($(AVX2),avx2)
-CFLAGS+= -mavx2
-else ifeq ($(SSE41),sse4_1)
-CFLAGS+= -msse4.1
-else ifeq ($(SSE2),sse2)
-CFLAGS+= -msse2
-endif
+ALL_OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(ALL_SOURCES))
+OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(SOURCES))
 
-OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
-OBJS+=$(patsubst $(SRCDIR)/gf/%.c, $(SRCDIR)/gf/%.o, $(wildcard $(SRCDIR)/gf/*.c))
+OBJS_SSE2=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_sse2.c))
+OBJS_SSE41=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_sse41.c))
+OBJS_AVX2=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_avx2.c))
+#OBJS_NEON=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_neon.c))
+
+$(OBJS_SSE2):  SIMD_FLAGS_SSE2:= -msse2
+$(OBJS_SSE41): SIMD_FLAGS_SSE41:= -msse4.1
+$(OBJS_AVX2):  SIMD_FLAGS_AVX2:= -mavx2
+#$(OBJS_NEON): SIMD_FLAGS_NEON:= -mneon
 
 TARGET:=gftest
 
-all: $(OBJS)
-	$(CC) -o $(TARGET) $(CFLAGS) $(OBJS) $(LDFLAGS)
+all: $(OBJS) $(OBJS_SSE2) $(OBJS_SSE41) $(OBJS_AVX2)
+	$(CC) -o $(TARGET) $(OBJS) $(OBJS_SSE2) $(OBJS_SSE41) $(OBJS_AVX2) $(LDFLAGS)
 
-%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJS_SSE2): 
+	$(CC) $(CFLAGS) $(SIMD_FLAGS_SSE2) -c $(@:.o=.c) -o $@
+
+$(OBJS_SSE41): 
+	$(CC) $(CFLAGS) $(SIMD_FLAGS_SSE41) -c $(@:.o=.c) -o $@
+
+$(OBJS_AVX2): 
+	$(CC) $(CFLAGS) $(SIMD_FLAGS_AVX2) -c $(@:.o=.c) -o $@
+
+#$(OBJS_NEON): 
+#	$(CC) $(CFLAGS) $(SIMD_FLAGS_NEON) -c $(@:.o=.c) -o $@
+
+$(OBJS):
+	$(CC) $(CFLAGS) -c $(@:.o=.c) -o $@
 
 .PHONY: clean
 clean:
-	rm -frv $(OBJS)
+	rm -fv $(OBJS)
+	rm -fv $(OBJS_SEE2)
+	rm -fv $(OBJS_SEE41)
+	rm -fv $(OBJS_AVX2)
+#	rm -fv $(OBJS_NEON)
 
 .PHONY: dist-clean
 dist-clean: clean

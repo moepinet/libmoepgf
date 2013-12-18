@@ -17,41 +17,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _GF2_H_
-#define _GF2_H_
+#include <arm_neon.h>
 
+#include <string.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
-uint8_t
-ffinv2(uint8_t element);
-
-void
-ffadd2_region_gpr(uint8_t *region1, const uint8_t *region2, int length);
-
-void
-ffmadd2_region_c_gpr(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length);
+#include "gf.h"
+#include "gf2.h"
+#include "gf4.h"
+#include "gf16.h"
+#include "gf256.h"
 
 void
-ffmul2_region_c(uint8_t *region, uint8_t constant, int length);
+ffxor_region_neon(uint8_t *region1, const uint8_t *region2, int length)
+{
+	register uint64x2_t in, out;
 
-#ifdef __x86_64__
-void
-ffadd2_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
+	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+		in  = vld1q_u64((void *)region2);
+		out = vld1q_u64((void *)region1);
+		out = veorq_u64(in, out);
+		vst1q_u64((void *)region1, out);
+	}
 
-void
-ffadd2_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
+	ffxor_region_gpr(region1, region2, length);
+}
 
-void
-ffmadd2_region_c_sse2(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length);
-
-void
-ffmadd2_region_c_avx2(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length);
-#endif
-
-#ifdef __arm__
-#endif
-
-#endif

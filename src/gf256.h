@@ -25,23 +25,11 @@
 uint8_t
 ffinv256(uint8_t element);
 
-uint8_t
-ffadd256(uint8_t summand1, uint8_t summand2);
-
-uint8_t
-ffdiv256(uint8_t dividend, uint8_t divisor);
-
-uint8_t
-ffmul256(uint8_t factor1, uint8_t factor2);
+void
+ffadd256_region_c_gpr(uint8_t *region1, const uint8_t *region2, int length);
 
 void
-ffadd256_region(uint8_t *region1, const uint8_t *region2, int length);
-
-void
-ffdiv256_region_c(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmadd256_region_c(uint8_t *region1, const uint8_t *region2,
+ffmadd256_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
@@ -49,9 +37,59 @@ ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
-ffmul256_region_c(uint8_t *region, uint8_t constant, int length);
+ffmul256_region_c_gpr(uint8_t *region, uint8_t constant, int length);
 
 void
 ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length);
+
+#ifdef __x86_64__
+void
+ffadd256_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
+
+void
+ffadd256_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
+
+void
+ffdiv256_region_c_sse2(uint8_t *region, uint8_t constant, int length);
+
+void
+ffdiv256_region_c_avx2(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmadd256_region_c_sse2(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmadd256_region_c_sse41(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmadd256_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmul256_region_c_sse2(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmul256_region_c_sse41(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmul256_region_c_avx2(uint8_t *region, uint8_t constant, int length);
+#endif
+
+#ifdef __arm__
+void
+ffadd256_region_neon(uint8_t *region1, const uint8_t *region2, int length);
+
+void
+ffdiv256_region_c_neon(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmadd256_region_c_neon(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmul256_region_c_neon(uint8_t *region, uint8_t constant, int length);
+#endif
 
 #endif

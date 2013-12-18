@@ -17,19 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
-#ifdef __SSE4_1__
-#include <smmintrin.h>
-#endif
-#ifdef __AVX2__
-#include <immintrin.h>
-#endif
-#ifdef __ARM_NEON__
-#include <arm_neon.h>
-#endif
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -41,7 +28,7 @@
 #if GF4_POLYNOMIAL == 7
 #include "gf4tables7.h"
 #else
-#error "Invalid prim polynomial or tables not available."
+#error "Invalid prime polynomial or tables not available."
 #endif
 
 static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
@@ -63,27 +50,27 @@ ffadd4(uint8_t summand1, uint8_t summand2)
 inline uint8_t
 ffdiv4(uint8_t dividend, uint8_t divisor)
 {
-	ffmul4_region_c(&dividend, inverses[divisor], 1);
+	ffmul4_region_c_gpr(&dividend, inverses[divisor], 1);
 	return dividend;
 }
 
 inline uint8_t
 ffmul4(uint8_t factor1, uint8_t factor2)
 {
-	ffmul4_region_c(&factor1, factor2, 1);
+	ffmul4_region_c_gpr(&factor2, factor2, 1);
 	return factor1;
 }
 
 inline void
-ffadd4_region(uint8_t* region1, const uint8_t* region2, int length)
+ffadd4_region_gpr(uint8_t* region1, const uint8_t* region2, int length)
 {
-	ffxor_region(region1, region2, length);
+	ffxor_region_gpr(region1, region2, length);
 }
 
 inline void
-ffdiv4_region_c(uint8_t* region, uint8_t constant, int length)
+ffdiv4_region_c_gpr(uint8_t* region, uint8_t constant, int length)
 {
-	ffmul4_region_c(region, inverses[constant], length);
+	ffmul4_region_c_gpr(region, inverses[constant], length);
 }
 
 void
@@ -97,7 +84,7 @@ ffmadd4_region_c_slow(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region(region1, region2, length);
+		ffxor_region_gpr(region1, region2, length);
 		return;
 	}
 
@@ -108,80 +95,13 @@ ffmadd4_region_c_slow(uint8_t* region1, const uint8_t* region2,
 	}
 }
 
-void
-ffmadd4_region_c(uint8_t* region1, const uint8_t* region2,
+inline void
+ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
 	uint64_t r64[4];
-
-	if (constant == 0)
-		return;
-
-	if (constant == 1) {
-		ffxor_region(region1, region2, length);
-		return;
-	}
-
-#if defined __ARM_NEON__
-	register uint8x8_t reg1, reg2, ri[2], sp[2], mi[2];
-	mi[0] = vdup_n_u8(0x55);
-	mi[1] = vdup_n_u8(0xaa);
-	sp[0] = vdup_n_u8(p[0]);
-	sp[1] = vdup_n_u8(p[1]);
-
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
-		reg2 = vld1_u8((void *)region2);
-		reg1 = vld1_u8((void *)region1);
-		ri[0] = vand_u8(reg2, mi[0]);
-		ri[1] = vand_u8(reg2, mi[1]);
-		ri[1] = vshr_n_u8(ri[1], 1);
-		ri[0] = vmul_u8(ri[0], sp[0]);
-		ri[1] = vmul_u8(ri[1], sp[1]);
-		ri[0] = veor_u8(ri[0], ri[1]);
-		ri[0] = veor_u8(ri[0], reg1);
-		vst1_u8((void *)region1, ri[0]);
-	}
-#elif defined __AVX2__
-	register __m256i reg1, reg2, ri[2], sp[2], mi[2];
-	mi[0] = _mm256_set1_epi8(0x55);
-	mi[1] = _mm256_set1_epi8(0xaa);
-	sp[0] = _mm256_set1_epi16(p[0]);
-	sp[1] = _mm256_set1_epi16(p[1]);
-
-	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {
-		reg2 = _mm256_load_si256((void *)region2);
-		reg1 = _mm256_load_si256((void *)region1);
-		ri[0] = _mm256_and_si256(reg2, mi[0]);
-		ri[1] = _mm256_and_si256(reg2, mi[1]);
-		ri[1] = _mm256_srli_epi16(ri[1], 1);
-		ri[0] = _mm256_mullo_epi16(ri[0], sp[0]);
-		ri[1] = _mm256_mullo_epi16(ri[1], sp[1]);
-		ri[0] = _mm256_xor_si256(ri[0], ri[1]);
-		ri[0] = _mm256_xor_si256(ri[0], reg1);
-		_mm256_store_si256((void *)region1, ri[0]);
-	}
-#elif defined __SSE2__
-	register __m128i reg1, reg2, ri[2], sp[2], mi[2];
-	mi[0] = _mm_set1_epi8(0x55);
-	mi[1] = _mm_set1_epi8(0xaa);
-	sp[0] = _mm_set1_epi16(p[0]);
-	sp[1] = _mm_set1_epi16(p[1]);
-
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
-		reg2 = _mm_load_si128((void *)region2);
-		reg1 = _mm_load_si128((void *)region1);
-		ri[0] = _mm_and_si128(reg2, mi[0]);
-		ri[1] = _mm_and_si128(reg2, mi[1]);
-		ri[1] = _mm_srli_epi16(ri[1], 1);
-		ri[0] = _mm_mullo_epi16(ri[0], sp[0]);
-		ri[1] = _mm_mullo_epi16(ri[1], sp[1]);
-		ri[0] = _mm_xor_si128(ri[0], ri[1]);
-		ri[0] = _mm_xor_si128(ri[0], reg1);
-		_mm_store_si128((void *)region1, ri[0]);
-	}
-#endif
 
 	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x5555555555555555)>>0)*p[0];
@@ -218,7 +138,7 @@ ffmul4_region_c_slow(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-ffmul4_region_c(uint8_t *region, uint8_t constant, int length)
+ffmul4_region_c_gpr(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[2];
@@ -231,60 +151,7 @@ ffmul4_region_c(uint8_t *region, uint8_t constant, int length)
 
 	if (constant == 1)
 		return;
-
-#if defined __ARM_NEON__
-	register uint8x8_t reg, ri[2], sp[2], mi[2];
-	mi[0] = vdup_n_u8(0x55);
-	mi[1] = vdup_n_u8(0xaa);
-	sp[0] = vdup_n_u8(p[0]);
-	sp[1] = vdup_n_u8(p[1]);
-
-	for (; length & 0xfffffff8; region+=8, length-=8) {
-		reg = vld1_u8((void *)region);
-		ri[0] = vand_u8(reg, mi[0]);
-		ri[1] = vand_u8(reg, mi[1]);
-		ri[1] = vshr_n_u8(ri[1], 1);
-		ri[0] = vmul_u8(ri[0], sp[0]);
-		ri[1] = vmul_u8(ri[1], sp[1]);
-		ri[0] = veor_u8(ri[0], ri[1]);
-		vst1_u8((void *)region, ri[0]);
-	}
-#elif defined __AVX2__
-	register __m256i reg, ri[2], sp[2], mi[2];
-	mi[0] = _mm256_set1_epi8(0x55);
-	mi[1] = _mm256_set1_epi8(0xaa);
-	sp[0] = _mm256_set1_epi16(p[0]);
-	sp[1] = _mm256_set1_epi16(p[1]);
-
-	for (; length & 0xffffffe0; region+=32, length-=32) {
-		reg = _mm256_load_si256((void *)region);
-		ri[0] = _mm256_and_si256(reg, mi[0]);
-		ri[1] = _mm256_and_si256(reg, mi[1]);
-		ri[1] = _mm256_srli_epi16(ri[1], 1);
-		ri[0] = _mm256_mullo_epi16(ri[0], sp[0]);
-		ri[1] = _mm256_mullo_epi16(ri[1], sp[1]);
-		ri[0] = _mm256_xor_si256(ri[0], ri[1]);
-		_mm256_store_si256((void *)region, ri[0]);
-	}
-#elif defined __SSE2__
-	register __m128i reg, ri[2], sp[2], mi[2];
-	mi[0] = _mm_set1_epi8(0x55);
-	mi[1] = _mm_set1_epi8(0xaa);
-	sp[0] = _mm_set1_epi16(p[0]);
-	sp[1] = _mm_set1_epi16(p[1]);
-
-	for (; length & 0xfffffff0; region+=16, length-=16) {
-		reg = _mm_load_si128((void *)region);
-		ri[0] = _mm_and_si128(reg, mi[0]);
-		ri[1] = _mm_and_si128(reg, mi[1]);
-		ri[1] = _mm_srli_epi16(ri[1], 1);
-		ri[0] = _mm_mullo_epi16(ri[0], sp[0]);
-		ri[1] = _mm_mullo_epi16(ri[1], sp[1]);
-		ri[0] = _mm_xor_si128(ri[0], ri[1]);
-		_mm_store_si128((void *)region, ri[0]);
-	}
-#endif
-
+	
 	for (; length & 0xfffffff8; region+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region & 0x5555555555555555)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region & 0xaaaaaaaaaaaaaaaa)>>1)*p[1];
@@ -297,3 +164,4 @@ ffmul4_region_c(uint8_t *region, uint8_t constant, int length)
 		*region = r[0] ^ r[1];
 	}
 }
+
