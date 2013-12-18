@@ -15,7 +15,7 @@ else ifeq ($(ARCH), arm)
 OBJS_NEON=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_neon.c))
 else
 $(error Unsupported architecture $(ARCH) - please set ARCH variable in Makefile\
- to 'x86' or 'arm')
+ to 'x86', 'arm')
 endif
 
 $(OBJS_SSE2):  SIMD_FLAGS_SSE2:= -msse2

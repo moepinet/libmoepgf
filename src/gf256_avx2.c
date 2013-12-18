@@ -49,7 +49,6 @@ ffmadd256_region_c_avx2(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	register __m256i t1, t2, m1, m2, in1, in2, out, l, h;
-	register __m128i bc;
 
 	if (constant == 0)
 		return;
@@ -59,10 +58,16 @@ ffmadd256_region_c_avx2(uint8_t *region1, const uint8_t *region2,
 		return;
 	}
 
+#ifdef __MACH__
+	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
+#else
+	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
 	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	bc = _mm_load_si128((void *)th[constant]);
 	t2 = __builtin_ia32_vbroadcastsi256(bc);
+#endif
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
 
@@ -86,7 +91,6 @@ void
 ffmul256_region_c_avx2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m256i t1, t2, m1, m2, in, out, l, h;
-	register __m128i bc;
 
 	if (constant == 0) {
 		memset(region, 0, length);
@@ -96,10 +100,16 @@ ffmul256_region_c_avx2(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
+#ifdef __MACH__
+	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
+#else
+	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
 	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	bc = _mm_load_si128((void *)th[constant]);
 	t2 = __builtin_ia32_vbroadcastsi256(bc);
+#endif
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
 
