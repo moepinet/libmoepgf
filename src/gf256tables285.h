@@ -1,3 +1,22 @@
+/*
+ * This file is part of moep80211gf.
+ * 
+ * Copyright (C) 2014 	Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2014 	Maximilian Riemensberger <riemensberger@tum.de>
+ * Copyright (C) 2013 	Alexander Kurtz <alexander@kurtz.be>
+ * 
+ * moep80211gf is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, version 2 of the License.
+ * 
+ * moep80211gf is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License * along
+ * with moep80211gf.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #define GF256_INV_TABLE { \
 0x00,0x01,0x8e,0xf4,0x47,0xa7,0x7a,0xba,0xad,0x9d,0xdd,0x98,0x3d,0xaa,0x5d,0x96,\
 0xd8,0x72,0xc0,0x58,0xe0,0x3e,0x4c,0x66,0x90,0xde,0x55,0x80,0xa0,0x83,0x4b,0x2a,\

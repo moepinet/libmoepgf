@@ -1,3 +1,21 @@
+/*
+ * This file is part of moep80211gf.
+ * 
+ * Copyright (C) 2014 	Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2014 	Maximilian Riemensberger <riemensberger@tum.de>
+ * 
+ * moep80211gf is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, version 2 of the License.
+ * 
+ * moep80211gf is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License * along
+ * with moep80211gf.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,17 +25,23 @@
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
+
 #define ORWL_NANO (+1.0E-9)
 #define ORWL_GIGA UINT64_C(1000000000)
 #define CLOCK_MONOTONIC 0
+
 static double orwl_timebase = 0.0;
 static uint64_t orwl_timestart = 0;
 
-void clock_gettime(int clk_id, struct timespec *t) {
+void clock_gettime(void *clk_id, struct timespec *t) {
 	// be more careful in a multithreaded environement
 	double diff;
+	mach_timebase_info_data_t tb;
+
+	// maintain signature of clock_gettime() but make gcc happy
+	clk_id = NULL;
+
 	if (!orwl_timestart) {
-		mach_timebase_info_data_t tb = { 0 };
 		mach_timebase_info(&tb);
 		orwl_timebase = tb.numer;
 		orwl_timebase /= tb.denom;
@@ -65,13 +89,13 @@ void clock_gettime(int clk_id, struct timespec *t) {
 		(vvp)->tv_nsec = (uvp)->tv_nsec;			\
 	})
 
-#define u8_to_float(x)				\
-	({					\
-		(float)(x)/255.0;               \
+#define u8_to_float(x)							\
+	({								\
+		(float)(x)/255.0;               			\
 	})
-#define float_to_u8(x)				\
-	({					\
-		(u8)((x)*255.0);                \
+#define float_to_u8(x)							\
+	({								\
+		(u8)((x)*255.0);                			\
 	})
 
 static void
@@ -184,20 +208,16 @@ main()
 	int i,j,k,fset;
 	struct timespec start, end;
 	struct galois_field gf;
-
-	selftest();
-
-	// -----------------------------------------------------------------
-	// Throughput benchmark
-	// -----------------------------------------------------------------
-	fset = check_available_simd_extensions();
-
-	int len = 2048;
-	int count = 16;
-	int repeat = 1024*512;
 	uint8_t **generation;
 	uint8_t *frame;
 	double mbps;
+	int len = 2048;
+	int count = 16;
+	int repeat = 1024*512;
+
+	selftest();
+
+	fset = check_available_simd_extensions();
 
 	// Allocate generation and fill with random data
 	generation = malloc(count*sizeof(uint8_t *));
@@ -208,7 +228,6 @@ main()
 			generation[i][j] = rand();
 	}
 
-	// Allocate frame buffer
 	if (posix_memalign((void *)&frame, 32, len))
 		exit(-1);
 

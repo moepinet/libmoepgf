@@ -1,3 +1,22 @@
+/*
+ * This file is part of moep80211gf.
+ * 
+ * Copyright (C) 2014 	Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2014 	Maximilian Riemensberger <riemensberger@tum.de>
+ * Copyright (C) 2013 	Alexander Kurtz <alexander@kurtz.be>
+ * 
+ * moep80211gf is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, version 2 of the License.
+ * 
+ * moep80211gf is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License * along
+ * with moep80211gf.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #define GF16_INV_TABLE { \
 0x00,0x01,0x09,0x0e,0x0d,0x0b,0x07,0x06,0x0f,0x02,0x0c,0x05,0x0a,0x04,0x03,0x08 \
 }
