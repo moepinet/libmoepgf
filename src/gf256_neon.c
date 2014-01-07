@@ -48,8 +48,9 @@ void
 ffmadd256_region_c_neon(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
-	const uint8_t *p = pt[constant];
-	
+	register uint8x8x2_t t1, t2;
+	register uint8x8_t m1, m2, in1, in2, out, l, h;
+
 	if (constant == 0)
 		return;
 
@@ -58,8 +59,6 @@ ffmadd256_region_c_neon(uint8_t *region1, const uint8_t *region2,
 		return;
 	}
 
-	register uint8x8x2_t t1, t2;
-	register uint8x8_t m1, m2, in1, in2, out, l, h;
 	t1 = vld2_u8((void *)tl[constant]);
 	t2 = vld2_u8((void *)th[constant]);
 	m1 = vdup_n_u8(0x0f);
@@ -84,7 +83,8 @@ ffmadd256_region_c_neon(uint8_t *region1, const uint8_t *region2,
 void
 ffmul256_region_c_neon(uint8_t *region, uint8_t constant, int length)
 {
-	const uint8_t *p = pt[constant];
+	register uint8x8x2_t t1, t2;
+	register uint8x8_t m1, m2, in, out, l, h;
 
 	if (constant == 0) {
 		memset(region, 0, length);
@@ -94,8 +94,6 @@ ffmul256_region_c_neon(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-	register uint8x8x2_t t1, t2;
-	register uint8x8_t m1, m2, in, out, l, h;
 	t1 = vld2_u8((void *)tl[constant]);
 	t2 = vld2_u8((void *)th[constant]);
 	m1 = vdup_n_u8(0x0f);

@@ -52,6 +52,12 @@ ffmadd2_region_c_avx2(uint8_t *region1, const uint8_t *region2,
 #endif
 
 #ifdef __arm__
+void
+ffadd2_region_neon(uint8_t *region1, const uint8_t *region2, int length);
+
+void
+ffmadd2_region_c_neon(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, int length);
 #endif
 
 #endif

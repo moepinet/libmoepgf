@@ -1,5 +1,5 @@
-ARCH:=x86
-OS:=osx
+ARCH:=arm
+OS:=linux
 
 CFLAGS:= -O2 -Wall -Wextra -Isrc/
 SRCDIR:=src
@@ -19,6 +19,7 @@ OBJS_SSE41=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_sse41
 OBJS_AVX2=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_avx2.c))
 else ifeq ($(ARCH), arm)
 OBJS_NEON=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*_neon.c))
+CFLAGS+= -mfloat-abi=softfp
 else
 $(error Unsupported architecture $(ARCH) - please set ARCH variable in Makefile\
  to 'x86', 'arm')
@@ -27,7 +28,7 @@ endif
 $(OBJS_SSE2):	SIMD_FLAGS_SSE2:= -msse2
 $(OBJS_SSE41):	SIMD_FLAGS_SSE41:= -msse4.1
 $(OBJS_AVX2):	SIMD_FLAGS_AVX2:= -mavx2
-$(OBJS_NEON):	SIMD_FLAGS_NEON:= -mneon
+$(OBJS_NEON):	SIMD_FLAGS_NEON:= -mfpu=neon
 
 ifeq ($(ARCH), x86)
 OBJS_SIMD=$(OBJS_SSE2) $(OBJS_SSE41) $(OBJS_AVX2)
@@ -39,7 +40,7 @@ endif
 TARGET:=gftest
 
 all: $(OBJS) $(OBJS_SIMD)
-	$(CC) -o $(TARGET) $(OBJS) $(OBJS_SIMD) $(LDFLAGS)
+	$(CC) -o $(TARGET) $(OBJS) $(OBJS_SIMD) $(CFLAGS) $(LDFLAGS)
 
 ifeq ($(ARCH), x86)
 $(OBJS_SSE2):

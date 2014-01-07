@@ -28,6 +28,7 @@
 #include "gf16.h"
 #include "gf256.h"
 
+#ifdef __x86_64__
 static void
 cpuid(unsigned int *eax, unsigned int *ebx, unsigned int *ecx,
 							unsigned int *edx)
@@ -39,14 +40,16 @@ cpuid(unsigned int *eax, unsigned int *ebx, unsigned int *ecx,
 		  "=d" (*edx)
 		: "0" (*eax), "2" (*ecx));
 }
+#endif
 
 uint32_t
 check_available_simd_extensions()
 {
-	unsigned int eax, ebx, ecx, edx;
 	uint32_t ret = 0;
-
 	ret |= HWCAPS_SIMD_NONE;
+
+#ifdef __x86_64__
+	unsigned int eax, ebx, ecx, edx;
 	
 	eax = 1;
 	ebx = ecx = edx = 0;
@@ -61,6 +64,13 @@ check_available_simd_extensions()
 	cpuid(&eax, &ebx, &ecx, &edx);
 	if (ebx & (1 << 5))
 		ret |= HWCAPS_SIMD_AVX2;
+#endif
+
+#ifdef __arm__
+	//FIXME ARM does not have this kind of cpuid. For now, we assume that the
+	//platform we are running on supports neon.
+	ret |= HWCAPS_SIMD_NEON;
+#endif
 
 	return ret;
 }

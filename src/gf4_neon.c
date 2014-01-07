@@ -40,13 +40,13 @@ static const uint8_t mul[GF4_SIZE][GF4_SIZE] = GF4_MUL_TABLE;
 inline void
 ffadd4_region_neon(uint8_t* region1, const uint8_t* region2, int length)
 {
-	ffxor_region_sse2(region1, region2, length);
+	ffxor_region_neon(region1, region2, length);
 }
 
 inline void
 ffdiv4_region_c_neon(uint8_t* region, uint8_t constant, int length)
 {
-	ffmul4_region_c_sse2(region, inverses[constant], length);
+	ffmul4_region_c_neon(region, inverses[constant], length);
 }
 
 void
@@ -115,6 +115,6 @@ ffmul4_region_c_neon(uint8_t *region, uint8_t constant, int length)
 		vst1_u8((void *)region, ri[0]);
 	}
 	
-	ffmul4_region_c_gpr(region1, constant, length);
+	ffmul4_region_c_gpr(region, constant, length);
 }
 
