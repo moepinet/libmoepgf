@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <argp.h>
+#include <errno.h>
 
 #include "gf.h"
 
@@ -97,6 +99,73 @@ void clock_gettime(void *clk_id, struct timespec *t) {
 	({								\
 		(u8)((x)*255.0);                			\
 	})
+/*
+const char *argp_program_version = "ptmsimple 1.0";
+const char *argp_program_bug_address = "<leclaire@in.tum.de>";
+
+static char args_doc[] = "IF FREQ";
+	
+static char doc[] =
+"ptmsimple - a simple packet transfer module for moep80211\n\n"
+"  IF                         Use the radio interface with name IF\n"
+"  FREQ                       Use the frequency FREQ [in Hz] for the radio\n"
+"                             interface; You can use M for MHz or even just\n"
+"                             give the channel number.";
+
+static struct argp_option options[] = {
+	{"fset", 'f', "FSET", 0, "Specify SIMD feature set to be used"},
+	{"size", 's', "SIZE", 0, "Set packet size in B"},
+	{"length", 'l', "LENGTH", 0, "Set generation length"},
+	{}
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state);
+
+static struct argp argp = {
+	options,
+	parse_opt,
+	args_doc,
+	doc
+};
+
+
+struct arguments {
+	int fset;
+	int size;
+	int length;
+} args;
+
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state)
+{
+	struct arguments *args = state->input;
+	char *endptr = NULL;
+			
+	switch (key) {
+	case 'fset':
+
+		break;
+//	case 'a':
+//		if (!(args->addr = ieee80211_aton(arg)))
+//			argp_failure(state, 1, errno, "Invalid hardware address");
+//		break;
+//	case 'm':
+//		args->mtu = strtol(arg, &endptr, 0);
+//		if (endptr != NULL && endptr != arg + strlen(arg))
+//			argp_failure(state, 1, errno, "Invalid mtu: %s", arg);
+//		if (args->mtu <= 0)
+//			argp_failure(state, 1, errno, "Invalid mtu: %d", args->mtu);
+//		break;
+//	case 't':
+//		args->tap = arg;
+//		break;
+	default:
+		return ARGP_ERR_UNKNOWN;
+	}
+
+	return 0;
+}
+*/
 
 static void
 init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
