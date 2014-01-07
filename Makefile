@@ -1,5 +1,5 @@
-ARCH:=arm
-OS:=linux
+ARCH:=x86
+OS:=osx
 
 CFLAGS:= -O2 -Wall -Wextra -Isrc/
 SRCDIR:=src

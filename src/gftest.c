@@ -286,6 +286,14 @@ main()
 
 	selftest();
 
+	frame = malloc(16*sizeof(uint8_t *));
+	get_galois_field(&gf, 2, 0);
+	for (i=0; i<16; i++)
+		frame[i] = i;
+	gf.fmulrc(frame, 14, 16);
+	for (i=0; i<16; i++)
+		fprintf(stderr,"%d * 14 = %d\n", i, frame[i]);
+
 	fset = check_available_simd_extensions();
 
 	// Allocate generation and fill with random data
