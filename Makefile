@@ -1,7 +1,7 @@
-ARCH:=arm
+ARCH:=x86
 OS:=linux
 
-CFLAGS:= -O2 -Wall -Wextra -Isrc/
+CFLAGS:= -O2 -Wall -Wextra -Isrc/ -g
 SRCDIR:=src
 CC:=gcc
 LDFLAGS:= 

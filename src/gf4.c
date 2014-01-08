@@ -103,6 +103,14 @@ ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 	uint8_t r[4];
 	uint64_t r64[4];
 
+	if (constant == 0)
+	       return;
+
+        if (constant == 1) {
+	       ffxor_region_gpr(region1, region2, length);
+	       return;
+        }
+
 	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x5555555555555555)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region2 & 0xaaaaaaaaaaaaaaaa)>>1)*p[1];

@@ -182,9 +182,11 @@ static inline void
 encode(const struct galois_field *gf, uint8_t *dst, uint8_t **buffer, int len,
 							int count)
 {
-	int i, c;
+	int i;
+	int c;
 
 	for (i=0; i<count; i++) {
+//		gf->fmaddrc(dst, buffer[i], gf->finv(i&gf->mask), len);
 		c = rand() & gf->mask;
 		gf->fmaddrc(dst, buffer[i], c, len);
 	}
