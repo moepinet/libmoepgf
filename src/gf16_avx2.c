@@ -60,6 +60,7 @@ ffmadd16_region_c_avx2(uint8_t* region1, const uint8_t* region2,
 
 #ifdef __MACH__
 	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
 #else	
 	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
@@ -101,6 +102,7 @@ ffmul16_region_c_avx2(uint8_t *region, uint8_t constant, int length)
 
 #ifdef __MACH__
 	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
 #else	
 	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
