@@ -24,6 +24,8 @@
 #include <errno.h>
 
 #include "gf.h"
+#include "gf256.h"
+#include "gf256tables285.h"
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -193,12 +195,111 @@ encode(const struct galois_field *gf, uint8_t *dst, uint8_t **buffer, int len,
 }
 
 static void
+generate_gf256_logtables(uint8_t generator)
+{
+	struct galois_field gf;
+	uint8_t log[256];
+	uint8_t alog[256];
+	int i;
+
+	get_galois_field(&gf, GF256, 1);
+
+	memset(log, 0, sizeof(log));
+	memset(alog, 1, sizeof(alog));
+
+	for (i=1; i<256; i++) {
+		gf.fmulrc(alog+i, generator, sizeof(alog)-i);
+	}
+
+	for (i=0; i<256; i++) {
+		log[alog[i]] = i;
+	}
+
+	for (i=0; i<256; i++) {
+		if (i % 16 == 0)
+			fprintf(stderr, "\n");
+		fprintf(stderr, "0x%02x, ", alog[i]);
+	}
+	fprintf(stderr, "\n");
+	for (i=0; i<256; i++) {
+		if (i % 16 == 0)
+			fprintf(stderr, "\n");
+		fprintf(stderr, "0x%02x, ", log[i]);
+	}
+
+}
+	
+static const uint8_t alogt[256] = GF256_ALOG_TABLE;
+static const uint8_t logt[256] = GF256_LOG_TABLE;
+
+static void
 selftest()
 {
 	int i,j,k,fset;
 	int tlen = 16384+19;
+	int fail;
 	uint8_t	*test1, *test2, *test3;
 	struct galois_field gf;
+	uint8_t inv[256] = GF256_INV_TABLE;
+	uint8_t data[256];
+	int generator = 2;
+
+	for (generator=2; generator<3; generator++) {
+//		get_galois_field(&gf, GF256, 1);
+//		memset(logt, 0, sizeof(logt));
+//		memset(alogt, 1, sizeof(alogt));
+//		for (i=1; i<256; i++) {
+//			ffmul256_region_c_gpr(alogt+i, generator, sizeof(alogt)-i);
+//		}
+//	
+//		for (i=0; i<255; i++) {
+//			logt[alogt[i]] = i;
+//		}
+	
+//		for (i=0; i<256; i++) {
+//			if (i % 16 == 0)
+//				fprintf(stderr, "\n");
+//			fprintf(stderr, "0x%02x, ", inv[i]);
+//		}
+//		fprintf(stderr, "\n");
+//		
+//		for (i=0; i<256; i++) {
+//			if (i % 16 == 0)
+//				fprintf(stderr, "\n");
+//			fprintf(stderr, "0x%02x, ", alogt[i]);
+//		}
+//		fprintf(stderr, "\n");
+//		for (i=0; i<256; i++) {
+//			if (i % 16 == 0)
+//				fprintf(stderr, "\n");
+//			fprintf(stderr, "0x%02x, ", logt[i]);
+//		}
+	
+		//generate_gf256_logtables(2);
+	
+		fail = 0;
+		for (j=0; j<256; j++) {	
+			for (i=0; i<256; i++)
+				data[i] = i;
+			for (i=0; i<256; i++) {
+				if (j == 0 || i == 0)
+					continue;
+				k = (logt[i] + logt[j]);
+				if (k > 255)
+					k -= 255;
+				k = alogt[k];
+				ffmul256_region_c_log(data+i, j, 1);
+				fprintf(stderr, "%d %d %d\n", i, k, data[i]); 
+				if (k != data[i]) {
+					fail = 1;
+					exit(1);
+				}
+			}
+		}
+		if (fail == 0) {
+			fprintf(stderr, "fucking prime element is %d\n", generator);
+		}
+	}
 
 	fset = check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: ");
@@ -240,6 +341,9 @@ selftest()
 			fprintf(stderr, "%s fmulrc selftest...   ", gf.name);
 			for (j=gf.size-1; j>=0; j--) {
 				init_test_buffers(test1, test2, test3, tlen);
+				
+				if (i == GF256)
+					gf.fmulrc = ffmul256_region_c_log;	
 	
 				gf.fmulrctest(test1, j, tlen);
 				gf.fmulrc(test2, j, tlen);
@@ -253,7 +357,10 @@ selftest()
 			fprintf(stderr, "%s fmaddrc selftest...  ", gf.name);
 			for (j=gf.size-1; j>=0; j--) {
 				init_test_buffers(test1, test2, test3, tlen);
-	
+
+				if (i == GF256)
+					gf.fmaddrc = ffmadd256_region_c_log;	
+
 				gf.fmaddrctest(test1, test3, j, tlen);
 				gf.fmaddrc(test2, test3, j, tlen);
 	
@@ -271,6 +378,30 @@ selftest()
 	free(test1);
 	free(test2);
 	free(test3);
+}
+
+static inline void
+benchmark_other(struct galois_field *gf, uint8_t **generation, uint8_t *frame,
+		int len, int count, int repeat)
+{
+	struct timespec start, end;
+	double mbps;
+	int j;
+
+	gf->fmaddrc = ffmadd256_region_c_log;
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for (j=0; j<repeat; j++)
+		encode(gf, frame, generation, len, count);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	timespecsub(&end, &start);
+	mbps = (double)repeat/((double)end.tv_sec + (double)end.tv_nsec*1e-9);
+	mbps *= len;
+	mbps /= 1024*1024;
+
+	fprintf(stderr, "%s: %llu sec %llu nsec \t(%.2f MiB/s)\n",
+		gf->name, (long long unsigned int)end.tv_sec,
+		(long long unsigned int)end.tv_nsec, mbps);
 }
 
 int
@@ -304,6 +435,9 @@ main()
 
 	fprintf(stderr, "\nEncoding benchmark, len=%d, count=%d, repetitions=%d\n", 
 			len, count, repeat);
+	
+	get_galois_field(&gf, GF256, 1);
+	benchmark_other(&gf, generation, frame, len, count, repeat);
 
 	for (k=0; k<5; k++) {
 		if (!((1 << k) & fset))
