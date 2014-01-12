@@ -35,8 +35,9 @@ static const uint8_t inverses[GF256_SIZE] = GF256_INV_TABLE;
 static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIV_TABLE;
 static const uint8_t tl[GF256_SIZE][16] = GF256_SHUFFLE_LOW_TABLE;
 static const uint8_t th[GF256_SIZE][16] = GF256_SHUFFLE_HIGH_TABLE;
-static const uint8_t alogt[GF256_SIZE] = GF256_ALOG_TABLE;
+static const uint8_t alogt[2*GF256_SIZE] = GF256_ALOG_TABLE;
 static const uint8_t logt[GF256_SIZE] = GF256_LOG_TABLE;
+static const uint8_t tab[GF256_SIZE][GF256_SIZE] = GF256_MUL_TABLE;
 
 inline uint8_t
 ffinv256(uint8_t element)
@@ -141,9 +142,27 @@ ffmadd256_region_c_log(uint8_t *region1, const uint8_t *region2,
 		if (*region2 == 0)
 			continue;
 		x = l + logt[*region2];
-		if (x > 255)
-			x -= 255;
 		*region1 ^= alogt[x];
+	}
+}
+
+void
+ffmadd256_region_c_table(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	uint8_t l;
+	int x;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		ffxor_region_gpr(region1, region2, length);
+		return ;
+	}
+	
+	for (; length; region1++, region2++, length--) {
+		*region1 ^= tab[constant][*region2];
 	}
 }
 
@@ -167,9 +186,26 @@ ffmul256_region_c_log(uint8_t *region, uint8_t constant, int length)
 		if (*region == 0)
 			continue;
 		x = l + logt[*region];
-		if (x > 255)
-			x -= 255;
 		*region = alogt[x];
+	}
+}
+
+void
+ffmul256_region_c_table(uint8_t *region, uint8_t constant, int length)
+{
+	uint8_t l;
+	int x;
+
+	if (constant == 0) {
+		memset(region, 0, length);
+		return;
+	}
+	
+	if (constant == 1)
+		return;
+	
+	for (; length; region++, length--) {
+		*region = tab[constant][*region];
 	}
 }
 

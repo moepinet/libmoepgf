@@ -199,7 +199,7 @@ generate_gf256_logtables(uint8_t generator)
 {
 	struct galois_field gf;
 	uint8_t log[256];
-	uint8_t alog[256];
+	uint8_t alog[512];
 	int i;
 
 	get_galois_field(&gf, GF256, 1);
@@ -228,8 +228,25 @@ generate_gf256_logtables(uint8_t generator)
 	}
 
 }
+
+generate_gf256_multable() {
+	int i,j;
+	uint8_t mul[256][256];
+
+	for (i=0; i<256; i++) {
+		fprintf(stderr,"{");
+		for (j=0; j<256; j++) {
+			if (j%16 == 0)
+				fprintf(stderr,"\\\n");
+			mul[i][j] = i;
+			ffmul256_region_c_log(&mul[i][j],j,1);
+			fprintf(stderr,"0x%02x,", mul[i][j]);
+		}
+		fprintf(stderr,"\\\n},");
+	}
+}
 	
-static const uint8_t alogt[256] = GF256_ALOG_TABLE;
+static const uint8_t alogt[512] = GF256_ALOG_TABLE;
 static const uint8_t logt[256] = GF256_LOG_TABLE;
 
 static void
@@ -244,37 +261,9 @@ selftest()
 	uint8_t data[256];
 	int generator = 2;
 
+	generate_gf256_multable();
+
 	for (generator=2; generator<3; generator++) {
-//		get_galois_field(&gf, GF256, 1);
-//		memset(logt, 0, sizeof(logt));
-//		memset(alogt, 1, sizeof(alogt));
-//		for (i=1; i<256; i++) {
-//			ffmul256_region_c_gpr(alogt+i, generator, sizeof(alogt)-i);
-//		}
-//	
-//		for (i=0; i<255; i++) {
-//			logt[alogt[i]] = i;
-//		}
-	
-//		for (i=0; i<256; i++) {
-//			if (i % 16 == 0)
-//				fprintf(stderr, "\n");
-//			fprintf(stderr, "0x%02x, ", inv[i]);
-//		}
-//		fprintf(stderr, "\n");
-//		
-//		for (i=0; i<256; i++) {
-//			if (i % 16 == 0)
-//				fprintf(stderr, "\n");
-//			fprintf(stderr, "0x%02x, ", alogt[i]);
-//		}
-//		fprintf(stderr, "\n");
-//		for (i=0; i<256; i++) {
-//			if (i % 16 == 0)
-//				fprintf(stderr, "\n");
-//			fprintf(stderr, "0x%02x, ", logt[i]);
-//		}
-	
 		//generate_gf256_logtables(2);
 	
 		fail = 0;
@@ -289,7 +278,7 @@ selftest()
 					k -= 255;
 				k = alogt[k];
 				ffmul256_region_c_log(data+i, j, 1);
-				fprintf(stderr, "%d %d %d\n", i, k, data[i]); 
+			//	fprintf(stderr, "%d %d %d\n", i, k, data[i]); 
 				if (k != data[i]) {
 					fail = 1;
 					exit(1);
@@ -343,7 +332,7 @@ selftest()
 				init_test_buffers(test1, test2, test3, tlen);
 				
 				if (i == GF256)
-					gf.fmulrc = ffmul256_region_c_log;	
+					gf.fmulrc = ffmul256_region_c_table;	
 	
 				gf.fmulrctest(test1, j, tlen);
 				gf.fmulrc(test2, j, tlen);
@@ -359,7 +348,7 @@ selftest()
 				init_test_buffers(test1, test2, test3, tlen);
 
 				if (i == GF256)
-					gf.fmaddrc = ffmadd256_region_c_log;	
+					gf.fmaddrc = ffmadd256_region_c_table;	
 
 				gf.fmaddrctest(test1, test3, j, tlen);
 				gf.fmaddrc(test2, test3, j, tlen);
@@ -388,7 +377,7 @@ benchmark_other(struct galois_field *gf, uint8_t **generation, uint8_t *frame,
 	double mbps;
 	int j;
 
-	gf->fmaddrc = ffmadd256_region_c_log;
+	gf->fmaddrc = ffmadd256_region_c_table;
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for (j=0; j<repeat; j++)
