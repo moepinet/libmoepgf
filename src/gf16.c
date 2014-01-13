@@ -35,6 +35,9 @@ static const uint8_t inverses[GF16_SIZE] = GF16_INV_TABLE;
 static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
 static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
 static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
+static const uint8_t alogt[2*GF16_SIZE-1] = GF16_ALOG_TABLE;
+static const uint8_t logt[GF16_SIZE] = GF16_LOG_TABLE;
+static const uint8_t mult[GF16_SIZE][GF16_SIZE] = GF16_MUL_TABLE;
 
 inline uint8_t
 ffinv16(uint8_t element)
@@ -102,6 +105,64 @@ ffmadd16_region_c_gpr(uint8_t* region1, const uint8_t* region2,
 		r[2] = ((*region2 & 0x44) >> 2) * p[2];
 		r[3] = ((*region2 & 0x88) >> 3) * p[3];
 		*region1 ^= r[0] ^ r[1] ^ r[2] ^ r[3];
+	}
+}
+
+void
+ffmadd16_region_c_log(uint8_t* region1, const uint8_t* region2,
+					uint8_t constant, int length)
+{
+	uint8_t l;
+	uint8_t tmp,r;
+	int x;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		ffxor_region_gpr(region1, region2, length);
+		return ;
+	}
+
+	l = logt[constant];
+
+	for (; length; region1++, region2++, length--) {
+		tmp = *region2 >> 4;
+
+		r = 0;
+		if (tmp) {
+			x = l + logt[tmp];
+			r = alogt[x] << 4;
+		}
+
+		tmp = *region2 & 0x0f;
+		if (tmp) {
+			x = l + logt[tmp];
+			r |= alogt[x];
+		}
+
+		*region1 ^= r;
+	}
+}
+
+void
+ffmadd16_region_c_table(uint8_t* region1, const uint8_t* region2,
+					uint8_t constant, int length)
+{
+	uint8_t r;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		ffxor_region_gpr(region1, region2, length);
+		return ;
+	}
+
+	for (; length; region1++, region2++, length--) {
+		r = mult[constant][*region2 >> 4] << 4;
+		r |= mult[constant][*region2 & 0x0f];
+		*region1 ^= r;
 	}
 }
 

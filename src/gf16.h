@@ -37,6 +37,14 @@ ffmadd16_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
+ffmadd16_region_c_log(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmadd16_region_c_table(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
 ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length);
 
 void
@@ -62,6 +70,10 @@ ffmadd16_region_c_sse41(uint8_t *region1, const uint8_t *region2,
 
 void
 ffmadd16_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmadd16_region_c_avx2_branchfree(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void

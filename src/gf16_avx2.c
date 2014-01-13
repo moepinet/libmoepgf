@@ -88,6 +88,54 @@ ffmadd16_region_c_avx2(uint8_t* region1, const uint8_t* region2,
 }
 
 void
+ffmadd16_region_c_avx2_branchfree(uint8_t* region1, const uint8_t* region2,
+					uint8_t constant, int length)
+{
+	register __m256i reg1, reg2, ri[4], sp[4], mi[4];
+	const uint8_t *p = pt[constant];
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		ffxor_region_avx2(region1, region2, length);
+		return;
+	}
+	
+	mi[0] = _mm256_set1_epi8(0x11);
+	mi[1] = _mm256_set1_epi8(0x22);
+	mi[2] = _mm256_set1_epi8(0x44);
+	mi[3] = _mm256_set1_epi8(0x88);
+	sp[0] = _mm256_set1_epi16(p[0]);
+	sp[1] = _mm256_set1_epi16(p[1]);
+	sp[2] = _mm256_set1_epi16(p[2]);
+	sp[3] = _mm256_set1_epi16(p[3]);
+
+	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {
+		reg2 = _mm256_load_si256((void *)region2);
+		reg1 = _mm256_load_si256((void *)region1);
+		ri[0] = _mm256_and_si256(reg2, mi[0]);
+		ri[1] = _mm256_and_si256(reg2, mi[1]);
+		ri[2] = _mm256_and_si256(reg2, mi[2]);
+		ri[3] = _mm256_and_si256(reg2, mi[3]);
+		ri[1] = _mm256_srli_epi16(ri[1], 1);
+		ri[2] = _mm256_srli_epi16(ri[2], 2);
+		ri[3] = _mm256_srli_epi16(ri[3], 3);
+		ri[0] = _mm256_mullo_epi16(ri[0], sp[0]);
+		ri[1] = _mm256_mullo_epi16(ri[1], sp[1]);
+		ri[2] = _mm256_mullo_epi16(ri[2], sp[2]);
+		ri[3] = _mm256_mullo_epi16(ri[3], sp[3]);
+		ri[0] = _mm256_xor_si256(ri[0], ri[1]);
+		ri[2] = _mm256_xor_si256(ri[2], ri[3]);
+		ri[0] = _mm256_xor_si256(ri[0], ri[2]);
+		ri[0] = _mm256_xor_si256(ri[0], reg1);
+		_mm256_store_si256((void *)region1, ri[0]);
+	}
+
+	ffmadd16_region_c_gpr(region1, region2, constant, length);
+}
+
+void
 ffmul16_region_c_avx2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m256i in, out, t1, t2, m1, m2, l, h;

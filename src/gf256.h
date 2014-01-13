@@ -41,12 +41,6 @@ ffmadd256_region_c_table(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
-ffmul256_region_c_log(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul256_region_c_table(uint8_t *region, uint8_t constant, int length);
-
-void
 ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
@@ -79,6 +73,10 @@ ffmadd256_region_c_sse41(uint8_t *region1, const uint8_t *region2,
 
 void
 ffmadd256_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmadd256_region_c_avx2_branchfree(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
