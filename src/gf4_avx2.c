@@ -36,6 +36,8 @@
 static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
 static const uint8_t pt[GF4_SIZE][GF16_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
 static const uint8_t mul[GF4_SIZE][GF4_SIZE] = GF4_MUL_TABLE;
+static const uint8_t tl[4][16] = GF4_SHUFFLE_LOW_TABLE;
+static const uint8_t th[4][16] = GF4_SHUFFLE_HIGH_TABLE;
 
 inline void
 ffadd4_region_avx2(uint8_t* region1, const uint8_t* region2, int length)
@@ -46,11 +48,11 @@ ffadd4_region_avx2(uint8_t* region1, const uint8_t* region2, int length)
 inline void
 ffdiv4_region_c_avx2(uint8_t* region, uint8_t constant, int length)
 {
-	ffmul4_region_c_avx2(region, inverses[constant], length);
+	ffmul4_region_c_avx2_shuffle(region, inverses[constant], length);
 }
 
 void
-ffmadd4_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+ffmadd4_region_c_avx2_imul(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	register __m256i reg1, reg2, ri[2], sp[2], mi[2];
@@ -86,7 +88,50 @@ ffmadd4_region_c_avx2(uint8_t *region1, const uint8_t *region2,
 }
 
 void
-ffmul4_region_c_avx2(uint8_t *region, uint8_t constant, int length)
+ffmadd4_region_c_avx2_shuffle(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	register __m256i in1, in2, out, t1, t2, m1, m2, l, h;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		ffxor_region_avx2(region1, region2, length);
+		return;
+	}
+
+#ifdef __MACH__
+	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
+#else	
+	register __m128i bc;
+	bc = _mm_load_si128((void *)tl[constant]);
+	t1 = __builtin_ia32_vbroadcastsi256(bc);
+	bc = _mm_load_si128((void *)th[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256(bc);
+#endif
+	m1 = _mm256_set1_epi8(0x0f);
+	m2 = _mm256_set1_epi8(0xf0);
+
+	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {
+		in2 = _mm256_load_si256((void *)region2);
+		in1 = _mm256_load_si256((void *)region1);
+		l = _mm256_and_si256(in2, m1);
+		l = _mm256_shuffle_epi8(t1, l);
+		h = _mm256_and_si256(in2, m2);
+		h = _mm256_srli_epi64(h, 4);
+		h = _mm256_shuffle_epi8(t2, h);
+		out = _mm256_xor_si256(h,l);
+		out = _mm256_xor_si256(out, in1);
+		_mm256_store_si256((void *)region1, out);
+	}
+	
+	ffmadd4_region_c_gpr(region1, region2, constant, length);
+}
+
+void
+ffmul4_region_c_avx2_imul(uint8_t *region, uint8_t constant, int length)
 {
 	register __m256i reg, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
@@ -118,3 +163,42 @@ ffmul4_region_c_avx2(uint8_t *region, uint8_t constant, int length)
 	ffmul4_region_c_gpr(region, constant, length);
 }
 
+void
+ffmul4_region_c_avx2_shuffle(uint8_t *region, uint8_t constant, int length)
+{
+	register __m256i in, out, t1, t2, m1, m2, l, h;
+
+	if (constant == 0) {
+		memset(region, 0, length);
+		return;
+	}
+
+	if (constant == 1)
+		return;
+
+#ifdef __MACH__
+	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
+#else	
+	register __m128i bc;
+	bc = _mm_load_si128((void *)tl[constant]);
+	t1 = __builtin_ia32_vbroadcastsi256(bc);
+	bc = _mm_load_si128((void *)th[constant]);
+	t2 = __builtin_ia32_vbroadcastsi256(bc);
+#endif
+	m1 = _mm256_set1_epi8(0x0f);
+	m2 = _mm256_set1_epi8(0xf0);
+
+	for (; length & 0xffffffe0; region+=32, length-=32) {
+		in = _mm256_load_si256((void *)region);
+		l = _mm256_and_si256(in, m1);
+		l = _mm256_shuffle_epi8(t1, l);
+		h = _mm256_and_si256(in, m2);
+		h = _mm256_srli_epi64(h, 4);
+		h = _mm256_shuffle_epi8(t2, h);
+		out = _mm256_xor_si256(h,l);
+		_mm256_store_si256((void *)region, out);
+	}
+	
+	ffmul4_region_c_gpr(region, constant, length);
+}

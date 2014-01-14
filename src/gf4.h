@@ -48,18 +48,33 @@ ffadd4_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
 void
 ffadd4_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
 
-void
-ffmul4_region_c_sse2(uint8_t *region, uint8_t constant, int length);
 
 void
-ffmul4_region_c_avx2(uint8_t *region, uint8_t constant, int length);
+ffmul4_region_c_sse2_imul(uint8_t *region, uint8_t constant, int length);
 
 void
-ffmadd4_region_c_sse2(uint8_t *region1, const uint8_t *region2,
+ffmul4_region_c_sse41_shuffle(uint8_t *region, uint8_t constant, int length);
 
+void
+ffmul4_region_c_avx2_imul(uint8_t *region, uint8_t constant, int length);
+
+void
+ffmul4_region_c_avx2_shuffle(uint8_t *region, uint8_t constant, int length);
+
+
+void
+ffmadd4_region_c_sse2_imul(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmadd4_region_c_sse41_shuffle(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 void
-ffmadd4_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+ffmadd4_region_c_avx2_imul(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
+ffmadd4_region_c_avx2_shuffle(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 #endif
 

@@ -158,8 +158,8 @@ get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset)
 
 		case GF4:
 			gf->faddr		= ffxor_region_avx2;
-			gf->fmulrc		= ffmul4_region_c_avx2;
-			gf->fmaddrc		= ffmadd4_region_c_avx2;
+			gf->fmulrc		= ffmul4_region_c_avx2_shuffle;
+			gf->fmaddrc		= ffmadd4_region_c_avx2_shuffle;
 			break;
 		
 		case GF16:
@@ -186,8 +186,8 @@ get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset)
 
 		case GF4:
 			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul4_region_c_sse2;
-			gf->fmaddrc		= ffmadd4_region_c_sse2;
+			gf->fmulrc		= ffmul4_region_c_sse41_shuffle;
+			gf->fmaddrc		= ffmadd4_region_c_sse41_shuffle;
 			break;
 		
 		case GF16:
@@ -215,8 +215,8 @@ get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset)
 
 		case GF4:
 			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul4_region_c_sse2;
-			gf->fmaddrc		= ffmadd4_region_c_sse2;
+			gf->fmulrc		= ffmul4_region_c_sse2_imul;
+			gf->fmaddrc		= ffmadd4_region_c_sse2_imul;
 			break;
 		
 		case GF16:

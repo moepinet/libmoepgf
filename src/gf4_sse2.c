@@ -46,11 +46,11 @@ ffadd4_region_sse2(uint8_t* region1, const uint8_t* region2, int length)
 inline void
 ffdiv4_region_c_sse2(uint8_t* region, uint8_t constant, int length)
 {
-	ffmul4_region_c_sse2(region, inverses[constant], length);
+	ffmul4_region_c_sse2_imul(region, inverses[constant], length);
 }
 
 void
-ffmadd4_region_c_sse2(uint8_t *region1, const uint8_t *region2,
+ffmadd4_region_c_sse2_imul(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	register __m128i reg1, reg2, ri[2], sp[2], mi[2];
@@ -86,7 +86,7 @@ ffmadd4_region_c_sse2(uint8_t *region1, const uint8_t *region2,
 }
 
 void
-ffmul4_region_c_sse2(uint8_t *region, uint8_t constant, int length)
+ffmul4_region_c_sse2_imul(uint8_t *region, uint8_t constant, int length)
 {
 	register __m128i reg, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
