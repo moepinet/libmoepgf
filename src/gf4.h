@@ -36,6 +36,10 @@ ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
+ffmadd4_region_c_table(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
 ffmul4_region_c_slow(uint8_t *region, uint8_t constant, int length);
 
 void

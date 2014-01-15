@@ -23,12 +23,13 @@
 #include <argp.h>
 #include <errno.h>
 
+#include "gf16.h"
 #include "gf.h"
 #include "gf256.h"
-#include "gf16.h"
 #include "gf4.h"
 #include "gf2.h"
 #include "gf256tables285.h"
+#include "gf16tables19.h"
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -278,6 +279,11 @@ struct gf gf[] = {
 		.mask = 0x03,
 		.maddrc = {
 			{
+				.fun 	= ffmadd4_region_c_table,
+				.hwcaps = HWCAPS_SIMD_NONE,
+				.name 	= "lookup table"
+			},
+			{
 				.fun 	= ffmadd4_region_c_gpr,
 				.hwcaps = HWCAPS_SIMD_NONE,
 				.name 	= "imul GPR"
@@ -301,11 +307,6 @@ struct gf gf[] = {
 				.fun 	= ffmadd4_region_c_avx2_shuffle,
 				.hwcaps = HWCAPS_SIMD_AVX2,
 				.name 	= "shuffle AVX2"
-			},
-			{
-				.fun 	= NULL,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= ""
 			},
 			{
 				.fun 	= NULL,
@@ -541,6 +542,126 @@ generate_multable(struct galois_field *gf) {
 	free(mul);
 }
 
+static uint8_t **
+generate_polynomial_div_table(int gf_exponent, uint32_t gf_ppoly)
+{
+	int i,j;
+	int gf_size = 1 << gf_exponent;
+	int gf_mask = gf_size - 1;
+	static uint8_t pt[256][256];
+
+	for (i=0; i<256; i++)
+		memset(pt[i], 0, 256);
+
+	for (i=0; i<256; i++) {	
+		pt[i][0] = i;
+		for (j=1; j<8; j++) {
+			pt[i][j] = pt[i][j-1] << 1;
+			if (pt[i][j-1] & 0x80)
+				pt[i][j] ^= gf_ppoly & gf_mask;
+		}
+	}
+
+	return (uint8_t **)pt;
+}
+
+static void
+generate_mul_table(struct galois_field *gf)
+{
+	int i,j,k,wcount,wsize,temp;
+	uint8_t *word;
+	uint8_t **table;
+	
+	wsize	= gf->exponent;
+	wcount	= 8 / wsize;
+
+	table = malloc(gf->size * sizeof(table));
+	for (i=0; i<gf->size; i++)
+		table[i] = malloc(256);
+	word = malloc(wcount * sizeof(temp));
+
+	for (i=0; i<gf->size; i++) {
+		for (j=0; j<256; j++) {
+			temp = 0;
+			for (k=0; k<wcount; k++) {
+				word[k] = i >> (k*wsize);
+				word[k] &= gf->mask;
+				//word[k] = gf->mul[i][word[k]];
+				temp |= word[k] << (k*wsize);
+			}
+			table[i][j] = temp;
+		}
+	}
+
+	for (i=0; i<gf->size; i++) {
+		for (j=0; j<256; j++) {
+			if ((j % 256) == 0)
+				fprintf(stdout, "\n");
+			fprintf(stdout, "0x%02x,", table[i][j]);
+		}
+		fprintf(stdout, "\n");
+	}
+
+	for (i=0; i<256; i++)
+		free(table[i]);
+	free(table);
+	free(word);
+}
+
+static void
+generate_gf4_multable()
+{
+	int i,j;
+	uint8_t mtab[4][256];
+	uint8_t mul[4][4] = GF4_MUL_TABLE;
+	uint8_t w0,w1,w2,w3;
+
+	for (i=0; i<4; i++) {
+		for (j=0; j<256; j++) {
+			if ((j%16) == 0)
+				fprintf(stderr, "\n");
+			w0 = j & 0x03;
+			w1 = (j >> 2) & 0x03;
+			w2 = (j >> 4) & 0x03;
+			w3 = (j >> 6) & 0x03;
+
+			w0 = mul[i][w0];
+			w1 = mul[i][w1];
+			w2 = mul[i][w2];
+			w3 = mul[i][w3];
+
+			mtab[i][j] = (w3 << 6) | (w2 << 4) | (w1 << 2) | w0;
+			fprintf(stderr, "0x%02x,", mtab[i][j]);
+		}
+		fprintf(stderr, "\n");
+	}
+}
+
+static void
+generate_gf16_multable()
+{
+	int i,j;
+	uint8_t mtab[16][256];
+	uint8_t mul[16][16] = GF16_MUL_TABLE;
+	uint8_t w0,w1;
+
+	for (i=0; i<16; i++) {
+		for (j=0; j<256; j++) {
+			if ((j%16) == 0)
+				fprintf(stderr, "\\\n");
+			w0 = j & 0x0f;
+			w1 = (j >> 4) & 0x0f;
+
+			w0 = mul[i][w0];
+			w1 = mul[i][w1];
+
+			mtab[i][j] = (w1 << 4) | w0;
+			fprintf(stderr, "0x%02x,", mtab[i][j]);
+		}
+		fprintf(stderr, "\\\n},{");
+	}
+}
+
 static void
 selftest()
 {
@@ -553,7 +674,8 @@ selftest()
 	get_galois_field(&gf, GF256, 1);
 //	generate_logtables(&gf);
 //	generate_multable(&gf);
-	generate_gf4_shuffle_tables();
+	//generate_gf4_shuffle_tables();
+	generate_gf16_multable();
 
 	fset = check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: ");
@@ -609,8 +731,8 @@ selftest()
 			for (j=gf.size-1; j>=0; j--) {
 				init_test_buffers(test1, test2, test3, tlen);
 
-				if (i == GF4) {
-					gf.fmaddrc = ffmadd4_region_c_avx2_shuffle;
+				if (i == GF16) {
+					gf.fmaddrc = ffmadd16_region_c_table;
 				}
 				gf.fmaddrctest(test1, test3, j, tlen);
 				gf.fmaddrc(test2, test3, j, tlen);

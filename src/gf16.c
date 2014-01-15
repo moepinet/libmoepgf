@@ -38,6 +38,7 @@ static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
 static const uint8_t alogt[2*GF16_SIZE-1] = GF16_ALOG_TABLE;
 static const uint8_t logt[GF16_SIZE] = GF16_LOG_TABLE;
 static const uint8_t mult[GF16_SIZE][GF16_SIZE] = GF16_MUL_TABLE;
+static const uint8_t multab[GF16_SIZE][256] = GF16_LOOKUP_TABLE;
 
 inline uint8_t
 ffinv16(uint8_t element)
@@ -109,6 +110,23 @@ ffmadd16_region_c_gpr(uint8_t* region1, const uint8_t* region2,
 }
 
 void
+ffmadd16_region_c_table(uint8_t* region1, const uint8_t* region2,
+					uint8_t constant, int length)
+{
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		ffxor_region_gpr(region1, region2, length);
+		return;
+	}
+
+	for (; length; region1++, region2++, length--) {
+		*region1 ^= multab[constant][*region2];
+	}
+}
+
+void
 ffmadd16_region_c_log(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
@@ -141,27 +159,6 @@ ffmadd16_region_c_log(uint8_t* region1, const uint8_t* region2,
 			r |= alogt[x];
 		}
 
-		*region1 ^= r;
-	}
-}
-
-void
-ffmadd16_region_c_table(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
-{
-	uint8_t r;
-
-	if (constant == 0)
-		return;
-
-	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
-		return ;
-	}
-
-	for (; length; region1++, region2++, length--) {
-		r = mult[constant][*region2 >> 4] << 4;
-		r |= mult[constant][*region2 & 0x0f];
 		*region1 ^= r;
 	}
 }

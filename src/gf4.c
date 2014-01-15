@@ -34,6 +34,7 @@
 static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
 static const uint8_t pt[GF4_SIZE][GF16_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
 static const uint8_t mul[GF4_SIZE][GF4_SIZE] = GF4_MUL_TABLE;
+static const uint8_t multab[GF4_SIZE][256] = GF4_LOOKUP_TABLE;
 
 inline uint8_t
 ffinv4(uint8_t element)
@@ -121,6 +122,23 @@ ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 		r[0] = ((*region2 & 0x55) >> 0) * p[0];
 		r[1] = ((*region2 & 0xaa) >> 1) * p[1];
 		*region1 ^= r[0] ^ r[1];
+	}
+}
+
+inline void
+ffmadd4_region_c_table(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	if (constant == 0)
+	       return;
+
+        if (constant == 1) {
+	       ffxor_region_gpr(region1, region2, length);
+	       return;
+        }
+
+	for (; length; region1++, region2++, length--) {
+		*region1 ^= multab[constant][*region2];
 	}
 }
 
