@@ -36,7 +36,6 @@ else ifeq ($(ARCH), arm)
 OBJS_SIMD=$(OBJS_NEON)
 endif
 
-
 TARGET:=gftest
 
 all: $(OBJS) $(OBJS_SIMD)

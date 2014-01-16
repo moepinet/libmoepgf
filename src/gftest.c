@@ -542,72 +542,6 @@ generate_multable(struct galois_field *gf) {
 	free(mul);
 }
 
-static uint8_t **
-generate_polynomial_div_table(int gf_exponent, uint32_t gf_ppoly)
-{
-	int i,j;
-	int gf_size = 1 << gf_exponent;
-	int gf_mask = gf_size - 1;
-	static uint8_t pt[256][256];
-
-	for (i=0; i<256; i++)
-		memset(pt[i], 0, 256);
-
-	for (i=0; i<256; i++) {	
-		pt[i][0] = i;
-		for (j=1; j<8; j++) {
-			pt[i][j] = pt[i][j-1] << 1;
-			if (pt[i][j-1] & 0x80)
-				pt[i][j] ^= gf_ppoly & gf_mask;
-		}
-	}
-
-	return (uint8_t **)pt;
-}
-
-static void
-generate_mul_table(struct galois_field *gf)
-{
-	int i,j,k,wcount,wsize,temp;
-	uint8_t *word;
-	uint8_t **table;
-	
-	wsize	= gf->exponent;
-	wcount	= 8 / wsize;
-
-	table = malloc(gf->size * sizeof(table));
-	for (i=0; i<gf->size; i++)
-		table[i] = malloc(256);
-	word = malloc(wcount * sizeof(temp));
-
-	for (i=0; i<gf->size; i++) {
-		for (j=0; j<256; j++) {
-			temp = 0;
-			for (k=0; k<wcount; k++) {
-				word[k] = i >> (k*wsize);
-				word[k] &= gf->mask;
-				//word[k] = gf->mul[i][word[k]];
-				temp |= word[k] << (k*wsize);
-			}
-			table[i][j] = temp;
-		}
-	}
-
-	for (i=0; i<gf->size; i++) {
-		for (j=0; j<256; j++) {
-			if ((j % 256) == 0)
-				fprintf(stdout, "\n");
-			fprintf(stdout, "0x%02x,", table[i][j]);
-		}
-		fprintf(stdout, "\n");
-	}
-
-	for (i=0; i<256; i++)
-		free(table[i]);
-	free(table);
-	free(word);
-}
-
 static void
 generate_gf4_multable()
 {
@@ -731,8 +665,8 @@ selftest()
 			for (j=gf.size-1; j>=0; j--) {
 				init_test_buffers(test1, test2, test3, tlen);
 
-				if (i == GF16) {
-					gf.fmaddrc = ffmadd16_region_c_table;
+				if (i == GF256) {
+					gf.fmaddrc = ffmadd256_region_c_avx2;
 				}
 				gf.fmaddrctest(test1, test3, j, tlen);
 				gf.fmaddrc(test2, test3, j, tlen);
