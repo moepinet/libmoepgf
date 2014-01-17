@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include <sys/types.h>
 
 enum GF_TYPE {
@@ -10,6 +11,9 @@ enum GF_TYPE {
 	GF16	= 2,
 	GF256	= 3
 };
+
+#define SBUF_SIZE 1024*1024
+static char sbuf[SBUF_SIZE];
 
 struct galois_field {
 	enum GF_TYPE type;
@@ -33,13 +37,36 @@ struct {
 	.gf256	= {285,299,301,333,351,355,357,361,369,391,397,425,451,463,487,501}
 };
 
-void
+static void
 print_usage(const char *name)
 {
 	fprintf(stdout, "\nUsage: %s -s <field_size> -p <ppoly>\n\n", name);
 }
 
-int
+static int
+print(const char *fmt, ...)
+{
+	static int init_done = 0;
+	static int len = 0;
+
+	if (!init_done) {
+		memset(sbuf, 0, SBUF_SIZE);
+		init_done = 1;
+	}
+
+	va_list args;
+
+	va_start(args, fmt);
+	len += vsnprintf(sbuf, SBUF_SIZE-len, fmt, args);
+	va_end(args);
+
+	if (len >= SBUF_SIZE)
+		return -1;
+
+	return 0;
+}
+
+static int
 ld(int x)
 {
 	int ret = 0;
