@@ -37,7 +37,7 @@
  */
 #define HWCAPS_SIMD_NONE	(1 << 0)
 #define HWCAPS_SIMD_SSE2	(1 << 1)
-#define HWCAPS_SIMD_SSE41	(1 << 2)
+#define HWCAPS_SIMD_SSSE3	(1 << 2)
 #define HWCAPS_SIMD_AVX2	(1 << 3)
 #define HWCAPS_SIMD_NEON	(1 << 4)
 

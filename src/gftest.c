@@ -23,6 +23,8 @@
 #include <argp.h>
 #include <errno.h>
 
+#include "immintrin.h"
+
 #include "gf16.h"
 #include "gf.h"
 #include "gf256.h"
@@ -220,9 +222,9 @@ struct gf gf[] = {
 				.name 	= "imul AVX2"
 			},
 			{
-				.fun 	= ffmadd256_region_c_sse41,
-				.hwcaps = HWCAPS_SIMD_SSE41,
-				.name 	= "shuffle SSE4.1"
+				.fun 	= ffmadd256_region_c_ssse3,
+				.hwcaps = HWCAPS_SIMD_SSSE3,
+				.name 	= "shuffle SSSE3"
 			},
 			{
 				.fun 	= ffmadd256_region_c_avx2,
@@ -262,9 +264,9 @@ struct gf gf[] = {
 				.name 	= "imul AVX2"
 			},
 			{
-				.fun 	= ffmadd16_region_c_sse41,
-				.hwcaps = HWCAPS_SIMD_SSE41,
-				.name 	= "shuffle SSE4.1"
+				.fun 	= ffmadd16_region_c_ssse3,
+				.hwcaps = HWCAPS_SIMD_SSSE3,
+				.name 	= "shuffle SSSE3"
 			},
 			{
 				.fun 	= ffmadd16_region_c_avx2,
@@ -299,9 +301,9 @@ struct gf gf[] = {
 				.name 	= "imul AVX2"
 			},
 			{
-				.fun 	= ffmadd4_region_c_sse41_shuffle,
-				.hwcaps = HWCAPS_SIMD_SSE41,
-				.name 	= "shuffle SSE4.1"
+				.fun 	= ffmadd4_region_c_ssse3_shuffle,
+				.hwcaps = HWCAPS_SIMD_SSSE3,
+				.name 	= "shuffle SSSE3"
 			},
 			{
 				.fun 	= ffmadd4_region_c_avx2_shuffle,
@@ -359,6 +361,16 @@ struct gf gf[] = {
 	}
 };
 
+static inline uint16_t
+__rand()
+{
+	uint64_t val;
+
+	(void) _rdrand64_step(&val);
+
+	return val;
+}
+
 static void
 init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 {
@@ -379,7 +391,7 @@ encode(const struct galois_field *gf, uint8_t *dst, uint8_t **buffer, int len,
 
 	for (i=0; i<count; i++) {
 //		gf->fmaddrc(dst, buffer[i], gf->finv(i&gf->mask), len);
-		c = rand() & gf->mask;
+		c = __rand() & gf->mask;
 		gf->fmaddrc(dst, buffer[i], c, len);
 	}
 }
@@ -615,8 +627,8 @@ selftest()
 	fprintf(stderr, "CPU SIMD extensions detected: ");
 	if (fset & HWCAPS_SIMD_SSE2)
 		fprintf(stderr, "SSE2 ");
-	if (fset & HWCAPS_SIMD_SSE41)
-		fprintf(stderr, "SSE4.1 ");
+	if (fset & HWCAPS_SIMD_SSSE3)
+		fprintf(stderr, "SSSE3 ");
 	if (fset & HWCAPS_SIMD_AVX2)
 		fprintf(stderr, "AVX2 ");
 	if (fset & HWCAPS_SIMD_NEON)
@@ -638,8 +650,8 @@ selftest()
 			fprintf(stderr, "NONE\n");
 		else if ((1 << k) == HWCAPS_SIMD_SSE2)
 			fprintf(stderr, "SSE2\n");
-		else if ((1 << k) == HWCAPS_SIMD_SSE41)
-			fprintf(stderr, "SSE4.1\n");
+		else if ((1 << k) == HWCAPS_SIMD_SSSE3)
+			fprintf(stderr, "SSSE3\n");
 		else if ((1 << k) == HWCAPS_SIMD_AVX2)
 			fprintf(stderr, "AVX2\n");
 		else if ((1 << k) == HWCAPS_SIMD_NEON)

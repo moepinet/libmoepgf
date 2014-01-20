@@ -17,7 +17,7 @@
  * with moep80211gf.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <smmintrin.h>
+#include <tmmintrin.h>
 
 #include <stdio.h>
 #include <stdint.h>
@@ -25,21 +25,21 @@
 #include <string.h>
 
 #include "gf.h"
-#include "gf4.h"
+#include "gf16.h"
 
-#if GF4_POLYNOMIAL == 7
-#include "gf4tables7.h"
+#if GF16_POLYNOMIAL == 19
+#include "gf16tables19.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
-static const uint8_t pt[GF4_SIZE][GF4_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF4_SIZE][16] = GF4_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF4_SIZE][16] = GF4_SHUFFLE_HIGH_TABLE;
+static const uint8_t inverses[GF16_SIZE] = GF16_INV_TABLE;
+static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
+static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
+static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
 
 void
-ffmadd4_region_c_sse41_shuffle(uint8_t* region1, const uint8_t* region2,
+ffmadd16_region_c_ssse3(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	register __m128i in1, in2, out, t1, t2, m1, m2, l, h;
@@ -70,11 +70,11 @@ ffmadd4_region_c_sse41_shuffle(uint8_t* region1, const uint8_t* region2,
 		_mm_store_si128((void *)region1, out);
 	}
 	
-	ffmadd4_region_c_gpr(region1, region2, constant, length);
+	ffmadd16_region_c_gpr(region1, region2, constant, length);
 }
 
 void
-ffmul4_region_c_sse41_shuffle(uint8_t *region, uint8_t constant, int length)
+ffmul16_region_c_ssse3(uint8_t *region, uint8_t constant, int length)
 {
 	register __m128i in, out, t1, t2, m1, m2, l, h;
 
@@ -102,6 +102,6 @@ ffmul4_region_c_sse41_shuffle(uint8_t *region, uint8_t constant, int length)
 		_mm_store_si128((void *)region, out);
 	}
 	
-	ffmul4_region_c_gpr(region, constant, length);
+	ffmul16_region_c_gpr(region, constant, length);
 }
 

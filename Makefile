@@ -26,7 +26,7 @@ $(error Unsupported architecture $(ARCH) - please set ARCH variable in Makefile\
 endif
 
 $(OBJS_SSE2):	SIMD_FLAGS_SSE2:= -msse2
-$(OBJS_SSE41):	SIMD_FLAGS_SSE41:= -msse4.1
+$(OBJS_SSE41):	SIMD_FLAGS_SSE41:= -mssse3
 $(OBJS_AVX2):	SIMD_FLAGS_AVX2:= -mavx2
 $(OBJS_NEON):	SIMD_FLAGS_NEON:= -mfpu=neon
 

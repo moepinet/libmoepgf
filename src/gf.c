@@ -56,8 +56,8 @@ check_available_simd_extensions()
 	cpuid(&eax, &ebx, &ecx, &edx);
 	if (edx & (1 << 26))
 		ret |= HWCAPS_SIMD_SSE2;
-	if (ecx & (1 << 19))
-		ret |= HWCAPS_SIMD_SSE41;
+	if (ecx & (1 << 9))
+		ret |= HWCAPS_SIMD_SSSE3;
 
 	eax = 7;
 	ebx = ecx = edx = 0;
@@ -175,8 +175,8 @@ get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset)
 			break;
 		}
 	}
-	else if (fset & HWCAPS_SIMD_SSE41) {
-		gf->simd = HWCAPS_SIMD_SSE41;
+	else if (fset & HWCAPS_SIMD_SSSE3) {
+		gf->simd = HWCAPS_SIMD_SSSE3;
 		switch (type) {
 		case GF2:
 			gf->faddr		= ffxor_region_sse2;
@@ -186,20 +186,20 @@ get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset)
 
 		case GF4:
 			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul4_region_c_sse41_shuffle;
-			gf->fmaddrc		= ffmadd4_region_c_sse41_shuffle;
+			gf->fmulrc		= ffmul4_region_c_ssse3_shuffle;
+			gf->fmaddrc		= ffmadd4_region_c_ssse3_shuffle;
 			break;
 		
 		case GF16:
 			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul16_region_c_sse41;
-			gf->fmaddrc		= ffmadd16_region_c_sse41;
+			gf->fmulrc		= ffmul16_region_c_ssse3;
+			gf->fmaddrc		= ffmadd16_region_c_ssse3;
 			break;
 		
 		case GF256:
 			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul256_region_c_sse41;
-			gf->fmaddrc		= ffmadd256_region_c_sse41;
+			gf->fmulrc		= ffmul256_region_c_ssse3;
+			gf->fmaddrc		= ffmadd256_region_c_ssse3;
 			break;
 		}
 

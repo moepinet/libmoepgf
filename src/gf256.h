@@ -68,7 +68,7 @@ ffmadd256_region_c_sse2(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
-ffmadd256_region_c_sse41(uint8_t *region1, const uint8_t *region2,
+ffmadd256_region_c_ssse3(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
@@ -83,7 +83,7 @@ void
 ffmul256_region_c_sse2(uint8_t *region, uint8_t constant, int length);
 
 void
-ffmul256_region_c_sse41(uint8_t *region, uint8_t constant, int length);
+ffmul256_region_c_ssse3(uint8_t *region, uint8_t constant, int length);
 
 void
 ffmul256_region_c_avx2(uint8_t *region, uint8_t constant, int length);
