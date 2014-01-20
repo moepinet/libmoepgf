@@ -321,12 +321,10 @@ selftest()
 	int i,j,k,fset;
 	int tlen = 16384+19;
 	uint8_t	*test1, *test2, *test3;
-	struct galois_field gf;
-
-	get_galois_field(&gf, GF256, 1);
+	struct galois_field field;
 
 	fset = check_available_simd_extensions();
-	fprintf(stderr, "CPU SIMD extensions detected: ");
+	fprintf(stderr, "CPU SIMD extensions detected: \n");
 	if (fset & HWCAPS_SIMD_MMX)
 		fprintf(stderr, "MMX ");
 	if (fset & HWCAPS_SIMD_SSE)
@@ -355,30 +353,28 @@ selftest()
 		exit(-1);
 
 	// FIXME SIMD detection does not work as expected
-	for (k=0; k<5; k++) {
-		if (!((1 << k) & fset))
-			continue;
-		fprintf(stderr, "CPU SIMD extensions: ");
-		if ((1 << k) == HWCAPS_SIMD_NONE)
-			fprintf(stderr, "NONE\n");
-		else if ((1 << k) == HWCAPS_SIMD_SSE2)
-			fprintf(stderr, "SSE2\n");
-		else if ((1 << k) == HWCAPS_SIMD_SSSE3)
-			fprintf(stderr, "SSSE3\n");
-		else if ((1 << k) == HWCAPS_SIMD_AVX2)
-			fprintf(stderr, "AVX2\n");
-		else if ((1 << k) == HWCAPS_SIMD_NEON)
-			fprintf(stderr, "NEON\n");
+	for (i=0; i<4; i++) {
+		fprintf(stderr, "%s:\n", gf[i].name);
+		for (j=0; j<7; j++) {
+			if (!gf[i].maddrc[j].fun)
+				continue;
 
-		for (i=0; i<4; i++) {
-			get_galois_field(&gf, i, (1 << k));
-	
-			fprintf(stderr, "%s fmulrc selftest...   ", gf.name);
-			for (j=gf.size-1; j>=0; j--) {
+			if (!(fset & gf[i].maddrc[j].hwcaps)) {
+				fprintf(stderr, "%s:\t\t Necessary SIMD "
+						"instructions not supported\n",
+						gf[i].maddrc[j].name);
+				continue;
+			}
+
+			get_galois_field(&field, gf[i].type, 0);
+			fprintf(stderr, "- selftest (%s)    ", 
+					gf[i].maddrc[j].name);
+
+			for (k=field.size-1; k>=0; k--) {
 				init_test_buffers(test1, test2, test3, tlen);
-				
-				gf.fmulrctest(test1, j, tlen);
-				gf.fmulrc(test2, j, tlen);
+
+				field.fmaddrctest(test1, test3, k, tlen);
+				gf[i].maddrc[j].fun(test2, test3, k, tlen);
 	
 				if (memcmp(test1, test2, tlen)){
 					fprintf(stderr,"FAIL: results differ, c = %d\n", j);
@@ -386,24 +382,7 @@ selftest()
 				}
 			}
 			fprintf(stderr, "\tPASS\n");
-			fprintf(stderr, "%s fmaddrc selftest...  ", gf.name);
-			for (j=gf.size-1; j>=0; j--) {
-				init_test_buffers(test1, test2, test3, tlen);
-
-				if (i == GF256) {
-					gf.fmaddrc = ffmadd256_region_c_avx2;
-				}
-				gf.fmaddrctest(test1, test3, j, tlen);
-				gf.fmaddrc(test2, test3, j, tlen);
-	
-				if (memcmp(test1, test2, tlen)){
-					fprintf(stderr,"FAIL: results differ, c = %d\n", j);
-				//	exit(-1);
-				}
-			}
-			fprintf(stderr, "\tPASS\n");
 		}
-
 		fprintf(stderr, "\n");
 	}
 
