@@ -54,10 +54,20 @@ check_available_simd_extensions()
 	eax = 1;
 	ebx = ecx = edx = 0;
 	cpuid(&eax, &ebx, &ecx, &edx);
+	if (edx & (1 << 23))
+		ret |= HWCAPS_SIMD_MMX;
+	if (edx & (1 << 25))
+		ret |= HWCAPS_SIMD_SSE;
 	if (edx & (1 << 26))
 		ret |= HWCAPS_SIMD_SSE2;
 	if (ecx & (1 << 9))
 		ret |= HWCAPS_SIMD_SSSE3;
+	if (ecx & (1 << 19))
+		ret |= HWCAPS_SIMD_SSE41;
+	if (ecx & (1 << 20))
+		ret |= HWCAPS_SIMD_SSE42;
+	if (ecx & (1 << 28))
+		ret |= HWCAPS_SIMD_AVX;
 
 	eax = 7;
 	ebx = ecx = edx = 0;

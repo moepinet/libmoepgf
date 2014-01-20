@@ -23,15 +23,11 @@
 #include <argp.h>
 #include <errno.h>
 
-#include "immintrin.h"
-
-#include "gf16.h"
 #include "gf.h"
-#include "gf256.h"
-#include "gf4.h"
 #include "gf2.h"
-#include "gf256tables285.h"
-#include "gf16tables19.h"
+#include "gf4.h"
+#include "gf16.h"
+#include "gf256.h"
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -107,73 +103,6 @@ void clock_gettime(void *clk_id, struct timespec *t) {
 	({								\
 		(u8)((x)*255.0);                			\
 	})
-/*
-const char *argp_program_version = "ptmsimple 1.0";
-const char *argp_program_bug_address = "<leclaire@in.tum.de>";
-
-static char args_doc[] = "IF FREQ";
-	
-static char doc[] =
-"ptmsimple - a simple packet transfer module for moep80211\n\n"
-"  IF                         Use the radio interface with name IF\n"
-"  FREQ                       Use the frequency FREQ [in Hz] for the radio\n"
-"                             interface; You can use M for MHz or even just\n"
-"                             give the channel number.";
-
-static struct argp_option options[] = {
-	{"fset", 'f', "FSET", 0, "Specify SIMD feature set to be used"},
-	{"size", 's', "SIZE", 0, "Set packet size in B"},
-	{"length", 'l', "LENGTH", 0, "Set generation length"},
-	{}
-};
-
-static error_t parse_opt(int key, char *arg, struct argp_state *state);
-
-static struct argp argp = {
-	options,
-	parse_opt,
-	args_doc,
-	doc
-};
-
-
-struct arguments {
-	int fset;
-	int size;
-	int length;
-} args;
-
-
-static error_t parse_opt(int key, char *arg, struct argp_state *state)
-{
-	struct arguments *args = state->input;
-	char *endptr = NULL;
-			
-	switch (key) {
-	case 'fset':
-
-		break;
-//	case 'a':
-//		if (!(args->addr = ieee80211_aton(arg)))
-//			argp_failure(state, 1, errno, "Invalid hardware address");
-//		break;
-//	case 'm':
-//		args->mtu = strtol(arg, &endptr, 0);
-//		if (endptr != NULL && endptr != arg + strlen(arg))
-//			argp_failure(state, 1, errno, "Invalid mtu: %s", arg);
-//		if (args->mtu <= 0)
-//			argp_failure(state, 1, errno, "Invalid mtu: %d", args->mtu);
-//		break;
-//	case 't':
-//		args->tap = arg;
-//		break;
-	default:
-		return ARGP_ERR_UNKNOWN;
-	}
-
-	return 0;
-}
-*/
 
 typedef void (*madd_t)(uint8_t *, const uint8_t *, uint8_t, int);
 
@@ -361,16 +290,6 @@ struct gf gf[] = {
 	}
 };
 
-static inline uint16_t
-__rand()
-{
-	uint64_t val;
-
-	(void) _rdrand64_step(&val);
-
-	return val;
-}
-
 static void
 init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 {
@@ -391,220 +310,8 @@ encode(const struct galois_field *gf, uint8_t *dst, uint8_t **buffer, int len,
 
 	for (i=0; i<count; i++) {
 //		gf->fmaddrc(dst, buffer[i], gf->finv(i&gf->mask), len);
-		c = __rand() & gf->mask;
+		c = rand() & gf->mask;
 		gf->fmaddrc(dst, buffer[i], c, len);
-	}
-}
-
-#include "gf4tables7.h"
-
-static void
-generate_gf4_shuffle_tables()
-{
-	int i,j;
-	uint8_t shufl[4][16];
-	uint8_t mul[4][4] = GF4_MUL_TABLE;
-	uint8_t hw, lw;
-	uint8_t tmp;
-	uint8_t *test;
-	uint8_t *test2;
-
-	if (posix_memalign((void *)&test, 32, 32))
-		exit(-1);
-	if (posix_memalign((void *)&test2, 32, 32))
-		exit(-1);
-
-
-	for (i=0; i<4; i++) {
-		for (j=0; j<16; j++) {
-			hw = j >> 2;
-			lw = j & 0x03;
-
-			hw = mul[i][hw];
-			lw = mul[i][lw];
-
-			shufl[i][j] = (hw << 2) | lw;
-
-			fprintf(stderr, "0x%02x,", shufl[i][j]);
-		}
-		fprintf(stderr, "\n");
-	}
-
-	fprintf(stderr, "\n");
-	for (i=0; i<4; i++) {
-		for (j=0; j<16; j++) {
-			fprintf(stderr, "0x%02x,", shufl[i][j] << 4);
-		}
-		fprintf(stderr, "\n");
-	}
-
-	for (i=0; i<32; i++) {
-		tmp = (i % 4);
-		test[i] = (tmp << 6) | (tmp << 4) | (tmp << 2) | tmp;
-	}
-
-	memset(test2, 0, 32);
-
-//	ffmul4_region_c_avx2_shuffle(test, 2, 32);
-	ffmadd4_region_c_slow(test2, test, 2, 32);
-
-	for (i=0; i<32; i++) {
-		fprintf(stderr, "0x%02x\n", test2[i]);
-	}	
-}
-
-static void
-generate_logtables(struct galois_field *gf)
-{
-	uint8_t *log;
-	uint8_t *alog;
-	uint8_t test1[1024];
-	uint8_t test2[1024];
-	int size = sizeof(test1);
-	int i, j, g, x, l, found = 0;
-	
-	log = malloc(gf->size);
-	alog = malloc(gf->size*2);
-
-	found = 0;
-	for (g=0; g<gf->size && found == 0; g++) {
-		// Generate tables
-		memset(log, 0, gf->size);
-		memset(alog, 1, gf->size);
-		for (i=1; i<gf->size; i++) {
-			gf->fmulrctest(alog+i, g, gf->size-i);
-		}
-		for (i=gf->size; i<2*gf->size; i++) {
-			alog[i] = alog[i-gf->size+1];
-		}
-		for (i=0; i<gf->size-1; i++) {
-			log[alog[i]] = i;
-		}
-
-		// Test tables
-		for (j=gf->size-1; j>=0; j--) {
-			// Initialize test data
-			for (i=0; i<size; i++) {
-				test1[i] = rand() & gf->mask;
-				test2[i] = test1[i];
-			}
-
-			gf->fmulrctest(test1, j, sizeof(test1));
-			if (j == 0)
-				memset(test2, 0, sizeof(test2));
-			else
-				l = log[j];
-			for (i=0; i<size; i++) {
-				if (test2[i] == 0)
-					continue;
-				x = l + log[test2[i]];
-				test2[i] = alog[x];
-			}
-			if (memcmp(test1, test2, sizeof(test1)) != 0)
-				break;
-		}
-		if (j < 0 && memcmp(test1, test2, sizeof(test1)) == 0)
-			found = 1;
-	}
-	if (found)
-		fprintf(stderr, "generator was %d\n", g);
-	else
-		fprintf(stderr, "no generator found\n");
-
-	for (i=0; i<gf->size*2-1; i++) {
-		if (i % 16 == 0)
-			fprintf(stderr, "\n");
-		fprintf(stderr, "0x%02x,", alog[i]);
-	}
-	fprintf(stderr, "\n");
-	for (i=0; i<gf->size; i++) {
-		if (i % 16 == 0)
-			fprintf(stderr, "\n");
-		fprintf(stderr, "0x%02x,", log[i]);
-	}
-	fprintf(stderr, "\n");
-
-	free(log);
-	free(alog);
-}
-
-static void
-generate_multable(struct galois_field *gf) {
-	int i,j;
-	uint8_t **mul;
-
-	mul = malloc(gf->size * sizeof(mul));
-	for (i=0; i<gf->size; i++)
-		mul[i] = malloc(gf->size);
-
-	for (i=0; i<gf->size; i++) {
-		fprintf(stderr,"{");
-		for (j=0; j<gf->size; j++) {
-			if (j%16 == 0)
-				fprintf(stderr,"\\\n");
-			mul[i][j] = i;
-			gf->fmulrctest(&mul[i][j],j,1);
-			fprintf(stderr,"0x%02x,", mul[i][j]);
-		}
-		fprintf(stderr,"\\\n},");
-	}
-
-	for (i=0; i<gf->size; i++)
-		free(mul[i]);
-	free(mul);
-}
-
-static void
-generate_gf4_multable()
-{
-	int i,j;
-	uint8_t mtab[4][256];
-	uint8_t mul[4][4] = GF4_MUL_TABLE;
-	uint8_t w0,w1,w2,w3;
-
-	for (i=0; i<4; i++) {
-		for (j=0; j<256; j++) {
-			if ((j%16) == 0)
-				fprintf(stderr, "\n");
-			w0 = j & 0x03;
-			w1 = (j >> 2) & 0x03;
-			w2 = (j >> 4) & 0x03;
-			w3 = (j >> 6) & 0x03;
-
-			w0 = mul[i][w0];
-			w1 = mul[i][w1];
-			w2 = mul[i][w2];
-			w3 = mul[i][w3];
-
-			mtab[i][j] = (w3 << 6) | (w2 << 4) | (w1 << 2) | w0;
-			fprintf(stderr, "0x%02x,", mtab[i][j]);
-		}
-		fprintf(stderr, "\n");
-	}
-}
-
-static void
-generate_gf16_multable()
-{
-	int i,j;
-	uint8_t mtab[16][256];
-	uint8_t mul[16][16] = GF16_MUL_TABLE;
-	uint8_t w0,w1;
-
-	for (i=0; i<16; i++) {
-		for (j=0; j<256; j++) {
-			if ((j%16) == 0)
-				fprintf(stderr, "\\\n");
-			w0 = j & 0x0f;
-			w1 = (j >> 4) & 0x0f;
-
-			w0 = mul[i][w0];
-			w1 = mul[i][w1];
-
-			mtab[i][j] = (w1 << 4) | w0;
-			fprintf(stderr, "0x%02x,", mtab[i][j]);
-		}
-		fprintf(stderr, "\\\n},{");
 	}
 }
 
@@ -612,23 +319,28 @@ static void
 selftest()
 {
 	int i,j,k,fset;
-//	int tlen = 16384+19;
-	int tlen = 123;
+	int tlen = 16384+19;
 	uint8_t	*test1, *test2, *test3;
 	struct galois_field gf;
 
 	get_galois_field(&gf, GF256, 1);
-//	generate_logtables(&gf);
-//	generate_multable(&gf);
-	//generate_gf4_shuffle_tables();
-	generate_gf16_multable();
 
 	fset = check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: ");
+	if (fset & HWCAPS_SIMD_MMX)
+		fprintf(stderr, "MMX ");
+	if (fset & HWCAPS_SIMD_SSE)
+		fprintf(stderr, "SSE ");
 	if (fset & HWCAPS_SIMD_SSE2)
 		fprintf(stderr, "SSE2 ");
 	if (fset & HWCAPS_SIMD_SSSE3)
 		fprintf(stderr, "SSSE3 ");
+	if (fset & HWCAPS_SIMD_SSE41)
+		fprintf(stderr, "SSE41 ");
+	if (fset & HWCAPS_SIMD_SSE42)
+		fprintf(stderr, "SSE42 ");
+	if (fset & HWCAPS_SIMD_AVX)
+		fprintf(stderr, "AVX ");
 	if (fset & HWCAPS_SIMD_AVX2)
 		fprintf(stderr, "AVX2 ");
 	if (fset & HWCAPS_SIMD_NEON)
@@ -642,6 +354,7 @@ selftest()
 	if (posix_memalign((void *)&test3, 32, tlen))
 		exit(-1);
 
+	// FIXME SIMD detection does not work as expected
 	for (k=0; k<5; k++) {
 		if (!((1 << k) & fset))
 			continue;

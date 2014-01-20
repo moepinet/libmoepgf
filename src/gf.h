@@ -36,10 +36,15 @@
  * (ARM only). 
  */
 #define HWCAPS_SIMD_NONE	(1 << 0)
-#define HWCAPS_SIMD_SSE2	(1 << 1)
-#define HWCAPS_SIMD_SSSE3	(1 << 2)
-#define HWCAPS_SIMD_AVX2	(1 << 3)
-#define HWCAPS_SIMD_NEON	(1 << 4)
+#define HWCAPS_SIMD_MMX		(1 << 1)
+#define HWCAPS_SIMD_SSE		(1 << 2)
+#define HWCAPS_SIMD_SSE2	(1 << 3)
+#define HWCAPS_SIMD_SSSE3	(1 << 4)
+#define HWCAPS_SIMD_SSE41	(1 << 5)
+#define HWCAPS_SIMD_SSE42	(1 << 6)
+#define HWCAPS_SIMD_AVX		(1 << 7)
+#define HWCAPS_SIMD_AVX2	(1 << 8)
+#define HWCAPS_SIMD_NEON	(1 << 9)
 
 /*
  * Defines GF parameters. Do not change.
