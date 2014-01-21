@@ -301,20 +301,6 @@ init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 	}
 }
 
-static inline void
-encode(const struct galois_field *gf, uint8_t *dst, uint8_t **buffer, int len,
-							int count)
-{
-	int i;
-	int c;
-
-	for (i=0; i<count; i++) {
-//		gf->fmaddrc(dst, buffer[i], gf->finv(i&gf->mask), len);
-		c = rand() & gf->mask;
-		gf->fmaddrc(dst, buffer[i], c, len);
-	}
-}
-
 static void
 selftest()
 {
@@ -392,14 +378,17 @@ selftest()
 }
 
 static void
-enc(madd_t madd, int mask, uint8_t *dst, uint8_t **generation, int len, int count)
+enc(madd_t madd, int mask, uint8_t *dst, uint8_t **generation, int len, 
+		int count)
 {
 	int i;
 	int c;
 
 	for (i=0; i<count; i++) {
 //		gf->fmaddrc(dst, buffer[i], gf->finv(i&gf->mask), len);
-		c = rand() & mask;
+//		c = rand() & mask;
+		c = i & mask;
+		//c = rand() & mask;
 		madd(dst, generation[i], c, len);
 	}
 }
@@ -409,6 +398,7 @@ benchmark(int len, int count, int repeat)
 {
 	int i,j,k,l,fset;
 	struct timespec start, end;
+	struct galois_field field;
 	uint8_t **generation;
 	uint8_t *frame;
 	double mbps;
@@ -428,6 +418,7 @@ benchmark(int len, int count, int repeat)
 
 	for (i=0; i<4; i++) {
 		fprintf(stderr, "%s:\n", gf[i].name);
+		get_galois_field(&field, i, 0);
 		for (j=0; j<7; j++) {
 			if (!gf[i].maddrc[j].fun)
 				continue;
@@ -447,7 +438,7 @@ benchmark(int len, int count, int repeat)
 			clock_gettime(CLOCK_MONOTONIC, &start);
 			for (k=0; k<repeat; k++) {
 				enc(gf[i].maddrc[j].fun, gf[i].mask, frame,
-						generation, len, count);
+					generation, len, count);
 			}
 			clock_gettime(CLOCK_MONOTONIC, &end);
 			timespecsub(&end, &start);
@@ -473,16 +464,91 @@ benchmark(int len, int count, int repeat)
 	
 }
 
+static void
+benchmark_range(int len, int count, int repeat)
+{
+	int i,j,k,l,m,rep,fset;
+	int step = 128;
+	struct timespec start, end;
+	struct galois_field field;
+	uint8_t **generation;
+	uint8_t *frame;
+	double gbps;
+	
+	fset = check_available_simd_extensions();
+
+	fprintf(stderr, "\nEncoding benchmark, len=%d, count=%d, repetitions=%d\n", 
+			len, count, repeat);
+
+	if (posix_memalign((void *)&frame, 32, len))
+		exit(-1);
+	generation = malloc(count*sizeof(uint8_t *));
+	for (k=0; k<count; k++) {
+		if (posix_memalign((void *)&generation[k], 32, len))
+			exit(-1);
+	}
+
+	for (i=0; i<4; i++) {
+		get_galois_field(&field, i, 0);
+		fprintf(stderr, "length \t");
+		for (j=0; j<7; j++) {
+			if (!gf[i].maddrc[j].fun)
+				continue;
+			else
+				fprintf(stderr, "%s \t", gf[i].maddrc[j].name);
+		}
+		fprintf(stderr, "\n");
+
+		for (l=128, rep=repeat; l<=len; l*=2, rep/=2) {
+			fprintf(stderr, "%d\t", l);
+			for (j=0; j<7; j++) {
+				if (!gf[i].maddrc[j].fun)
+					continue;
+
+				if (!(fset & gf[i].maddrc[j].hwcaps))
+					continue;
+
+				for (k=0; k<count; k++) {
+					for (m=0; m<l; m++)
+						generation[k][m] = rand();
+				}
+
+				clock_gettime(CLOCK_MONOTONIC, &start);
+				for (m=0; m<rep; m++) {
+					enc(gf[i].maddrc[j].fun, gf[i].mask,
+						frame, generation, l, count);
+				}
+				clock_gettime(CLOCK_MONOTONIC, &end);
+				timespecsub(&end, &start);
+
+				gbps = (double)rep/((double)end.tv_sec +
+						(double)end.tv_nsec*1e-9);
+				gbps *= l;
+				gbps /= 1024*1024*1024;
+
+				fprintf(stderr, "%.6f \t", gbps);
+			}
+			fprintf(stderr, "\n");
+		}
+	}
+			
+	for (k=0; k<count; k++)
+		free(generation[k]);
+	free(generation);
+	free(frame);
+	
+}
+
 int
 main()
 {
-	int len = 2048;
+	int len = 1024*1024*8;
 	int count = 16;
-	int repeat = 1024*512;
+	int repeat = 1024*1024;
 
 	selftest();
 
-	benchmark(len, count, repeat);
+	benchmark_range(len, count, repeat);
 
 	return 0;
 }
