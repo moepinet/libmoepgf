@@ -384,10 +384,8 @@ enc(madd_t madd, int mask, uint8_t *dst, uint8_t *generation, int len,
 	int c;
 
 	for (i=0; i<count; i++) {
-//		gf->fmaddrc(dst, buffer[i], gf->finv(i&gf->mask), len);
-//		c = rand() & mask;
-		c = i & mask;
-		//c = rand() & mask;
+		//c = i & mask;
+		c = rand() & mask;
 		madd(dst, &generation[len*i], c, len);
 	}
 }
@@ -439,7 +437,7 @@ benchmark(int len, int count, int repeat)
 
 				for (k=0; k<count; k++) {
 					for (m=0; m<l; m++)
-						generation[k*len+m] = rand();
+						generation[k*l+m] = rand();
 				}
 
 				clock_gettime(CLOCK_MONOTONIC, &start);
