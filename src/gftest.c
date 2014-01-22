@@ -471,7 +471,7 @@ benchmark_range(int len, int count, int repeat)
 	int step = 128;
 	struct timespec start, end;
 	struct galois_field field;
-	uint8_t **generation;
+	uint8_t *generation;
 	uint8_t *frame;
 	double gbps;
 	
@@ -482,11 +482,8 @@ benchmark_range(int len, int count, int repeat)
 
 	if (posix_memalign((void *)&frame, 32, len))
 		exit(-1);
-	posix_memalign((void *)&generation, 32, len*count*sizeof(uint8_t *));
-//	for (k=0; k<count; k++) {
-//		if (posix_memalign((void *)&generation[k], 32, len))
-//			exit(-1);
-//	}
+	if (posix_memalign((void *)&generation, 32, len*count))
+		exit(-1);
 
 	for (i=0; i<4; i++) {
 		get_galois_field(&field, i, 0);
@@ -505,7 +502,12 @@ benchmark_range(int len, int count, int repeat)
 				if (!gf[i].maddrc[j].fun)
 					continue;
 
-				if (!(fset & gf[i].maddrc[j].hwcaps))
+				if (!(fset & gf[i].maddrc[j].hwcaps)) {
+					fprintf(stderr, "         \t");
+					continue;
+				}
+
+				if (rep < 1)
 					continue;
 
 				for (k=0; k<count; k++) {
@@ -532,8 +534,6 @@ benchmark_range(int len, int count, int repeat)
 		}
 	}
 			
-	for (k=0; k<count; k++)
-		free(generation[k]);
 	free(generation);
 	free(frame);
 	
