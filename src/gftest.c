@@ -378,7 +378,7 @@ selftest()
 }
 
 static void
-enc(madd_t madd, int mask, uint8_t *dst, uint8_t **generation, int len, 
+enc(madd_t madd, int mask, uint8_t *dst, uint8_t *generation, int len, 
 		int count)
 {
 	int i;
@@ -389,7 +389,7 @@ enc(madd_t madd, int mask, uint8_t *dst, uint8_t **generation, int len,
 //		c = rand() & mask;
 		c = i & mask;
 		//c = rand() & mask;
-		madd(dst, generation[i], c, len);
+		madd(dst, &generation[len*i], c, len);
 	}
 }
 
@@ -482,11 +482,11 @@ benchmark_range(int len, int count, int repeat)
 
 	if (posix_memalign((void *)&frame, 32, len))
 		exit(-1);
-	generation = malloc(count*sizeof(uint8_t *));
-	for (k=0; k<count; k++) {
-		if (posix_memalign((void *)&generation[k], 32, len))
-			exit(-1);
-	}
+	posix_memalign((void *)&generation, 32, len*count*sizeof(uint8_t *));
+//	for (k=0; k<count; k++) {
+//		if (posix_memalign((void *)&generation[k], 32, len))
+//			exit(-1);
+//	}
 
 	for (i=0; i<4; i++) {
 		get_galois_field(&field, i, 0);
@@ -510,7 +510,7 @@ benchmark_range(int len, int count, int repeat)
 
 				for (k=0; k<count; k++) {
 					for (m=0; m<l; m++)
-						generation[k][m] = rand();
+						generation[k*len+m] = rand();
 				}
 
 				clock_gettime(CLOCK_MONOTONIC, &start);
