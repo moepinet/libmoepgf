@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <argp.h>
 #include <errno.h>
 
 #include "gf.h"
@@ -396,79 +395,7 @@ enc(madd_t madd, int mask, uint8_t *dst, uint8_t *generation, int len,
 static void
 benchmark(int len, int count, int repeat)
 {
-	int i,j,k,l,fset;
-	struct timespec start, end;
-	struct galois_field field;
-	uint8_t **generation;
-	uint8_t *frame;
-	double mbps;
-	
-	fset = check_available_simd_extensions();
-
-	fprintf(stderr, "\nEncoding benchmark, len=%d, count=%d, repetitions=%d\n", 
-			len, count, repeat);
-
-	if (posix_memalign((void *)&frame, 32, len))
-		exit(-1);
-	generation = malloc(count*sizeof(uint8_t *));
-	for (k=0; k<count; k++) {
-		if (posix_memalign((void *)&generation[k], 32, len))
-			exit(-1);
-	}
-
-	for (i=0; i<4; i++) {
-		fprintf(stderr, "%s:\n", gf[i].name);
-		get_galois_field(&field, i, 0);
-		for (j=0; j<7; j++) {
-			if (!gf[i].maddrc[j].fun)
-				continue;
-
-			if (!(fset & gf[i].maddrc[j].hwcaps)) {
-				fprintf(stderr, "%s:\t\t Necessary SIMD "
-						"instructions not supported\n",
-						gf[i].maddrc[j].name);
-				continue;
-			}
-
-			for (k=0; k<count; k++) {
-				for (l=0; l<len; l++)
-					generation[k][l] = rand();
-			}
-
-			clock_gettime(CLOCK_MONOTONIC, &start);
-			for (k=0; k<repeat; k++) {
-				enc(gf[i].maddrc[j].fun, gf[i].mask, frame,
-					generation, len, count);
-			}
-			clock_gettime(CLOCK_MONOTONIC, &end);
-			timespecsub(&end, &start);
-
-			mbps = (double)repeat/((double)end.tv_sec +
-					(double)end.tv_nsec*1e-9);
-			mbps *= len;
-			mbps /= 1024*1024;
-
-			fprintf(stderr, "%s:\t\t%llu sec %llu nsec \t(%.2f MiB/s)\n",
-				gf[i].maddrc[j].name,
-				(long long unsigned int)end.tv_sec,
-				(long long unsigned int)end.tv_nsec, mbps);
-	
-		}
-		fprintf(stderr, "\n");
-	}
-			
-	for (k=0; k<count; k++)
-		free(generation[k]);
-	free(generation);
-	free(frame);
-	
-}
-
-static void
-benchmark_range(int len, int count, int repeat)
-{
 	int i,j,k,l,m,rep,fset;
-	int step = 128;
 	struct timespec start, end;
 	struct galois_field field;
 	uint8_t *generation;
@@ -503,7 +430,7 @@ benchmark_range(int len, int count, int repeat)
 					continue;
 
 				if (!(fset & gf[i].maddrc[j].hwcaps)) {
-					fprintf(stderr, "         \t");
+					fprintf(stderr, "n/a      \t");
 					continue;
 				}
 
@@ -548,7 +475,7 @@ main()
 
 	selftest();
 
-	benchmark_range(len, count, repeat);
+	benchmark(len, count, repeat);
 
 	return 0;
 }
