@@ -21,6 +21,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "gf.h"
 #include "gf2.h"
@@ -104,6 +105,68 @@ void clock_gettime(void *clk_id, struct timespec *t) {
 	})
 
 typedef void (*madd_t)(uint8_t *, const uint8_t *, uint8_t, int);
+
+struct args {
+	int count;
+	int maxsize;
+	int random;
+	int repeat;
+} args;
+
+struct coding_buffer {
+	int scount;
+	int ssize;
+	uint8_t *buffer;
+	uint8_t **slot;
+};
+
+static int
+cb_init(struct coding_buffer *cb, int scount, int ssize, int alignment)
+{ 
+	int totlen, i;
+
+	if (ssize % alignment)
+		ssize += ssize - (ssize % alignment);
+
+	totlen = ssize * scount;
+
+	if (posix_memalign((void *)&cb->buffer, alignment, totlen))
+		return -1;
+
+	memset(cb->buffer, 0, totlen);
+
+	if (NULL == (cb->slot = malloc(scount * sizeof(cb->buffer)))) {
+		free(cb->buffer);
+		return -1;
+	}
+
+	for (i=0; i<scount; i++)
+		cb->slot[i] = &cb->buffer[i*ssize];
+
+	cb->ssize = ssize;
+	cb->scount = scount;
+
+	return 0;
+}
+
+static void
+cb_free(struct coding_buffer *cb)
+{
+	free(cb->buffer);
+	free(cb->slot);
+	memset(cb, 0, sizeof(*cb));
+}
+
+static void
+fill_random(struct coding_buffer *cb)
+{
+	int i,j;
+
+	for (i=0; i<cb->scount; i++) {
+		for (j=0; j<cb->ssize; j++)
+			cb->slot[i][j] = rand();
+	}
+}
 
 struct algorithms {
 	madd_t fun;
@@ -377,42 +440,53 @@ selftest()
 }
 
 static void
-enc(madd_t madd, int mask, uint8_t *dst, uint8_t *generation, int len, 
-		int count)
+encode_random(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb)
 {
-	int i;
-	int c;
+	int i,c;
 
-	for (i=0; i<count; i++) {
-		//c = i & mask;
+	for (i=0; i<cb->scount; i++) {
 		c = rand() & mask;
-		madd(dst, &generation[len*i], c, len);
+		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }
 
 static void
-benchmark(int len, int count, int repeat)
+encode_permutation(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb)
 {
-	int i,j,k,l,m,rep,fset;
+	int i,c;
+
+	for (i=0; i<cb->scount; i++) {
+		c = i % mask;
+		madd(dst, cb->slot[i], c, cb->ssize);
+	}
+}
+
+static void
+benchmark(struct args *args)
+{
+	int i,j,l,m,rep,fset;
 	struct timespec start, end;
 	struct galois_field field;
-	uint8_t *generation;
+	struct coding_buffer cb;
 	uint8_t *frame;
 	double gbps;
+	void (*encode)(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb);
+
+	encode = encode_random;
+	if (args->random == 0)
+		encode = encode_permutation;
 	
 	fset = check_available_simd_extensions();
 
-	fprintf(stderr, "\nEncoding benchmark, len=%d, count=%d, repetitions=%d\n", 
-			len, count, repeat);
+	fprintf(stderr, "\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d\n", 
+			args->maxsize, args->count, args->repeat);
 
-	if (posix_memalign((void *)&frame, 32, len))
-		exit(-1);
-	if (posix_memalign((void *)&generation, 32, len*count))
+	if (posix_memalign((void *)&frame, 32, args->maxsize))
 		exit(-1);
 
 	for (i=0; i<4; i++) {
 		get_galois_field(&field, i, 0);
-		fprintf(stderr, "length \t");
+		fprintf(stderr, "size \t");
 		for (j=0; j<7; j++) {
 			if (!gf[i].maddrc[j].fun)
 				continue;
@@ -421,7 +495,10 @@ benchmark(int len, int count, int repeat)
 		}
 		fprintf(stderr, "\n");
 
-		for (l=128, rep=repeat; l<=len; l*=2, rep/=2) {
+		for (l=128, rep=args->repeat; l<=args->maxsize; l*=2, rep/=2) {
+			if (cb_init(&cb, args->count, l, 32))
+				exit(-1);
+
 			fprintf(stderr, "%d\t", l);
 			for (j=0; j<7; j++) {
 				if (!gf[i].maddrc[j].fun)
@@ -432,18 +509,17 @@ benchmark(int len, int count, int repeat)
 					continue;
 				}
 
-				if (rep < 1)
+				if (rep < 1024) {
+					fprintf(stderr, "rep too small\t");
 					continue;
-
-				for (k=0; k<count; k++) {
-					for (m=0; m<l; m++)
-						generation[k*l+m] = rand();
 				}
+
+				fill_random(&cb);
 
 				clock_gettime(CLOCK_MONOTONIC, &start);
 				for (m=0; m<rep; m++) {
-					enc(gf[i].maddrc[j].fun, gf[i].mask,
-						frame, generation, l, count);
+					encode(gf[i].maddrc[j].fun, gf[i].mask,
+						frame, &cb);
 				}
 				clock_gettime(CLOCK_MONOTONIC, &end);
 				timespecsub(&end, &start);
@@ -456,24 +532,60 @@ benchmark(int len, int count, int repeat)
 				fprintf(stderr, "%.6f \t", gbps);
 			}
 			fprintf(stderr, "\n");
+
+			cb_free(&cb);
 		}
 	}
 			
-	free(generation);
 	free(frame);
-	
 }
 
 int
-main()
+main(int argc, char **argv)
 {
-	int len = 1024*1024*8;
-	int count = 16;
-	int repeat = 1024*1024;
+	int opt;
+
+	args.count = 16;
+	args.maxsize = 1024*1024*8;
+	args.repeat = 1024*1024;
+	args.random = 1;
+
+	while (-1 != (opt = getopt(argc, argv, "m:c:r:d"))) {
+		switch (opt) {
+		case 'm':
+			args.maxsize = atoi(optarg);
+			if (args.maxsize < 128) {
+				fprintf(stderr, "minimum maxsize is 128 Byte\n\n");
+				exit(-1);
+			}
+			break;
+		case 'c':
+			args.count = atoi(optarg);
+			if (args.count < 1) {
+				fprintf(stderr, "minimum count is 1\n\n");
+				exit(-1);
+			}
+			break;
+		case 'r':
+			args.repeat = atoi(optarg);
+			if (args.repeat < 1024) {
+				fprintf(stderr, "minimum repeat is 1024\n\n");
+				exit(-1);
+			}
+			break;
+		case 'd':
+			args.random = 0;
+			break;
+		default:
+			fprintf(stderr, "unknown option %c\n\n", (char)opt);
+			exit(-1);
+		}
+	}
+
 
 	selftest();
 
-	benchmark(len, count, repeat);
+	benchmark(&args);
 
 	return 0;
 }
