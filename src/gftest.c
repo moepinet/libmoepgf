@@ -125,8 +125,7 @@ cb_init(struct coding_buffer *cb, int scount, int ssize, int alignment)
 { 
 	int totlen, i;
 
-	if (ssize % alignment)
-		ssize += ssize - (ssize % alignment);
+	ssize = ((ssize + alignment - 1) / alignment) * alignment;
 
 	totlen = ssize * scount;
 
