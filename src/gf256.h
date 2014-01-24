@@ -33,6 +33,10 @@ ffmadd256_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 
 void
+ffmadd256_region_c_gpr32(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length);
+
+void
 ffmadd256_region_c_log(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length);
 

@@ -122,6 +122,48 @@ ffmadd256_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 }
 
 void
+ffmadd256_region_c_gpr32(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	const uint8_t *p = pt[constant];
+	uint8_t r[8];
+	uint32_t r32[8];
+	
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		ffxor_region_gpr(region1, region2, length);
+		return;
+	}
+
+	for (; length & 0xfffffffc; region1+=4, region2+=4, length-=4) {
+		r32[0] = ((*(uint32_t *)region2 & 0x01010101)>>0)*p[0];
+		r32[1] = ((*(uint32_t *)region2 & 0x02020202)>>1)*p[1];
+		r32[2] = ((*(uint32_t *)region2 & 0x04040404)>>2)*p[2];
+		r32[3] = ((*(uint32_t *)region2 & 0x08080808)>>3)*p[3];
+		r32[4] = ((*(uint32_t *)region2 & 0x10101010)>>4)*p[4];
+		r32[5] = ((*(uint32_t *)region2 & 0x20202020)>>5)*p[5];
+		r32[6] = ((*(uint32_t *)region2 & 0x40404040)>>6)*p[6];
+		r32[7] = ((*(uint32_t *)region2 & 0x80808080)>>7)*p[7];
+		*(uint32_t *)region1 ^= r32[0]^r32[1]^r32[2]^r32[3]
+					^r32[4]^r32[5]^r32[6]^r32[7];
+	}
+
+	for (; length; region1++, region2++, length--) {
+		r[0] = ((*region2 & 0x01) >> 0) * p[0];
+		r[1] = ((*region2 & 0x02) >> 1) * p[1];
+		r[2] = ((*region2 & 0x04) >> 2) * p[2];
+		r[3] = ((*region2 & 0x08) >> 3) * p[3];
+		r[4] = ((*region2 & 0x10) >> 4) * p[4];
+		r[5] = ((*region2 & 0x20) >> 5) * p[5];
+		r[6] = ((*region2 & 0x40) >> 6) * p[6];
+		r[7] = ((*region2 & 0x80) >> 7) * p[7];
+		*region1 ^= r[0]^r[1]^r[2]^r[3]^r[4]^r[5]^r[6]^r[7];
+	}
+}
+
+void
 ffmadd256_region_c_log(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {

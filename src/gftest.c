@@ -116,7 +116,7 @@ struct args {
 struct coding_buffer {
 	int scount;
 	int ssize;
-	uint8_t *buffer;
+	uint8_t *pcb;
 	uint8_t **slot;
 };
 
@@ -130,18 +130,18 @@ cb_init(struct coding_buffer *cb, int scount, int ssize, int alignment)
 
 	totlen = ssize * scount;
 
-	if (posix_memalign((void *)&cb->buffer, alignment, totlen))
+	if (posix_memalign((void *)&cb->pcb, alignment, totlen))
 		return -1;
 
-	memset(cb->buffer, 0, totlen);
+	memset(cb->pcb, 0, totlen);
 
-	if (NULL == (cb->slot = malloc(scount * sizeof(cb->buffer)))) {
-		free(cb->buffer);
+	if (NULL == (cb->slot = malloc(scount * sizeof(cb->pcb)))) {
+		free(cb->pcb);
 		return -1;
 	}
 
 	for (i=0; i<scount; i++)
-		cb->slot[i] = &cb->buffer[i*ssize];
+		cb->slot[i] = &cb->pcb[i*ssize];
 
 	cb->ssize = ssize;
 	cb->scount = scount;
@@ -152,7 +152,7 @@ cb_init(struct coding_buffer *cb, int scount, int ssize, int alignment)
 static void
 cb_free(struct coding_buffer *cb)
 {
-	free(cb->buffer);
+	free(cb->pcb);
 	free(cb->slot);
 	memset(cb, 0, sizeof(*cb));
 }
@@ -193,7 +193,7 @@ struct gf gf[] = {
 				.name 	= "log table"
 			},
 			{
-				.fun 	= ffmadd256_region_c_table,
+				.fun 	= ffmadd256_region_c_gpr32,
 				.hwcaps = HWCAPS_SIMD_NONE,
 				.name 	= "lookup table"
 			},
@@ -408,7 +408,7 @@ selftest()
 				continue;
 
 			if (!(fset & gf[i].maddrc[j].hwcaps)) {
-				fprintf(stderr, "%s:\t\t Necessary SIMD "
+				fprintf(stderr, "%s:\t\t\t Necessary SIMD "
 						"instructions not supported\n",
 						gf[i].maddrc[j].name);
 				continue;
@@ -470,7 +470,7 @@ benchmark(struct args *args)
 	struct coding_buffer cb;
 	uint8_t *frame;
 	double gbps;
-	void (*encode)(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb);
+	void (*encode)(madd_t, int, uint8_t *, struct coding_buffer *);
 
 	encode = encode_random;
 	if (args->random == 0)
@@ -478,8 +478,9 @@ benchmark(struct args *args)
 	
 	fset = check_available_simd_extensions();
 
-	fprintf(stderr, "\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d\n", 
-			args->maxsize, args->count, args->repeat);
+	fprintf(stderr, 
+		"\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d\n", 
+		args->maxsize, args->count, args->repeat);
 
 	if (posix_memalign((void *)&frame, 32, args->maxsize))
 		exit(-1);
@@ -582,9 +583,7 @@ main(int argc, char **argv)
 		}
 	}
 
-
 	selftest();
-
 	benchmark(&args);
 
 	return 0;
