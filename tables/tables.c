@@ -366,10 +366,10 @@ print_shuffle_table(struct galois_field *gf)
 			ht_arm[i][(2*j)%15] = ht[i][j];
 		}
 		t = lt_arm[i][0];
-		lt_arm[i][0] = lt_arm[i][15];
+		lt_arm[i][0] = 0;
 		lt_arm[i][15] = t;
 		t = ht_arm[i][0];
-		ht_arm[i][0] = ht_arm[i][15];
+		ht_arm[i][0] = 0;
 		ht_arm[i][15] = t;
 	}
 	fprintf(stdout, "#ifdef __arm__\n");
