@@ -86,7 +86,7 @@ maddrc16_imul_gpr32(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 		return;
 	}
 
-	for (; length & 0xfffffff8; region1+=4, region2+=4, length-=4) {
+	for (; length & 0xfffffffc; region1+=4, region2+=4, length-=4) {
 		r64[0] = ((*(uint32_t *)region2 & 0x11111111)>>0)*p[0];
 		r64[1] = ((*(uint32_t *)region2 & 0x22222222)>>1)*p[1];
 		r64[2] = ((*(uint32_t *)region2 & 0x44444444)>>2)*p[2];

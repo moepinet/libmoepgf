@@ -95,7 +95,7 @@ enum GF_ALGORITHM
 	GF_XOR_GPR64,
 	GF_XOR_SSE2,
 	GF_XOR_AVX2,
-	GF_XOR_NEON,
+	GF_XOR_NEON_128,
 	GF_LOG_TABLE,
 	GF_FLAT_TABLE,
 	GF_IMUL_SCALAR,
@@ -170,7 +170,8 @@ void xorr_avx2(uint8_t *region1, const uint8_t *region2, int length);
 #endif
 
 #ifdef __arm__
-void xorr_neon(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_neon_64(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_neon_128(uint8_t *region1, const uint8_t *region2, int length);
 #endif
 
 #endif

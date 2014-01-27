@@ -37,7 +37,7 @@ const char *gf_names[] =
 	"xor_gpr64",
 	"xor_sse2",
 	"xor_avx2",
-	"xor_neon",
+	"xor_neon_128",
 	"log_table",
 	"flat_table",
 	"imul_scalar",
@@ -49,7 +49,7 @@ const char *gf_names[] =
 	"imul_neon_128",
 	"shuffle_ssse3",
 	"shuffle_avx2",
-	"shuffle_neon64"
+	"shuffle_neon_64"
 };
 
 const char *
@@ -112,7 +112,7 @@ check_available_simd_extensions()
 #ifdef __arm__
 	//FIXME ARM does not have this kind of cpuid. For now, we assume that the
 	//platform we are running on supports neon.
-	ret |= HWCAPS_SIMD_NEON;
+	ret |= (1 << HWCAPS_SIMD_NEON);
 #endif
 
 	return ret;
@@ -247,7 +247,7 @@ gf_get_algorithms(struct list_head *list, enum GF_TYPE field)
 				maddrc2_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, GF_XOR_NEON, HWCAPS_SIMD_NEON,
+		add_algorithm(list, field, GF_XOR_NEON_128, HWCAPS_SIMD_NEON,
 				maddrc2_neon, NULL);
 #endif
 		break;
@@ -269,8 +269,12 @@ gf_get_algorithms(struct list_head *list, enum GF_TYPE field)
 				maddrc4_shuffle_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, GF_IMUL_NEON, HWCAPS_SIMD_NEON,
-				maddrc4_imul_neon, NULL);
+		add_algorithm(list, field, GF_IMUL_NEON_64, HWCAPS_SIMD_NEON,
+				maddrc4_imul_neon_64, NULL);
+		add_algorithm(list, field, GF_IMUL_NEON_128, HWCAPS_SIMD_NEON,
+				maddrc4_imul_neon_128, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_NEON_64, HWCAPS_SIMD_NEON,
+				maddrc4_shuffle_neon, NULL);
 #endif
 		break;
 	case GF16:
@@ -291,7 +295,11 @@ gf_get_algorithms(struct list_head *list, enum GF_TYPE field)
 				maddrc16_shuffle_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, GF_SHUFFLE_NEON, HWCAPS_SIMD_NEON,
+		add_algorithm(list, field, GF_IMUL_NEON_64, HWCAPS_SIMD_NEON,
+				maddrc16_imul_neon_64, NULL);
+		add_algorithm(list, field, GF_IMUL_NEON_128, HWCAPS_SIMD_NEON,
+				maddrc16_imul_neon_128, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_NEON_64, HWCAPS_SIMD_NEON,
 				maddrc16_shuffle_neon, NULL);
 #endif
 		break;
@@ -313,7 +321,11 @@ gf_get_algorithms(struct list_head *list, enum GF_TYPE field)
 				maddrc256_shuffle_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, GF_SHUFFLE_NEON, HWCAPS_SIMD_NEON,
+		add_algorithm(list, field, GF_IMUL_NEON_64, HWCAPS_SIMD_NEON,
+				maddrc256_imul_neon_64, NULL);
+		add_algorithm(list, field, GF_IMUL_NEON_128, HWCAPS_SIMD_NEON,
+				maddrc256_imul_neon_128, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_NEON_64, HWCAPS_SIMD_NEON,
 				maddrc256_shuffle_neon, NULL);
 #endif
 		break;

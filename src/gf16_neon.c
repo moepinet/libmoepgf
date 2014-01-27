@@ -48,7 +48,7 @@ maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		xorr_neon(region1, region2, length);
+		xorr_neon_128(region1, region2, length);
 		return;
 	}
 
@@ -70,7 +70,115 @@ maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 		vst1_u8(region1, out);
 	}
 
-	maddrc_imul_gpr32(region1, region2, constant, length);
+	maddrc16_imul_gpr32(region1, region2, constant, length);
+}
+
+void
+maddrc16_imul_neon_64(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	uint8_t *p = pt[constant];
+	register uint8x8_t mi[4], sp[4], ri[4], reg1, reg2;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		xorr_neon_64(region1, region2, length);
+		return;
+	}
+
+	mi[0] = vdup_n_u8(0x11);
+	mi[1] = vdup_n_u8(0x22);
+	mi[2] = vdup_n_u8(0x44);
+	mi[3] = vdup_n_u8(0x88);
+
+	sp[0] = vdup_n_u8(p[0]);
+	sp[1] = vdup_n_u8(p[1]);
+	sp[2] = vdup_n_u8(p[2]);
+	sp[3] = vdup_n_u8(p[3]);
+
+	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+		reg2 = vld1_u8((void *)region2);
+		reg1 = vld1_u8((void *)region1);
+
+		ri[0] = vand_u8(reg2, mi[0]);
+		ri[1] = vand_u8(reg2, mi[1]);
+		ri[2] = vand_u8(reg2, mi[2]);
+		ri[3] = vand_u8(reg2, mi[3]);
+
+		ri[1] = vshr_n_u8(ri[1], 1);
+		ri[2] = vshr_n_u8(ri[2], 2);
+		ri[3] = vshr_n_u8(ri[3], 3);
+
+		ri[0] = vmul_u8(ri[0], sp[0]);
+		ri[1] = vmul_u8(ri[1], sp[1]);
+		ri[2] = vmul_u8(ri[2], sp[2]);
+		ri[3] = vmul_u8(ri[3], sp[3]);
+
+		ri[0] = veor_u8(ri[0], ri[1]);
+		ri[2] = veor_u8(ri[2], ri[3]);
+		ri[0] = veor_u8(ri[0], ri[2]);
+		ri[0] = veor_u8(ri[0], reg1);
+
+		vst1_u8(region1, ri[0]);
+	}
+
+	maddrc16_imul_gpr32(region1, region2, constant, length);
+}
+
+void
+maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	uint8_t *p = pt[constant];
+	register uint8x16_t mi[4], sp[4], ri[4], reg1, reg2;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		xorr_neon_128(region1, region2, length);
+		return;
+	}
+
+	mi[0] = vdupq_n_u8(0x11);
+	mi[1] = vdupq_n_u8(0x22);
+	mi[2] = vdupq_n_u8(0x44);
+	mi[3] = vdupq_n_u8(0x88);
+
+	sp[0] = vdupq_n_u8(p[0]);
+	sp[1] = vdupq_n_u8(p[1]);
+	sp[2] = vdupq_n_u8(p[2]);
+	sp[3] = vdupq_n_u8(p[3]);
+
+	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+		reg2 = vld1q_u8((void *)region2);
+		reg1 = vld1q_u8((void *)region1);
+
+		ri[0] = vandq_u8(reg2, mi[0]);
+		ri[1] = vandq_u8(reg2, mi[1]);
+		ri[2] = vandq_u8(reg2, mi[2]);
+		ri[3] = vandq_u8(reg2, mi[3]);
+
+		ri[1] = vshrq_n_u8(ri[1], 1);
+		ri[2] = vshrq_n_u8(ri[2], 2);
+		ri[3] = vshrq_n_u8(ri[3], 3);
+
+		ri[0] = vmulq_u8(ri[0], sp[0]);
+		ri[1] = vmulq_u8(ri[1], sp[1]);
+		ri[2] = vmulq_u8(ri[2], sp[2]);
+		ri[3] = vmulq_u8(ri[3], sp[3]);
+
+		ri[0] = veorq_u8(ri[0], ri[1]);
+		ri[2] = veorq_u8(ri[2], ri[3]);
+		ri[0] = veorq_u8(ri[0], ri[2]);
+		ri[0] = veorq_u8(ri[0], reg1);
+
+		vst1q_u8(region1, ri[0]);
+	}
+
+	maddrc16_imul_gpr32(region1, region2, constant, length);
 }
 
 void

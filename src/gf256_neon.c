@@ -33,6 +33,7 @@
 #error "Invalid prime polynomial or tables not available."
 #endif
 
+static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIV_TABLE;
 static const uint8_t tl[GF256_SIZE][16] = GF256_SHUFFLE_LOW_TABLE;
 static const uint8_t th[GF256_SIZE][16] = GF256_SHUFFLE_HIGH_TABLE;
 
@@ -47,7 +48,7 @@ maddrc256_shuffle_neon(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		xorr_neon(region1, region2, length);
+		xorr_neon_128(region1, region2, length);
 		return;
 	}
 
@@ -69,6 +70,162 @@ maddrc256_shuffle_neon(uint8_t *region1, const uint8_t *region2,
 		vst1_u8(region1, out);
 	}
 	
+	maddrc256_imul_gpr32(region1, region2, constant, length);
+}
+
+void
+maddrc256_imul_neon_64(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	uint8_t *p = pt[constant];
+	register uint8x8_t mi[8], sp[8], ri[8], reg1, reg2;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		xorr_neon_64(region1, region2, length);
+		return;
+	}
+
+	mi[0] = vdup_n_u8(0x01);
+	mi[1] = vdup_n_u8(0x02);
+	mi[2] = vdup_n_u8(0x04);
+	mi[3] = vdup_n_u8(0x08);
+	mi[4] = vdup_n_u8(0x10);
+	mi[5] = vdup_n_u8(0x20);
+	mi[6] = vdup_n_u8(0x40);
+	mi[7] = vdup_n_u8(0x80);
+
+	sp[0] = vdup_n_u8(p[0]);
+	sp[1] = vdup_n_u8(p[1]);
+	sp[2] = vdup_n_u8(p[2]);
+	sp[3] = vdup_n_u8(p[3]);
+	sp[4] = vdup_n_u8(p[4]);
+	sp[5] = vdup_n_u8(p[5]);
+	sp[6] = vdup_n_u8(p[6]);
+	sp[7] = vdup_n_u8(p[7]);
+
+	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+		reg2 = vld1_u8((void *)region2);
+		reg1 = vld1_u8((void *)region1);
+
+		ri[0] = vand_u8(reg2, mi[0]);
+		ri[1] = vand_u8(reg2, mi[1]);
+		ri[2] = vand_u8(reg2, mi[2]);
+		ri[3] = vand_u8(reg2, mi[3]);
+		ri[4] = vand_u8(reg2, mi[4]);
+		ri[5] = vand_u8(reg2, mi[5]);
+		ri[6] = vand_u8(reg2, mi[6]);
+		ri[7] = vand_u8(reg2, mi[7]);
+
+		ri[1] = vshr_n_u8(ri[1], 1);
+		ri[2] = vshr_n_u8(ri[2], 2);
+		ri[3] = vshr_n_u8(ri[3], 3);
+		ri[4] = vshr_n_u8(ri[4], 4);
+		ri[5] = vshr_n_u8(ri[5], 5);
+		ri[6] = vshr_n_u8(ri[6], 6);
+		ri[7] = vshr_n_u8(ri[7], 7);
+
+		ri[0] = vmul_u8(ri[0], sp[0]);
+		ri[1] = vmul_u8(ri[1], sp[1]);
+		ri[2] = vmul_u8(ri[2], sp[2]);
+		ri[3] = vmul_u8(ri[3], sp[3]);
+		ri[4] = vmul_u8(ri[4], sp[4]);
+		ri[5] = vmul_u8(ri[5], sp[5]);
+		ri[6] = vmul_u8(ri[6], sp[6]);
+		ri[7] = vmul_u8(ri[7], sp[7]);
+
+		ri[0] = veor_u8(ri[0], ri[1]);
+		ri[2] = veor_u8(ri[2], ri[3]);
+		ri[4] = veor_u8(ri[4], ri[5]);
+		ri[6] = veor_u8(ri[6], ri[7]);
+		ri[0] = veor_u8(ri[0], ri[2]);
+		ri[4] = veor_u8(ri[4], ri[6]);
+		ri[0] = veor_u8(ri[0], ri[4]);
+		ri[0] = veor_u8(ri[0], reg1);
+
+		vst1_u8(region1, ri[0]);
+	}
+
+	maddrc256_imul_gpr32(region1, region2, constant, length);
+}
+
+void
+maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	uint8_t *p = pt[constant];
+	register uint8x16_t mi[8], sp[8], ri[8], reg1, reg2;
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		xorr_neon_128(region1, region2, length);
+		return;
+	}
+
+	mi[0] = vdupq_n_u8(0x01);
+	mi[1] = vdupq_n_u8(0x02);
+	mi[2] = vdupq_n_u8(0x04);
+	mi[3] = vdupq_n_u8(0x08);
+	mi[4] = vdupq_n_u8(0x10);
+	mi[5] = vdupq_n_u8(0x20);
+	mi[6] = vdupq_n_u8(0x40);
+	mi[7] = vdupq_n_u8(0x80);
+
+	sp[0] = vdupq_n_u8(p[0]);
+	sp[1] = vdupq_n_u8(p[1]);
+	sp[2] = vdupq_n_u8(p[2]);
+	sp[3] = vdupq_n_u8(p[3]);
+	sp[4] = vdupq_n_u8(p[4]);
+	sp[5] = vdupq_n_u8(p[5]);
+	sp[6] = vdupq_n_u8(p[6]);
+	sp[7] = vdupq_n_u8(p[7]);
+
+	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+		reg2 = vld1q_u8((void *)region2);
+		reg1 = vld1q_u8((void *)region1);
+
+		ri[0] = vandq_u8(reg2, mi[0]);
+		ri[1] = vandq_u8(reg2, mi[1]);
+		ri[2] = vandq_u8(reg2, mi[2]);
+		ri[3] = vandq_u8(reg2, mi[3]);
+		ri[4] = vandq_u8(reg2, mi[4]);
+		ri[5] = vandq_u8(reg2, mi[5]);
+		ri[6] = vandq_u8(reg2, mi[6]);
+		ri[7] = vandq_u8(reg2, mi[7]);
+
+		ri[1] = vshrq_n_u8(ri[1], 1);
+		ri[2] = vshrq_n_u8(ri[2], 2);
+		ri[3] = vshrq_n_u8(ri[3], 3);
+		ri[4] = vshrq_n_u8(ri[4], 4);
+		ri[5] = vshrq_n_u8(ri[5], 5);
+		ri[6] = vshrq_n_u8(ri[6], 6);
+		ri[7] = vshrq_n_u8(ri[7], 7);
+
+		ri[0] = vmulq_u8(ri[0], sp[0]);
+		ri[1] = vmulq_u8(ri[1], sp[1]);
+		ri[2] = vmulq_u8(ri[2], sp[2]);
+		ri[3] = vmulq_u8(ri[3], sp[3]);
+		ri[4] = vmulq_u8(ri[4], sp[4]);
+		ri[5] = vmulq_u8(ri[5], sp[5]);
+		ri[6] = vmulq_u8(ri[6], sp[6]);
+		ri[7] = vmulq_u8(ri[7], sp[7]);
+
+		ri[0] = veorq_u8(ri[0], ri[1]);
+		ri[2] = veorq_u8(ri[2], ri[3]);
+		ri[4] = veorq_u8(ri[4], ri[5]);
+		ri[6] = veorq_u8(ri[6], ri[7]);
+		ri[0] = veorq_u8(ri[0], ri[2]);
+		ri[4] = veorq_u8(ri[4], ri[6]);
+		ri[0] = veorq_u8(ri[0], ri[4]);
+		ri[0] = veorq_u8(ri[0], reg1);
+
+		vst1q_u8(region1, ri[0]);
+	}
+
 	maddrc256_imul_gpr32(region1, region2, constant, length);
 }
 

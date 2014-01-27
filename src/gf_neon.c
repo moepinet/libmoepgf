@@ -31,7 +31,22 @@
 #include "gf256.h"
 
 void
-xorr_neon(uint8_t *region1, const uint8_t *region2, int length)
+xorr_neon_64(uint8_t *region1, const uint8_t *region2, int length)
+{
+	register uint64x1_t in, out;
+
+	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+		in  = vld1_u64((void *)region2);
+		out = vld1_u64((void *)region1);
+		out = veor_u64(in, out);
+		vst1_u64((void *)region1, out);
+	}
+
+	xorr_gpr32(region1, region2, length);
+}
+
+void
+xorr_neon_128(uint8_t *region1, const uint8_t *region2, int length)
 {
 	register uint64x2_t in, out;
 
@@ -42,6 +57,6 @@ xorr_neon(uint8_t *region1, const uint8_t *region2, int length)
 		vst1q_u64((void *)region1, out);
 	}
 
-	ffxor_region_gpr(region1, region2, length);
+	xorr_gpr32(region1, region2, length);
 }
 

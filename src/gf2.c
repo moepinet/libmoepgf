@@ -90,7 +90,7 @@ maddrc2_neon(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
-		xorr_neon(region1, region2, length);
+		xorr_neon_128(region1, region2, length);
 }
 #endif
 
