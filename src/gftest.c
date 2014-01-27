@@ -239,7 +239,7 @@ selftest()
 	
 				if (memcmp(test1, test2, tlen)){
 					fprintf(stderr,"FAIL: results differ, c = %d\n", k);
-					//exit(-1);
+					exit(-1);
 				}
 			}
 			fprintf(stderr, "\tPASS\n");
@@ -304,9 +304,7 @@ benchmark(struct args *args)
 		gf_get(&gf, i, 0);
 		gf_get_algorithms(&list, gf.type);
 
-		if (gf.type != GF256)
-			continue;
-
+		fprintf(stderr, "%s\n", gf.name);
 		fprintf(stderr, "size \t");
 
 		list_for_each_entry(alg, &list, list)
@@ -348,6 +346,7 @@ benchmark(struct args *args)
 
 			cb_free(&cb);
 		}
+		fprintf(stderr, "\n");
 	}
 			
 	free(frame);
