@@ -363,12 +363,12 @@ print_shuffle_table(struct galois_field *gf)
 	for (i=0; i<gf->size; i++) {
 		for (j=0; j<16; j++) {
 			lt_arm[i][(2*j)%15] = lt[i][j];
-			lt_arm[i][(2*j)%15] = lt[i][j];
+			ht_arm[i][(2*j)%15] = ht[i][j];
 		}
 		t = lt_arm[i][0];
 		lt_arm[i][0] = lt_arm[i][15];
 		lt_arm[i][15] = t;
-		t = lt[i][0];
+		t = ht[i][0];
 		ht_arm[i][0] = ht_arm[i][15];
 		ht_arm[i][15] = t;
 	}
