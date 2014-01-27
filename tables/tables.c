@@ -66,6 +66,29 @@ print(const char *fmt, ...)
 	return 0;
 }
 
+static void
+print_banner()
+{
+	fprintf(stdout, "/*\n");
+	fprintf(stdout, " * This file is part of moep80211gf.\n");
+	fprintf(stdout, " *\n");
+	fprintf(stdout, " * Copyright (C) 2014   Stephan M. Guenther <moepi@moepi.net>\n");
+	fprintf(stdout, " * Copyright (C) 2014   Maximilian Riemensberger <riemensberger@tum.de>\n");
+	fprintf(stdout, " * Copyright (C) 2013   Alexander Kurtz <alexander@kurtz.be>\n");
+	fprintf(stdout, " *\n");
+	fprintf(stdout, " * moep80211gf is free software: you can redistribute it and/or modify it under\n");
+	fprintf(stdout, " * the terms of the GNU General Public License as published by the Free Software\n");
+	fprintf(stdout, " * Foundation, version 2 of the License.\n");
+	fprintf(stdout, " *\n");
+	fprintf(stdout, " * moep80211gf is distributed in the hope that it will be useful, but WITHOUT ANY\n");
+	fprintf(stdout, " * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR\n");
+	fprintf(stdout, " * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n");
+	fprintf(stdout, " *\n");
+	fprintf(stdout, " * You should have received a copy of the GNU General Public License * along\n");
+	fprintf(stdout, " * with moep80211gf.  If not, see <http://www.gnu.org/licenses/>.\n");
+	fprintf(stdout, " */\n\n");
+}
+
 static int
 ld(int x)
 {
@@ -201,7 +224,7 @@ print_lookup_table(struct galois_field *gf)
 	wsize	= gf->exponent;
 	wcount	= 8 / wsize;
 
-	fprintf(stdout, "GF%d_LOOKUP_TABLE = { \\\n", gf->size);
+	fprintf(stdout, "#define GF%d_LOOKUP_TABLE { \\\n", gf->size);
 
 	table = malloc(gf->size * sizeof(uint8_t *));
 	for (i=0; i<gf->size; i++)
@@ -263,17 +286,43 @@ print_inv_table(struct galois_field *gf)
 }
 
 static void
+print_2d_table(uint8_t **t, int x, int y)
+{
+	int i,j;
+
+	for (i=0; i<x; i++) {
+		for (j=0; j<y; j++) {
+			if ((j%y) == 0)
+				fprintf(stdout, "\n{");
+			fprintf(stdout, "0x%02x", t[i][j]);
+			if (j < 15)
+				fprintf(stdout, ",");
+		}
+		fprintf(stdout, "}");
+		if (i < x-1)
+			fprintf(stdout, ",");
+		fprintf(stdout, "\\");
+	}
+	fprintf(stdout, "\n}\n");
+}
+
+static void
 print_shuffle_table(struct galois_field *gf)
 {
-	int i, j;
+	int i,j,t;
 	uint8_t hw, lw, entry;
 	uint8_t **ht, **lt;
+	uint8_t **ht_arm, **lt_arm;
 
 	ht = malloc(gf->size * sizeof(uint8_t *));
 	lt = malloc(gf->size * sizeof(uint8_t *));
+	ht_arm = malloc(gf->size * sizeof(uint8_t *));
+	lt_arm = malloc(gf->size * sizeof(uint8_t *));
 	for (i=0; i<gf->size; i++) {
 		ht[i] = malloc(16);
 		lt[i] = malloc(16);
+		ht_arm[i] = malloc(16);
+		lt_arm[i] = malloc(16);
 	}
 
 	for (i=0; i<gf->size; i++) {
@@ -302,46 +351,44 @@ print_shuffle_table(struct galois_field *gf)
 		}
 	}
 
+	fprintf(stdout, "#ifdef __x86_64__\n");
 	fprintf(stdout, "#define GF%d_SHUFFLE_LOW_TABLE { \\", gf->size);
-	for (i=0; i<gf->size; i++) {
-		for (j=0; j<16; j++) {
-			if ((j%16) == 0)
-				fprintf(stdout, "\n{");
-			fprintf(stdout, "0x%02x", lt[i][j]);
-			if (j < 15)
-				fprintf(stdout, ",");
-		}
-		fprintf(stdout, "}");
-		if (i < gf->size-1)
-			fprintf(stdout, ",");
-		fprintf(stdout, "\\");
-
-	}
-	fprintf(stdout, "\n}\n\n");
-	
+	print_2d_table(lt, gf->size, 16);
 	fprintf(stdout, "#define GF%d_SHUFFLE_HIGH_TABLE { \\", gf->size);
+	print_2d_table(ht, gf->size, 16);
+	fprintf(stdout, "#endif //__x86_64__\n");
+
+	fprintf(stdout, "\n");
+
 	for (i=0; i<gf->size; i++) {
 		for (j=0; j<16; j++) {
-			if ((j%16) == 0)
-				fprintf(stdout, "\n{");
-			fprintf(stdout, "0x%02x", ht[i][j]);
-			if (j < 15)
-				fprintf(stdout, ",");
+			lt_arm[i][(2*j)%15] = lt[i][j];
+			lt_arm[i][(2*j)%15] = lt[i][j];
 		}
-		fprintf(stdout, "}");
-		if (i < gf->size-1)
-			fprintf(stdout, ",");
-		fprintf(stdout, "\\");
-
+		t = lt_arm[i][0];
+		lt_arm[i][0] = lt_arm[i][15];
+		lt_arm[i][15] = t;
+		t = lt[i][0];
+		ht_arm[i][0] = ht_arm[i][15];
+		ht_arm[i][15] = t;
 	}
-	fprintf(stdout, "\n}\n\n");
+	fprintf(stdout, "#ifdef __arm__\n");
+	fprintf(stdout, "#define GF%d_SHUFFLE_LOW_TABLE { \\", gf->size);
+	print_2d_table(lt, gf->size, 16);
+	fprintf(stdout, "#define GF%d_SHUFFLE_HIGH_TABLE { \\", gf->size);
+	print_2d_table(ht, gf->size, 16);
+	fprintf(stdout, "#endif //__arm__\n");
 
 	for (i=0; i<gf->size; i++) {
 		free(ht[i]);
 		free(lt[i]);
+		free(ht_arm[i]);
+		free(lt_arm[i]);
 	}
 	free(ht);
 	free(lt);
+	free(ht_arm);
+	free(lt_arm);
 }
 
 void
@@ -460,16 +507,13 @@ main(int argc, char **argv)
 	gf.exponent = ld(gf.size);
 	gf.mask = gf.size - 1;
 
-	fprintf(stdout, "gf.size     = %d\n", gf.size);
-	fprintf(stdout, "gf.exponent = %d\n", gf.exponent);
-	fprintf(stdout, "gf.primpoly = %d\n", gf.ppoly);
-
 	generate_polynomial_div_table(&gf);
+	print_banner();
 	print_polynomial_div_table(&gf);
 	print_mul_table(&gf);
 	print_inv_table(&gf);
-//	if (gf.type != GF256) //identical to mul table for GF256
-//		print_lookup_table(&gf);
+	if (gf.type != GF256) //identical to mul table for GF256
+		print_lookup_table(&gf);
 	print_shuffle_table(&gf);
 	generate_log_tables(&gf);
 
