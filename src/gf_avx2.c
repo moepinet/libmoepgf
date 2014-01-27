@@ -31,7 +31,7 @@
 #include "gf256.h"
 
 void
-ffxor_region_avx2(uint8_t *region1, const uint8_t *region2, int length)
+xorr_avx2(uint8_t *region1, const uint8_t *region2, int length)
 {
 	register __m256i in, out;
 
@@ -42,6 +42,6 @@ ffxor_region_avx2(uint8_t *region1, const uint8_t *region2, int length)
 		_mm256_store_si256((void *)region1, out);
 	}
 	
-	ffxor_region_gpr(region1, region2, length);
+	xorr_gpr64(region1, region2, length);
 }
 

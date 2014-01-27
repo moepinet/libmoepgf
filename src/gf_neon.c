@@ -31,7 +31,7 @@
 #include "gf256.h"
 
 void
-ffxor_region_neon(uint8_t *region1, const uint8_t *region2, int length)
+xorr_neon(uint8_t *region1, const uint8_t *region2, int length)
 {
 	register uint64x2_t in, out;
 

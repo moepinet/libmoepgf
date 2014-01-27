@@ -33,19 +33,10 @@
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF256_SIZE] = GF256_INV_TABLE;
 static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF256_SIZE][16] = GF256_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF256_SIZE][16] = GF256_SHUFFLE_HIGH_TABLE;
-
-inline void
-ffadd256_region_sse2(uint8_t *region1, const uint8_t *region2, int length)
-{
-	ffxor_region_sse2(region1, region2, length);
-}
 
 void
-ffmadd256_region_c_sse2(uint8_t *region1, const uint8_t *region2,
+maddrc256_imul_sse2(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	register __m128i ri[8], mi[8], sp[8], reg1, reg2;
@@ -55,7 +46,7 @@ ffmadd256_region_c_sse2(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_sse2(region1, region2, length);
+		xorr_sse2(region1, region2, length);
 		return;
 	}
 	
@@ -119,11 +110,11 @@ ffmadd256_region_c_sse2(uint8_t *region1, const uint8_t *region2,
 		_mm_store_si128((void *)region1, ri[0]);
 	}
 
-	ffmadd256_region_c_gpr(region1, region2, constant, length);
+	maddrc256_imul_gpr64(region1, region2, constant, length);
 }
 
 void
-ffmul256_region_c_sse2(uint8_t *region, uint8_t constant, int length)
+mulrc256_imul_sse2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m128i ri[8], mi[8], sp[8], reg;
 	const uint8_t *p = pt[constant];
@@ -194,6 +185,6 @@ ffmul256_region_c_sse2(uint8_t *region, uint8_t constant, int length)
 		_mm_store_si128((void *)region, ri[0]);
 	}
 	
-	ffmul256_region_c_gpr(region, constant, length);
+	mulrc256_imul_gpr64(region, constant, length);
 }
 

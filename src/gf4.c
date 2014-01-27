@@ -37,45 +37,13 @@ static const uint8_t mul[GF4_SIZE][GF4_SIZE] = GF4_MUL_TABLE;
 static const uint8_t multab[GF4_SIZE][256] = GF4_LOOKUP_TABLE;
 
 inline uint8_t
-ffinv4(uint8_t element)
+inv4(uint8_t element)
 {
 	return inverses[element];
 }
 
-inline uint8_t
-ffadd4(uint8_t summand1, uint8_t summand2)
-{
-	return summand1 ^ summand2;
-}
-
-inline uint8_t
-ffdiv4(uint8_t dividend, uint8_t divisor)
-{
-	ffmul4_region_c_gpr(&dividend, inverses[divisor], 1);
-	return dividend;
-}
-
-inline uint8_t
-ffmul4(uint8_t factor1, uint8_t factor2)
-{
-	ffmul4_region_c_gpr(&factor2, factor2, 1);
-	return factor1;
-}
-
 inline void
-ffadd4_region_gpr(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_gpr(region1, region2, length);
-}
-
-inline void
-ffdiv4_region_c_gpr(uint8_t* region, uint8_t constant, int length)
-{
-	ffmul4_region_c_gpr(region, inverses[constant], length);
-}
-
-void
-ffmadd4_region_c_slow(uint8_t* region1, const uint8_t* region2,
+maddrc4_imul_scalar(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
@@ -85,7 +53,7 @@ ffmadd4_region_c_slow(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
+		xorr_scalar(region1, region2, length);
 		return;
 	}
 
@@ -97,8 +65,37 @@ ffmadd4_region_c_slow(uint8_t* region1, const uint8_t* region2,
 }
 
 inline void
-ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+maddrc4_imul_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant, 
+								int length)
+{
+	const uint8_t *p = pt[constant];
+	uint8_t r[4];
+	uint32_t r64[4];
+
+	if (constant == 0)
+	       return;
+
+        if (constant == 1) {
+	       xorr_gpr32(region1, region2, length);
+	       return;
+        }
+
+	for (; length & 0xfffffff8; region1+=4, region2+=4, length-=4) {
+		r64[0] = ((*(uint32_t *)region2 & 0x55555555)>>0)*p[0];
+		r64[1] = ((*(uint32_t *)region2 & 0xaaaaaaaa)>>1)*p[1];
+		*((uint32_t *)region1) ^= r64[0] ^ r64[1];
+	}
+
+	for (; length; region1++, region2++, length--) {
+		r[0] = ((*region2 & 0x55) >> 0) * p[0];
+		r[1] = ((*region2 & 0xaa) >> 1) * p[1];
+		*region1 ^= r[0] ^ r[1];
+	}
+}
+
+inline void
+maddrc4_imul_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant, 
+								int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
@@ -108,7 +105,7 @@ ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 	       return;
 
         if (constant == 1) {
-	       ffxor_region_gpr(region1, region2, length);
+	       xorr_gpr64(region1, region2, length);
 	       return;
         }
 
@@ -126,14 +123,14 @@ ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
 }
 
 inline void
-ffmadd4_region_c_table(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+maddrc4_flat_table(uint8_t *region1, const uint8_t *region2, uint8_t constant,
+								int length)
 {
 	if (constant == 0)
 	       return;
 
         if (constant == 1) {
-	       ffxor_region_gpr(region1, region2, length);
+	       xorr_gpr64(region1, region2, length);
 	       return;
         }
 
@@ -143,7 +140,7 @@ ffmadd4_region_c_table(uint8_t *region1, const uint8_t *region2,
 }
 
 void
-ffmul4_region_c_slow(uint8_t *region, uint8_t constant, int length)
+mulrc4_imul_scalar(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
@@ -164,7 +161,35 @@ ffmul4_region_c_slow(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-ffmul4_region_c_gpr(uint8_t *region, uint8_t constant, int length)
+mulrc4_imul_gpr32(uint8_t *region, uint8_t constant, int length)
+{
+	const uint8_t *p = pt[constant];
+	uint8_t r[2];
+	uint64_t r64[2];
+
+	if (constant == 0) {
+		memset(region, 0, length);
+		return;
+	}
+
+	if (constant == 1)
+		return;
+	
+	for (; length & 0xfffffff8; region+=8, length-=8) {
+		r64[0] = ((*(uint32_t *)region & 0x55555555)>>0)*p[0];
+		r64[1] = ((*(uint32_t *)region & 0xaaaaaaaa)>>1)*p[1];
+		*((uint32_t *)region) = r64[0] ^ r64[1];
+	}
+
+	for (; length; region++, length--) {
+		r[0] = ((*region & 0x55) >> 0) * p[0];
+		r[1] = ((*region & 0xaa) >> 1) * p[1];
+		*region = r[0] ^ r[1];
+	}
+}
+
+void
+mulrc4_imul_gpr64(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[2];

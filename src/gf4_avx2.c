@@ -33,27 +33,13 @@
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
 static const uint8_t pt[GF4_SIZE][GF16_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
-static const uint8_t mul[GF4_SIZE][GF4_SIZE] = GF4_MUL_TABLE;
 static const uint8_t tl[4][16] = GF4_SHUFFLE_LOW_TABLE;
 static const uint8_t th[4][16] = GF4_SHUFFLE_HIGH_TABLE;
 
-inline void
-ffadd4_region_avx2(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_avx2(region1, region2, length);
-}
-
-inline void
-ffdiv4_region_c_avx2(uint8_t* region, uint8_t constant, int length)
-{
-	ffmul4_region_c_avx2_shuffle(region, inverses[constant], length);
-}
-
 void
-ffmadd4_region_c_avx2_imul(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+maddrc4_imul_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant,
+								int length)
 {
 	register __m256i reg1, reg2, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
@@ -62,7 +48,7 @@ ffmadd4_region_c_avx2_imul(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_avx2(region1, region2, length);
+		xorr_avx2(region1, region2, length);
 		return;
 	}
 
@@ -84,12 +70,12 @@ ffmadd4_region_c_avx2_imul(uint8_t *region1, const uint8_t *region2,
 		_mm256_store_si256((void *)region1, ri[0]);
 	}
 	
-	ffmadd4_region_c_gpr(region1, region2, constant, length);
+	maddrc4_imul_gpr64(region1, region2, constant, length);
 }
 
 void
-ffmadd4_region_c_avx2_shuffle(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+maddrc4_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant,
+								int length)
 {
 	register __m256i in1, in2, out, t1, t2, m1, m2, l, h;
 
@@ -97,7 +83,7 @@ ffmadd4_region_c_avx2_shuffle(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_avx2(region1, region2, length);
+		xorr_avx2(region1, region2, length);
 		return;
 	}
 
@@ -127,11 +113,11 @@ ffmadd4_region_c_avx2_shuffle(uint8_t *region1, const uint8_t *region2,
 		_mm256_store_si256((void *)region1, out);
 	}
 	
-	ffmadd4_region_c_gpr(region1, region2, constant, length);
+	maddrc4_imul_gpr64(region1, region2, constant, length);
 }
 
 void
-ffmul4_region_c_avx2_imul(uint8_t *region, uint8_t constant, int length)
+mulrc4_imul_avx2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m256i reg, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
@@ -160,11 +146,11 @@ ffmul4_region_c_avx2_imul(uint8_t *region, uint8_t constant, int length)
 		_mm256_store_si256((void *)region, ri[0]);
 	}
 	
-	ffmul4_region_c_gpr(region, constant, length);
+	mulrc4_imul_gpr64(region, constant, length);
 }
 
 void
-ffmul4_region_c_avx2_shuffle(uint8_t *region, uint8_t constant, int length)
+mulrc4_shuffle_avx2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m256i in, out, t1, t2, m1, m2, l, h;
 
@@ -200,5 +186,5 @@ ffmul4_region_c_avx2_shuffle(uint8_t *region, uint8_t constant, int length)
 		_mm256_store_si256((void *)region, out);
 	}
 	
-	ffmul4_region_c_gpr(region, constant, length);
+	mulrc4_imul_gpr64(region, constant, length);
 }

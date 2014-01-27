@@ -37,21 +37,9 @@ static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
 static const uint8_t pt[GF4_SIZE][GF16_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
 static const uint8_t mul[GF4_SIZE][GF4_SIZE] = GF4_MUL_TABLE;
 
-inline void
-ffadd4_region_sse2(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_sse2(region1, region2, length);
-}
-
-inline void
-ffdiv4_region_c_sse2(uint8_t* region, uint8_t constant, int length)
-{
-	ffmul4_region_c_sse2_imul(region, inverses[constant], length);
-}
-
 void
-ffmadd4_region_c_sse2_imul(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+maddrc4_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant,
+								int length)
 {
 	register __m128i reg1, reg2, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
@@ -60,7 +48,7 @@ ffmadd4_region_c_sse2_imul(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_sse2(region1, region2, length);
+		xorr_sse2(region1, region2, length);
 		return;
 	}
 
@@ -82,11 +70,11 @@ ffmadd4_region_c_sse2_imul(uint8_t *region1, const uint8_t *region2,
 		_mm_store_si128((void *)region1, ri[0]);
 	}
 	
-	ffmadd4_region_c_gpr(region1, region2, constant, length);
+	maddrc4_imul_gpr64(region1, region2, constant, length);
 }
 
 void
-ffmul4_region_c_sse2_imul(uint8_t *region, uint8_t constant, int length)
+mulrc4_imul_sse2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m128i reg, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
@@ -115,6 +103,6 @@ ffmul4_region_c_sse2_imul(uint8_t *region, uint8_t constant, int length)
 		_mm_store_si128((void *)region, ri[0]);
 	}
 	
-	ffmul4_region_c_gpr(region, constant, length);
+	mulrc4_imul_gpr64(region, constant, length);
 }
 

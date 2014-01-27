@@ -22,73 +22,32 @@
 
 #include <stdint.h>
 
-uint8_t
-ffinv4(uint8_t element);
+uint8_t inv4(uint8_t element);
 
-void
-ffadd4_region(uint8_t *region1, const uint8_t *region2, int length);
+void maddrc4_flat_table(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc4_imul_scalar(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc4_imul_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc4_imul_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 
-void
-ffmadd4_region_c_slow(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-void
-ffmadd4_region_c_gpr(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd4_region_c_table(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmul4_region_c_slow(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul4_region_c_gpr(uint8_t *region, uint8_t constant, int length);
+void mulrc4_imul_scalar(uint8_t *region, uint8_t constant, int length);
+void mulrc4_imul_gpr32(uint8_t *region, uint8_t constant, int length);
+void mulrc4_imul_gpr64(uint8_t *region, uint8_t constant, int length);
 
 #ifdef __x86_64__
-void
-ffadd4_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
+void mulrc4_imul_sse2(uint8_t *region, uint8_t constant, int length);
+void mulrc4_imul_avx2(uint8_t *region, uint8_t constant, int length);
+void mulrc4_shuffle_ssse3(uint8_t *region, uint8_t constant, int length);
+void mulrc4_shuffle_avx2(uint8_t *region, uint8_t constant, int length);
 
-void
-ffadd4_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
-
-
-void
-ffmul4_region_c_sse2_imul(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul4_region_c_ssse3_shuffle(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul4_region_c_avx2_imul(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul4_region_c_avx2_shuffle(uint8_t *region, uint8_t constant, int length);
-
-
-void
-ffmadd4_region_c_sse2_imul(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd4_region_c_ssse3_shuffle(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-void
-ffmadd4_region_c_avx2_imul(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd4_region_c_avx2_shuffle(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
+void maddrc4_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc4_imul_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc4_shuffle_ssse3(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc4_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 #endif
 
 #ifdef __arm__
-void
-ffmul4_region_c_neon(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmadd4_region_c_neon(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
+void mulrc4_imul_neon(uint8_t *region, uint8_t constant, int length);
+void maddrc4_imul_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 #endif
 
 #endif

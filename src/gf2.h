@@ -22,42 +22,21 @@
 
 #include <stdint.h>
 
-uint8_t
-ffinv2(uint8_t element);
+uint8_t inv2(uint8_t element);
 
-void
-ffadd2_region_gpr(uint8_t *region1, const uint8_t *region2, int length);
+void maddrc2_scalar(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc2_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc2_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 
-void
-ffmadd2_region_c_gpr(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length);
-
-void
-ffmul2_region_c(uint8_t *region, uint8_t constant, int length);
+void mulrc2(uint8_t *region, uint8_t constant, int length);
 
 #ifdef __x86_64__
-void
-ffadd2_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
-
-void
-ffadd2_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
-
-void
-ffmadd2_region_c_sse2(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length);
-
-void
-ffmadd2_region_c_avx2(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length);
+void maddrc2_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc2_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 #endif
 
 #ifdef __arm__
-void
-ffadd2_region_neon(uint8_t *region1, const uint8_t *region2, int length);
-
-void
-ffmadd2_region_c_neon(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length);
+void maddrc2_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 #endif
 
 #endif

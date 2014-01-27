@@ -33,19 +33,12 @@
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF16_SIZE] = GF16_INV_TABLE;
 static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
 static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
 static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
 
-inline void
-ffadd16_region_neon(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_neon(region1, region2, length);
-}
-
 void
-ffmadd16_region_c_neon(uint8_t* region1, const uint8_t* region2,
+maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	register uint8x8x2_t t1, t2;
@@ -55,7 +48,7 @@ ffmadd16_region_c_neon(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_neon(region1, region2, length);
+		xorr_neon(region1, region2, length);
 		return;
 	}
 
@@ -77,11 +70,11 @@ ffmadd16_region_c_neon(uint8_t* region1, const uint8_t* region2,
 		vst1_u8(region1, out);
 	}
 
-	ffmadd16_region_c_gpr(region1, region2, constant, length);
+	maddrc_imul_gpr32(region1, region2, constant, length);
 }
 
 void
-ffmul16_region_c_neon(uint8_t *region, uint8_t constant, int length)
+mulrc16_shuffle_neon(uint8_t *region, uint8_t constant, int length)
 {
 	register uint8x8x2_t t1, t2;
 	register uint8x8_t m1, m2, in, out, l, h;
@@ -110,6 +103,6 @@ ffmul16_region_c_neon(uint8_t *region, uint8_t constant, int length)
 		vst1_u8((void *)region, out);
 	}
 
-	ffmul16_region_c_gpr(region, constant, length);
+	mulrc16_imul_gpr32(region, constant, length);
 }
 

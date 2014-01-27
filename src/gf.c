@@ -21,12 +21,45 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "gf.h"
 #include "gf2.h"
 #include "gf4.h"
 #include "gf16.h"
 #include "gf256.h"
+
+const char *gf_names[] =
+{
+	"selftest",
+	"xor_scalar",
+	"xor_gpr32",
+	"xor_gpr64",
+	"xor_sse2",
+	"xor_avx2",
+	"xor_neon",
+	"log_table",
+	"flat_table",
+	"imul_scalar",
+	"imul_gpr32",
+	"imul_gpr64",
+	"imul_sse2",
+	"imul_avx2",
+	"imul_neon_64",
+	"imul_neon_128",
+	"shuffle_ssse3",
+	"shuffle_avx2",
+	"shuffle_neon64"
+};
+
+const char *
+gf_a2name(enum GF_ALGORITHM a)
+{
+	if (a > GF_ALGORITHM_COUNT-2)
+		return NULL;
+
+	return gf_names[a];
+}
 
 #ifdef __x86_64__
 static void
@@ -46,7 +79,7 @@ uint32_t
 check_available_simd_extensions()
 {
 	uint32_t ret = 0;
-	ret |= HWCAPS_SIMD_NONE;
+	ret |= (1 << HWCAPS_SIMD_NONE);
 
 #ifdef __x86_64__
 	unsigned int eax, ebx, ecx, edx;
@@ -55,25 +88,25 @@ check_available_simd_extensions()
 	ebx = ecx = edx = 0;
 	cpuid(&eax, &ebx, &ecx, &edx);
 	if (edx & (1 << 23))
-		ret |= HWCAPS_SIMD_MMX;
+		ret |= (1 << HWCAPS_SIMD_MMX);
 	if (edx & (1 << 25))
-		ret |= HWCAPS_SIMD_SSE;
+		ret |= (1 << HWCAPS_SIMD_SSE);
 	if (edx & (1 << 26))
-		ret |= HWCAPS_SIMD_SSE2;
+		ret |= (1 << HWCAPS_SIMD_SSE2);
 	if (ecx & (1 << 9))
-		ret |= HWCAPS_SIMD_SSSE3;
+		ret |= (1 << HWCAPS_SIMD_SSSE3);
 	if (ecx & (1 << 19))
-		ret |= HWCAPS_SIMD_SSE41;
+		ret |= (1 << HWCAPS_SIMD_SSE41);
 	if (ecx & (1 << 20))
-		ret |= HWCAPS_SIMD_SSE42;
+		ret |= (1 << HWCAPS_SIMD_SSE42);
 	if (ecx & (1 << 28))
-		ret |= HWCAPS_SIMD_AVX;
+		ret |= (1 << HWCAPS_SIMD_AVX);
 
 	eax = 7;
 	ebx = ecx = edx = 0;
 	cpuid(&eax, &ebx, &ecx, &edx);
 	if (ebx & (1 << 5))
-		ret |= HWCAPS_SIMD_AVX2;
+		ret |= (1 << HWCAPS_SIMD_AVX2);
 #endif
 
 #ifdef __arm__
@@ -86,204 +119,232 @@ check_available_simd_extensions()
 }
 
 int
-get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset)
+gf_get(struct galois_field *gf, enum GF_TYPE type, enum GF_ALGORITHM atype)
 {
 	int ret = 0;
+	
+	memset(gf, 0, sizeof(*gf));
 
-	if (fset == 0)
-		fset = check_available_simd_extensions();
+//	hwcaps = check_available_simd_extensions();
 		
 	switch (type) {
-		gf->simd = HWCAPS_SIMD_NONE;
+		gf->hwcaps = (1 << HWCAPS_SIMD_NONE);
 	case GF2:
 		strcpy(gf->name, "GF2");
 		gf->type		= GF2;
-		gf->polynomial		= GF2_POLYNOMIAL;
+		gf->ppoly		= GF2_POLYNOMIAL;
 		gf->exponent		= GF2_EXPONENT;
 		gf->size		= GF2_SIZE;
 		gf->mask		= GF2_MASK;
-		gf->fmulrctest		= ffmul2_region_c;
-		gf->fmaddrctest		= ffmadd2_region_c_gpr;
-		gf->finv		= ffinv2;
-		gf->faddr		= ffxor_region_gpr;
-		gf->fmulrc		= ffmul2_region_c;
-		gf->fmaddrc		= ffmadd2_region_c_gpr;
+		gf->inv			= inv2;
 		break;
 
 	case GF4:
 		strcpy(gf->name, "GF4");
 		gf->type		= GF4;
-		gf->polynomial		= GF4_POLYNOMIAL;
+		gf->ppoly		= GF4_POLYNOMIAL;
 		gf->exponent		= GF4_EXPONENT;
 		gf->size		= GF4_SIZE;
 		gf->mask		= GF4_MASK;
-		gf->fmulrctest		= ffmul4_region_c_slow;
-		gf->fmaddrctest		= ffmadd4_region_c_slow;
-		gf->finv		= ffinv4;
-		gf->faddr		= ffxor_region_gpr;
-		gf->fmulrc		= ffmul4_region_c_gpr;
-		gf->fmaddrc		= ffmadd4_region_c_gpr;
+		gf->inv			= inv4;
 		break;
 	
 	case GF16:
 		strcpy(gf->name, "GF16");
 		gf->type		= GF16;
-		gf->polynomial		= GF16_POLYNOMIAL;
+		gf->ppoly		= GF16_POLYNOMIAL;
 		gf->exponent		= GF16_EXPONENT;
 		gf->size		= GF16_SIZE;
 		gf->mask		= GF16_MASK;
-		gf->fmulrctest		= ffmul16_region_c_slow;
-		gf->fmaddrctest		= ffmadd16_region_c_slow;
-		gf->finv		= ffinv16;
-		gf->faddr		= ffxor_region_gpr;
-		gf->fmulrc		= ffmul16_region_c_gpr;
-		gf->fmaddrc		= ffmadd16_region_c_gpr;
+		gf->inv			= inv16;
 		break;
 	
 	case GF256:
 		strcpy(gf->name, "GF256");
 		gf->type		= GF256;
-		gf->polynomial		= GF256_POLYNOMIAL;
+		gf->ppoly		= GF256_POLYNOMIAL;
 		gf->exponent		= GF256_EXPONENT;
 		gf->size		= GF256_SIZE;
 		gf->mask		= GF256_MASK;
-		gf->fmulrctest		= ffmul256_region_c_slow;
-		gf->fmaddrctest		= ffmadd256_region_c_slow;
-		gf->finv		= ffinv256;
-		gf->faddr		= ffxor_region_gpr;
-		gf->fmulrc		= ffmul256_region_c_gpr;
-		gf->fmaddrc		= ffmadd256_region_c_gpr;
+		gf->inv			= inv256;
 		break;
 	}
 
-#ifdef __x86_64__
-	if (fset & HWCAPS_SIMD_AVX2) {
-		gf->simd = HWCAPS_SIMD_AVX2;
+	switch (atype) {
+	case GF_SELFTEST:
 		switch (type) {
 		case GF2:
-			gf->faddr		= ffxor_region_avx2;
-			gf->fmulrc		= ffmul2_region_c;
-			gf->fmaddrc		= ffmadd2_region_c_avx2;
+			gf->mulrc = mulrc2;
+			gf->maddrc = maddrc2_scalar; 
 			break;
-
 		case GF4:
-			gf->faddr		= ffxor_region_avx2;
-			gf->fmulrc		= ffmul4_region_c_avx2_shuffle;
-			gf->fmaddrc		= ffmadd4_region_c_avx2_shuffle;
+			gf->mulrc = mulrc4_imul_scalar;
+			gf->maddrc = maddrc4_imul_scalar; 
 			break;
-		
 		case GF16:
-			gf->faddr		= ffxor_region_avx2;
-			gf->fmulrc		= ffmul16_region_c_avx2;
-			gf->fmaddrc		= ffmadd16_region_c_avx2;
+			gf->mulrc = mulrc16_imul_scalar;
+			gf->maddrc = maddrc16_imul_scalar; 
 			break;
-		
 		case GF256:
-			gf->faddr		= ffxor_region_avx2;
-			gf->fmulrc		= ffmul256_region_c_avx2;
-			gf->fmaddrc		= ffmadd256_region_c_avx2;
+			gf->mulrc = mulrc256_pdiv;
+			gf->maddrc = maddrc256_pdiv; 
 			break;
 		}
+		break;
+
+	default:
+		fprintf(stderr, "not implemented\n\n");
+		exit(-1);
+		break;
 	}
-	else if (fset & HWCAPS_SIMD_SSSE3) {
-		gf->simd = HWCAPS_SIMD_SSSE3;
-		switch (type) {
-		case GF2:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul2_region_c;
-			gf->fmaddrc		= ffmadd2_region_c_sse2;
-			break;
 
-		case GF4:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul4_region_c_ssse3_shuffle;
-			gf->fmaddrc		= ffmadd4_region_c_ssse3_shuffle;
-			break;
-		
-		case GF16:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul16_region_c_ssse3;
-			gf->fmaddrc		= ffmadd16_region_c_ssse3;
-			break;
-		
-		case GF256:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul256_region_c_ssse3;
-			gf->fmaddrc		= ffmadd256_region_c_ssse3;
-			break;
-		}
-
-	}
-	else if (fset & HWCAPS_SIMD_SSE2) {
-		gf->simd = HWCAPS_SIMD_SSE2;
-		switch (type) {
-		case GF2:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul2_region_c;
-			gf->fmaddrc		= ffmadd2_region_c_sse2;
-			break;
-
-		case GF4:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul4_region_c_sse2_imul;
-			gf->fmaddrc		= ffmadd4_region_c_sse2_imul;
-			break;
-		
-		case GF16:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul16_region_c_sse2;
-			gf->fmaddrc		= ffmadd16_region_c_sse2;
-			break;
-		
-		case GF256:
-			gf->faddr		= ffxor_region_sse2;
-			gf->fmulrc		= ffmul256_region_c_sse2;
-			gf->fmaddrc		= ffmadd256_region_c_sse2;
-			break;
-		}
-	}
-#endif
-
-#ifdef __arm__
-	if (fset & HWCAPS_SIMD_NEON) {
-		gf->simd = HWCAPS_SIMD_NEON;
-		switch (type) {
-		case GF2:
-			gf->faddr		= ffxor_region_neon;
-			gf->fmulrc		= ffmul2_region_c;
-			gf->fmaddrc		= ffmadd2_region_c_neon;
-			break;
-
-		case GF4:
-			gf->faddr		= ffxor_region_neon;
-			gf->fmulrc		= ffmul4_region_c_neon;
-			gf->fmaddrc		= ffmadd4_region_c_neon;
-			break;
-		
-		case GF16:
-			gf->faddr		= ffxor_region_neon;
-			gf->fmulrc		= ffmul16_region_c_neon;
-			gf->fmaddrc		= ffmadd16_region_c_neon;
-			break;
-		
-		case GF256:
-			gf->faddr		= ffxor_region_neon;
-			gf->fmulrc		= ffmul256_region_c_neon;
-			gf->fmaddrc		= ffmadd256_region_c_neon;
-			break;
-		}
-	}
-#endif
 	return ret;
 }
 
-void
-ffxor_region_gpr(uint8_t *region1, const uint8_t *region2, int length)
+static int
+add_algorithm(struct list_head *list, enum GF_TYPE gt, enum GF_ALGORITHM at, 
+		enum HWCAPS hwcaps, maddrc_t maddrc, mulrc_t mulrc)
+{
+	struct algorithm *alg;
+
+	alg = malloc(sizeof(*alg));
+
+	memset(alg, 0, sizeof(*alg));
+
+	alg->maddrc = maddrc;
+	alg->mulrc = mulrc;
+	alg->hwcaps = hwcaps;
+	alg->type = at;
+	alg->field = gt;
+	list_add_tail(&alg->list, list);
+
+	return 0;
+}
+
+int
+gf_get_algorithms(struct list_head *list, enum GF_TYPE field)
+{
+	struct algorithm *alg, tmp;
+
+	if (!list)
+		return -1;
+
+	list_for_each_entry_extra_safe(alg, &tmp, list, list) {
+		list_del(&alg->list);
+		free(alg);
+	} list_end_extra_safe(list); 
+
+	switch (field) {
+	case GF2:
+		add_algorithm(list, field, GF_XOR_GPR32, HWCAPS_SIMD_NONE,
+				maddrc2_gpr32, NULL);
+		add_algorithm(list, field, GF_XOR_GPR64, HWCAPS_SIMD_NONE,
+				maddrc2_gpr64, NULL);
+#ifdef __x86_64__
+		add_algorithm(list, field, GF_XOR_SSE2, HWCAPS_SIMD_SSE2,
+				maddrc2_sse2, NULL);
+		add_algorithm(list, field, GF_XOR_AVX2, HWCAPS_SIMD_AVX2,
+				maddrc2_avx2, NULL);
+#endif
+#ifdef __arm__
+		add_algorithm(list, field, GF_XOR_NEON, HWCAPS_SIMD_NEON,
+				maddrc2_neon, NULL);
+#endif
+		break;
+	case GF4:
+		add_algorithm(list, field, GF_FLAT_TABLE, HWCAPS_SIMD_NONE,
+				maddrc4_flat_table, NULL);
+		add_algorithm(list, field, GF_IMUL_GPR32, HWCAPS_SIMD_NONE,
+				maddrc4_imul_gpr32, NULL);
+		add_algorithm(list, field, GF_IMUL_GPR64, HWCAPS_SIMD_NONE,
+				maddrc4_imul_gpr64, NULL);
+#ifdef __x86_64__
+		add_algorithm(list, field, GF_IMUL_SSE2, HWCAPS_SIMD_SSE2,
+				maddrc4_imul_sse2, NULL);
+		add_algorithm(list, field, GF_IMUL_AVX2, HWCAPS_SIMD_AVX2,
+				maddrc4_imul_avx2, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_SSSE3, HWCAPS_SIMD_SSSE3,
+				maddrc4_shuffle_ssse3, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_AVX2, HWCAPS_SIMD_AVX2,
+				maddrc4_shuffle_avx2, NULL);
+#endif
+#ifdef __arm__
+		add_algorithm(list, field, GF_IMUL_NEON, HWCAPS_SIMD_NEON,
+				maddrc4_imul_neon, NULL);
+#endif
+		break;
+	case GF16:
+		add_algorithm(list, field, GF_FLAT_TABLE, HWCAPS_SIMD_NONE,
+				maddrc16_flat_table, NULL);
+		add_algorithm(list, field, GF_IMUL_GPR32, HWCAPS_SIMD_NONE,
+				maddrc16_imul_gpr32, NULL);
+		add_algorithm(list, field, GF_IMUL_GPR64, HWCAPS_SIMD_NONE,
+				maddrc16_imul_gpr64, NULL);
+#ifdef __x86_64__
+		add_algorithm(list, field, GF_IMUL_SSE2, HWCAPS_SIMD_SSE2,
+				maddrc16_imul_sse2, NULL);
+		add_algorithm(list, field, GF_IMUL_AVX2, HWCAPS_SIMD_AVX2,
+				maddrc16_imul_avx2, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_SSSE3, HWCAPS_SIMD_SSSE3,
+				maddrc16_shuffle_ssse3, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_AVX2, HWCAPS_SIMD_AVX2,
+				maddrc16_shuffle_avx2, NULL);
+#endif
+#ifdef __arm__
+		add_algorithm(list, field, GF_SHUFFLE_NEON, HWCAPS_SIMD_NEON,
+				maddrc16_shuffle_neon, NULL);
+#endif
+		break;
+	case GF256:
+		add_algorithm(list, field, GF_FLAT_TABLE, HWCAPS_SIMD_NONE,
+				maddrc256_flat_table, NULL);
+		add_algorithm(list, field, GF_IMUL_GPR32, HWCAPS_SIMD_NONE,
+				maddrc256_imul_gpr32, NULL);
+		add_algorithm(list, field, GF_IMUL_GPR64, HWCAPS_SIMD_NONE,
+				maddrc256_imul_gpr64, NULL);
+#ifdef __x86_64__
+		add_algorithm(list, field, GF_IMUL_SSE2, HWCAPS_SIMD_SSE2,
+				maddrc256_imul_sse2, NULL);
+		add_algorithm(list, field, GF_IMUL_AVX2, HWCAPS_SIMD_AVX2,
+				maddrc256_imul_avx2, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_SSSE3, HWCAPS_SIMD_SSSE3,
+				maddrc256_shuffle_ssse3, NULL);
+		add_algorithm(list, field, GF_SHUFFLE_AVX2, HWCAPS_SIMD_AVX2,
+				maddrc256_shuffle_avx2, NULL);
+#endif
+#ifdef __arm__
+		add_algorithm(list, field, GF_SHUFFLE_NEON, HWCAPS_SIMD_NEON,
+				maddrc256_shuffle_neon, NULL);
+#endif
+		break;
+	}
+
+	return 0;
+}
+
+
+inline void
+xorr_scalar(uint8_t *region1, const uint8_t *region2, int length)
+{
+	for(; length; region1++, region2++, length--)
+		*region1 ^= *region2;
+}
+
+inline void
+xorr_gpr32(uint8_t *region1, const uint8_t *region2, int length)
+{
+	for(; length & 0xfffffff8; region1+=4, region2+=4, length-=4)
+		*(uint32_t *)region1 ^= *(uint32_t *)region2;
+
+	xorr_scalar(region1, region2, length);
+}
+
+inline void
+xorr_gpr64(uint8_t *region1, const uint8_t *region2, int length)
 {
 	for(; length & 0xfffffff8; region1+=8, region2+=8, length-=8)
 		*(uint64_t *)region1 ^= *(uint64_t *)region2;
 
-	for(; length; region1++, region2++, length--)
-		*region1 ^= *region2;
+	xorr_scalar(region1, region2, length);
 }
 

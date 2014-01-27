@@ -33,20 +33,11 @@
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF16_SIZE] = GF16_INV_TABLE;
 static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
-
-inline void
-ffadd16_region_sse2(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_sse2(region1, region2, length);
-}
 
 void
-ffmadd16_region_c_sse2(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
+maddrc16_imul_sse2(uint8_t* region1, const uint8_t* region2, uint8_t constant,
+								int length)
 {
 	register __m128i reg1, reg2, ri[4], sp[4], mi[4];
 	const uint8_t *p = pt[constant];
@@ -55,7 +46,7 @@ ffmadd16_region_c_sse2(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_sse2(region1, region2, length);
+		xorr_sse2(region1, region2, length);
 		return;
 	}
 	
@@ -89,11 +80,11 @@ ffmadd16_region_c_sse2(uint8_t* region1, const uint8_t* region2,
 		_mm_store_si128((void *)region1, ri[0]);
 	}
 
-	ffmadd16_region_c_gpr(region1, region2, constant, length);
+	maddrc16_imul_gpr64(region1, region2, constant, length);
 }
 
 void
-ffmul16_region_c_sse2(uint8_t *region, uint8_t constant, int length)
+mulrc16_imul_sse2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m128i reg, ri[4], sp[4], mi[4];
 	const uint8_t *p = pt[constant];
@@ -134,6 +125,6 @@ ffmul16_region_c_sse2(uint8_t *region, uint8_t constant, int length)
 		_mm_store_si128((void *)region, ri[0]);
 	}
 	
-	ffmul16_region_c_gpr(region, constant, length);
+	mulrc16_imul_gpr64(region, constant, length);
 }
 

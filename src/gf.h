@@ -21,6 +21,7 @@
 #define _GF_H_
 
 #include <stdint.h>
+#include "list.h"
 
 /*
  * Definitions for hardware SIMD capabilities:
@@ -35,16 +36,19 @@
  * HWCAPS_SIMD_NEON: Uses SIMD instructions up to and including AVX2 extensions 
  * (ARM only). 
  */
-#define HWCAPS_SIMD_NONE	(1 << 0)
-#define HWCAPS_SIMD_MMX		(1 << 1)
-#define HWCAPS_SIMD_SSE		(1 << 2)
-#define HWCAPS_SIMD_SSE2	(1 << 3)
-#define HWCAPS_SIMD_SSSE3	(1 << 4)
-#define HWCAPS_SIMD_SSE41	(1 << 5)
-#define HWCAPS_SIMD_SSE42	(1 << 6)
-#define HWCAPS_SIMD_AVX		(1 << 7)
-#define HWCAPS_SIMD_AVX2	(1 << 8)
-#define HWCAPS_SIMD_NEON	(1 << 9)
+enum HWCAPS
+{
+	HWCAPS_SIMD_NONE	= 0,
+	HWCAPS_SIMD_MMX		= 1,
+	HWCAPS_SIMD_SSE		= 2,
+	HWCAPS_SIMD_SSE2	= 3,
+	HWCAPS_SIMD_SSSE3	= 4,
+	HWCAPS_SIMD_SSE41	= 5,
+	HWCAPS_SIMD_SSE42	= 6,
+	HWCAPS_SIMD_AVX		= 7,
+	HWCAPS_SIMD_AVX2	= 8,
+	HWCAPS_SIMD_NEON	= 9,
+};
 
 /*
  * Defines GF parameters. Do not change.
@@ -69,6 +73,10 @@
 #define GF256_SIZE		(1 << GF256_EXPONENT)
 #define GF256_MASK		(GF256_SIZE - 1)
 
+typedef void (*maddrc_t)(uint8_t *, const uint8_t *, uint8_t, int);
+typedef void (*mulrc_t)(uint8_t *, uint8_t, int);
+typedef uint8_t (*inv_t)(uint8_t);
+
 /*
  * Used to identify differen GFs.
  */
@@ -79,35 +87,64 @@ enum GF_TYPE {
 	GF256	= 3
 };
 
+enum GF_ALGORITHM
+{
+	GF_SELFTEST		= 0,
+	GF_XOR_SCALAR,
+	GF_XOR_GPR32,
+	GF_XOR_GPR64,
+	GF_XOR_SSE2,
+	GF_XOR_AVX2,
+	GF_XOR_NEON,
+	GF_LOG_TABLE,
+	GF_FLAT_TABLE,
+	GF_IMUL_SCALAR,
+	GF_IMUL_GPR32,
+	GF_IMUL_GPR64,
+	GF_IMUL_SSE2,
+	GF_IMUL_AVX2,
+	GF_IMUL_NEON_64,
+	GF_IMUL_NEON_128,
+	GF_SHUFFLE_SSSE3,
+	GF_SHUFFLE_AVX2,
+	GF_SHUFFLE_NEON_64,
+	GF_ALGORITHM_BEST,
+	GF_ALGORITHM_COUNT
+};
+
+struct algorithm {
+	struct list_head	list;
+	maddrc_t		maddrc;
+	mulrc_t			mulrc;
+	enum HWCAPS		hwcaps;
+	enum GF_ALGORITHM	type;
+	enum GF_TYPE		field;
+};
+
 /*
  * Structure representing a GF, including functions to user-accessible
  * functions.
  */
 struct galois_field {
-	char		name[16];
-	uint32_t	simd;
-	enum GF_TYPE	type;
-
-	int	polynomial;
-	int	exponent;
-	int	size;
-	int	mask;
-	
-	void	(* fmulrctest)(uint8_t *, uint8_t, int);
-	void	(* fmaddrctest)(uint8_t *, const uint8_t *, uint8_t, int);
-
-	uint8_t (* finv)(uint8_t);
-	void	(* faddr)(uint8_t *, const uint8_t *, int);
-	void	(* fmulrc)(uint8_t *, uint8_t, int);
-	void	(* fmaddrc)(uint8_t *, const uint8_t *, uint8_t, int);
+	enum GF_TYPE		type;
+	enum HWCAPS		hwcaps;
+	char 			name[256];
+	uint32_t		exponent;
+	uint32_t		mask;
+	uint32_t		ppoly;
+	int			size;
+	maddrc_t		maddrc;
+	mulrc_t			mulrc;
+	inv_t			inv;
 };
+
+const char * gf_a2name(enum GF_ALGORITHM a);
 
 /*
  * Checks for SIMD extensions offered by hardware. Return value is a bitmask
  * indicating available HWCAPS.
  */
-uint32_t
-check_available_simd_extensions();
+uint32_t check_available_simd_extensions();
 
 /*
  * Initializes the GF pointed to by gf according to the requested type. SIMD
@@ -116,27 +153,24 @@ check_available_simd_extensions();
  * automatically determined. The function returns 0 on succes and -1 on any
  * error, e.g. the requested SIMD extensions are not available.
  */
-int
-get_galois_field(struct galois_field *gf, enum GF_TYPE type, uint32_t fset);
+int gf_get(struct galois_field *gf, enum GF_TYPE type, enum GF_ALGORITHM atype);
+int gf_get_algorithms(struct list_head *list, enum GF_TYPE type);
 
-void
-ffxor_region_gpr(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_scalar(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_gpr32(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_gpr64(uint8_t *region1, const uint8_t *region2, int length);
 
 /*
  * These functions should not be called directly. Use the function pointers
  * provided by the galois_field structure instead.
  */
 #ifdef __x86_64__
-void
-ffxor_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
-
-void
-ffxor_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_sse2(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_avx2(uint8_t *region1, const uint8_t *region2, int length);
 #endif
 
 #ifdef __arm__
-void
-ffxor_region_neon(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_neon(uint8_t *region1, const uint8_t *region2, int length);
 #endif
 
 #endif

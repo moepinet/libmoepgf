@@ -24,39 +24,37 @@
 #include "gf.h"
 
 inline uint8_t
-ffinv2(uint8_t element)
+inv2(uint8_t element)
 {
 	return element;
 }
 
-inline uint8_t
-ffadd2(uint8_t summand1, uint8_t summand2)
-{
-	return summand1 ^ summand2;
-}
-
-inline uint8_t
-ffmul2(uint8_t factor1, uint8_t factor2)
-{
-	return factor1 & factor2;
-}
-
 inline void
-ffadd2_region_gpr(uint8_t *region1, const uint8_t *region2, int length)
-{
-	ffxor_region_gpr(region1, region2, length);
-}
-
-inline void
-ffmadd2_region_c_gpr(uint8_t *region1, const uint8_t *region2,
+maddrc2_scalar(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
-		ffxor_region_gpr(region1, region2, length);
+		xorr_gpr32(region1, region2, length);
 }
 
 inline void
-ffmul2_region_c(uint8_t *region, uint8_t constant, int length)
+maddrc2_gpr32(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, int length)
+{
+	if (constant != 0)
+		xorr_gpr32(region1, region2, length);
+}
+
+inline void
+maddrc2_gpr64(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, int length)
+{
+	if (constant != 0)
+		xorr_gpr64(region1, region2, length);
+}
+
+inline void
+mulrc2(uint8_t *region, uint8_t constant, int length)
 {
 	if (constant == 0)
 		memset(region, 0, length);
@@ -70,47 +68,29 @@ gf2_init()
 
 #ifdef __x86_64__
 inline void
-ffadd2_region_sse2(uint8_t *region1, const uint8_t *region2, int length)
-{
-	ffxor_region_sse2(region1, region2, length);
-}
-
-inline void
-ffadd2_region_avx2(uint8_t *region1, const uint8_t *region2, int length)
-{
-	ffxor_region_avx2(region1, region2, length);
-}
-
-inline void
-ffmadd2_region_c_sse2(uint8_t *region1, const uint8_t *region2,
+maddrc2_sse2(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
-		ffxor_region_sse2(region1, region2, length);
+		xorr_sse2(region1, region2, length);
 }
 
 inline void
-ffmadd2_region_c_avx2(uint8_t *region1, const uint8_t *region2,
+maddrc2_avx2(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
-		ffxor_region_avx2(region1, region2, length);
+		xorr_avx2(region1, region2, length);
 }
 #endif
 
 #ifdef __arm__
 inline void
-ffadd2_region_neon(uint8_t *region1, const uint8_t *region2, int length)
-{
-	ffxor_region_neon(region1, region2, length);
-}
-
-inline void
-ffmadd2_region_c_neon(uint8_t *region1, const uint8_t *region2,
+maddrc2_neon(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
-		ffxor_region_neon(region1, region2, length);
+		xorr_neon(region1, region2, length);
 }
 #endif
 

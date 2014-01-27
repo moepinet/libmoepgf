@@ -33,25 +33,12 @@
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
 static const uint8_t pt[GF4_SIZE][GF16_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
 static const uint8_t mul[GF4_SIZE][GF4_SIZE] = GF4_MUL_TABLE;
 
-inline void
-ffadd4_region_neon(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_neon(region1, region2, length);
-}
-
-inline void
-ffdiv4_region_c_neon(uint8_t* region, uint8_t constant, int length)
-{
-	ffmul4_region_c_neon(region, inverses[constant], length);
-}
-
 void
-ffmadd4_region_c_neon(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+maddrc4_imul_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant,
+								int length)
 {
 	const uint8_t *p = pt[constant];
 
@@ -59,7 +46,7 @@ ffmadd4_region_c_neon(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_neon(region1, region2, length);
+		xorr_neon(region1, region2, length);
 		return;
 	}
 
@@ -82,11 +69,11 @@ ffmadd4_region_c_neon(uint8_t *region1, const uint8_t *region2,
 		vst1_u8((void *)region1, ri[0]);
 	}
 	
-	ffmadd4_region_c_gpr(region1, region2, constant, length);
+	maddrc4_imul_gpr32(region1, region2, constant, length);
 }
 
 void
-ffmul4_region_c_neon(uint8_t *region, uint8_t constant, int length)
+mulrc4_imul_neon(uint8_t *region, uint8_t constant, int length)
 {
 	register uint8x8_t reg, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
@@ -115,6 +102,6 @@ ffmul4_region_c_neon(uint8_t *region, uint8_t constant, int length)
 		vst1_u8((void *)region, ri[0]);
 	}
 	
-	ffmul4_region_c_gpr(region, constant, length);
+	mulrc4_imul_gpr32(region, constant, length);
 }
 

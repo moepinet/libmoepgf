@@ -22,90 +22,32 @@
 
 #include <stdint.h>
 
-uint8_t
-ffinv256(uint8_t element);
+uint8_t inv256(uint8_t element);
 
-void
-ffadd256_region_c_gpr(uint8_t *region1, const uint8_t *region2, int length);
+void maddrc256_pdiv(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc256_log_table(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc256_flat_table(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc256_imul_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc256_imul_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 
-void
-ffmadd256_region_c_gpr(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd256_region_c_gpr32(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd256_region_c_log(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd256_region_c_table(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmul256_region_c_gpr(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length);
+void mulrc256_pdiv(uint8_t *region, uint8_t constant, int length);
+void mulrc256_imul_gpr64(uint8_t *region, uint8_t constant, int length);
 
 #ifdef __x86_64__
-void
-ffadd256_region_sse2(uint8_t *region1, const uint8_t *region2, int length);
+void maddrc256_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc256_imul_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc256_shuffle_ssse3(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc256_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 
-void
-ffadd256_region_avx2(uint8_t *region1, const uint8_t *region2, int length);
-
-void
-ffdiv256_region_c_sse2(uint8_t *region, uint8_t constant, int length);
-
-void
-ffdiv256_region_c_avx2(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmadd256_region_c_sse2(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd256_region_c_ssse3(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd256_region_c_avx2(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmadd256_region_c_avx2_branchfree(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmul256_region_c_sse2(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul256_region_c_ssse3(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmul256_region_c_avx2(uint8_t *region, uint8_t constant, int length);
+void mulrc256_imul_sse2(uint8_t *region, uint8_t constant, int length);
+void mulrc256_shuffle_ssse3(uint8_t *region, uint8_t constant, int length);
+void mulrc256_shuffle_avx2(uint8_t *region, uint8_t constant, int length);
 #endif
 
 #ifdef __arm__
-void
-ffadd256_region_neon(uint8_t *region1, const uint8_t *region2, int length);
+void maddrc256_shuffle_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
 
-void
-ffdiv256_region_c_neon(uint8_t *region, uint8_t constant, int length);
-
-void
-ffmadd256_region_c_neon(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length);
-
-void
-ffmul256_region_c_neon(uint8_t *region, uint8_t constant, int length);
+void mulrc256_shuffle_neon(uint8_t *region, uint8_t constant, int length);
 #endif
 
 #endif

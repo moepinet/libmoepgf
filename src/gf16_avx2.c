@@ -33,19 +33,12 @@
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF16_SIZE] = GF16_INV_TABLE;
 static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
 static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
 static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
 
-inline void
-ffadd16_region_avx2(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_avx2(region1, region2, length);
-}
-
 void
-ffmadd16_region_c_avx2(uint8_t* region1, const uint8_t* region2,
+maddrc16_shuffle_avx2(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	register __m256i in1, in2, out, t1, t2, m1, m2, l, h;
@@ -54,7 +47,7 @@ ffmadd16_region_c_avx2(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_avx2(region1, region2, length);
+		xorr_avx2(region1, region2, length);
 		return;
 	}
 
@@ -84,11 +77,11 @@ ffmadd16_region_c_avx2(uint8_t* region1, const uint8_t* region2,
 		_mm256_store_si256((void *)region1, out);
 	}
 	
-	ffmadd16_region_c_gpr(region1, region2, constant, length);
+	maddrc16_imul_gpr64(region1, region2, constant, length);
 }
 
 void
-ffmadd16_region_c_avx2_branchfree(uint8_t* region1, const uint8_t* region2,
+maddrc16_imul_avx2(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	register __m256i reg1, reg2, ri[4], sp[4], mi[4];
@@ -98,7 +91,7 @@ ffmadd16_region_c_avx2_branchfree(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_avx2(region1, region2, length);
+		xorr_avx2(region1, region2, length);
 		return;
 	}
 	
@@ -132,11 +125,11 @@ ffmadd16_region_c_avx2_branchfree(uint8_t* region1, const uint8_t* region2,
 		_mm256_store_si256((void *)region1, ri[0]);
 	}
 
-	ffmadd16_region_c_gpr(region1, region2, constant, length);
+	maddrc16_imul_gpr64(region1, region2, constant, length);
 }
 
 void
-ffmul16_region_c_avx2(uint8_t *region, uint8_t constant, int length)
+mulrc16_shuffle_avx2(uint8_t *region, uint8_t constant, int length)
 {
 	register __m256i in, out, t1, t2, m1, m2, l, h;
 
@@ -172,6 +165,6 @@ ffmul16_region_c_avx2(uint8_t *region, uint8_t constant, int length)
 		_mm256_store_si256((void *)region, out);
 	}
 	
-	ffmul16_region_c_gpr(region, constant, length);
+	mulrc16_imul_gpr64(region, constant, length);
 }
 

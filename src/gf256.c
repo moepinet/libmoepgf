@@ -40,20 +40,14 @@ static const uint8_t logt[GF256_SIZE] = GF256_LOG_TABLE;
 static const uint8_t mult[GF256_SIZE][GF256_SIZE] = GF256_MUL_TABLE;
 
 inline uint8_t
-ffinv256(uint8_t element)
+inv256(uint8_t element)
 {
 	return inverses[element];
 }
 
-inline void
-ffadd256_region_gpr(uint8_t *region1, const uint8_t *region2, int length)
-{
-	ffxor_region_gpr(region1, region2, length);
-}
-
 void
-ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+maddrc256_pdiv(uint8_t *region1, const uint8_t *region2, uint8_t constant,
+								int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[8];
@@ -62,7 +56,7 @@ ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
+		xorr_scalar(region1, region2, length);
 		return ;
 	}
 
@@ -80,49 +74,49 @@ ffmadd256_region_c_slow(uint8_t *region1, const uint8_t *region2,
 }
 
 void
-ffmadd256_region_c_gpr(uint8_t *region1, const uint8_t *region2,
+maddrc256_log_table(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
-	const uint8_t *p = pt[constant];
-	uint8_t r[8];
-	uint64_t r64[8];
-	
+	uint8_t l;
+	int x;
+
 	if (constant == 0)
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
-		return;
+		xorr_gpr64(region1, region2, length);
+		return ;
 	}
-
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
-		r64[0] = ((*(uint64_t *)region2 & 0x0101010101010101)>>0)*p[0];
-		r64[1] = ((*(uint64_t *)region2 & 0x0202020202020202)>>1)*p[1];
-		r64[2] = ((*(uint64_t *)region2 & 0x0404040404040404)>>2)*p[2];
-		r64[3] = ((*(uint64_t *)region2 & 0x0808080808080808)>>3)*p[3];
-		r64[4] = ((*(uint64_t *)region2 & 0x1010101010101010)>>4)*p[4];
-		r64[5] = ((*(uint64_t *)region2 & 0x2020202020202020)>>5)*p[5];
-		r64[6] = ((*(uint64_t *)region2 & 0x4040404040404040)>>6)*p[6];
-		r64[7] = ((*(uint64_t *)region2 & 0x8080808080808080)>>7)*p[7];
-		*(uint64_t *)region1 ^= r64[0]^r64[1]^r64[2]^r64[3]
-					^r64[4]^r64[5]^r64[6]^r64[7];
-	}
+	
+	l = logt[constant];
 
 	for (; length; region1++, region2++, length--) {
-		r[0] = ((*region2 & 0x01) >> 0) * p[0];
-		r[1] = ((*region2 & 0x02) >> 1) * p[1];
-		r[2] = ((*region2 & 0x04) >> 2) * p[2];
-		r[3] = ((*region2 & 0x08) >> 3) * p[3];
-		r[4] = ((*region2 & 0x10) >> 4) * p[4];
-		r[5] = ((*region2 & 0x20) >> 5) * p[5];
-		r[6] = ((*region2 & 0x40) >> 6) * p[6];
-		r[7] = ((*region2 & 0x80) >> 7) * p[7];
-		*region1 ^= r[0]^r[1]^r[2]^r[3]^r[4]^r[5]^r[6]^r[7];
+		if (*region2 == 0)
+			continue;
+		x = l + logt[*region2];
+		*region1 ^= alogt[x];
 	}
 }
 
 void
-ffmadd256_region_c_gpr32(uint8_t *region1, const uint8_t *region2,
+maddrc256_flat_table(uint8_t *region1, const uint8_t *region2,
+					uint8_t constant, int length)
+{
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		xorr_gpr64(region1, region2, length);
+		return ;
+	}
+	
+	for (; length; region1++, region2++, length--) {
+		*region1 ^= mult[constant][*region2];
+	}
+}
+
+void
+maddrc256_imul_gpr32(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
@@ -133,7 +127,7 @@ ffmadd256_region_c_gpr32(uint8_t *region1, const uint8_t *region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
+		xorr_gpr32(region1, region2, length);
 		return;
 	}
 
@@ -164,48 +158,49 @@ ffmadd256_region_c_gpr32(uint8_t *region1, const uint8_t *region2,
 }
 
 void
-ffmadd256_region_c_log(uint8_t *region1, const uint8_t *region2,
+maddrc256_imul_gpr64(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
-	uint8_t l;
-	int x;
-
+	const uint8_t *p = pt[constant];
+	uint8_t r[8];
+	uint64_t r64[8];
+	
 	if (constant == 0)
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
-		return ;
-	}
-	
-	l = logt[constant];
-
-	for (; length; region1++, region2++, length--) {
-		if (*region2 == 0)
-			continue;
-		x = l + logt[*region2];
-		*region1 ^= alogt[x];
-	}
-}
-
-void
-ffmadd256_region_c_table(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
-{
-	if (constant == 0)
+		xorr_gpr64(region1, region2, length);
 		return;
-
-	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
-		return ;
 	}
-	
+
+	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+		r64[0] = ((*(uint64_t *)region2 & 0x0101010101010101)>>0)*p[0];
+		r64[1] = ((*(uint64_t *)region2 & 0x0202020202020202)>>1)*p[1];
+		r64[2] = ((*(uint64_t *)region2 & 0x0404040404040404)>>2)*p[2];
+		r64[3] = ((*(uint64_t *)region2 & 0x0808080808080808)>>3)*p[3];
+		r64[4] = ((*(uint64_t *)region2 & 0x1010101010101010)>>4)*p[4];
+		r64[5] = ((*(uint64_t *)region2 & 0x2020202020202020)>>5)*p[5];
+		r64[6] = ((*(uint64_t *)region2 & 0x4040404040404040)>>6)*p[6];
+		r64[7] = ((*(uint64_t *)region2 & 0x8080808080808080)>>7)*p[7];
+		*(uint64_t *)region1 ^= r64[0]^r64[1]^r64[2]^r64[3]
+					^r64[4]^r64[5]^r64[6]^r64[7];
+	}
+
 	for (; length; region1++, region2++, length--) {
-		*region1 ^= mult[constant][*region2];
+		r[0] = ((*region2 & 0x01) >> 0) * p[0];
+		r[1] = ((*region2 & 0x02) >> 1) * p[1];
+		r[2] = ((*region2 & 0x04) >> 2) * p[2];
+		r[3] = ((*region2 & 0x08) >> 3) * p[3];
+		r[4] = ((*region2 & 0x10) >> 4) * p[4];
+		r[5] = ((*region2 & 0x20) >> 5) * p[5];
+		r[6] = ((*region2 & 0x40) >> 6) * p[6];
+		r[7] = ((*region2 & 0x80) >> 7) * p[7];
+		*region1 ^= r[0]^r[1]^r[2]^r[3]^r[4]^r[5]^r[6]^r[7];
 	}
 }
 
-void ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length)
+
+void mulrc256_pdiv(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[8];
@@ -232,7 +227,7 @@ void ffmul256_region_c_slow(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-ffmul256_region_c_gpr(uint8_t *region, uint8_t constant, int length)
+mulrc256_imul_gpr64(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[8];

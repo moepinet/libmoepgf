@@ -1,7 +1,7 @@
 ARCH:=x86
-OS:=osx
+OS:=linux
 
-CFLAGS:= -O2 -Wall -Wextra -Isrc/ -mpclmul
+CFLAGS:= -O2 -g -Wall -Wextra -Isrc/ -mpclmul
 SRCDIR:=src
 CC:=gcc
 LDFLAGS:= 

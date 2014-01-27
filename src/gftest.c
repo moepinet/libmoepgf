@@ -167,190 +167,6 @@ fill_random(struct coding_buffer *cb)
 	}
 }
 
-struct algorithms {
-	madd_t fun;
-	int hwcaps;
-	const char name[256];
-};
-
-struct gf {
-	enum GF_TYPE type;
-	const char name[256];
-	int mask;
-	struct algorithms maddrc[7];
-};
-
-struct gf gf[] = {
-	{
-		.type = GF256,
-		.name = {"GF256"},
-		.mask = 0xff,
-		.maddrc = {
-			{
-				.fun 	= ffmadd256_region_c_log,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "log table"
-			},
-			{
-				.fun 	= ffmadd256_region_c_gpr32,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "lookup table"
-			},
-			{
-				.fun 	= ffmadd256_region_c_gpr,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "imul GPR"
-			},
-			{
-				.fun 	= ffmadd256_region_c_sse2,
-				.hwcaps = HWCAPS_SIMD_SSE2,
-				.name 	= "imul SSE2"
-			},
-			{
-				.fun 	= ffmadd256_region_c_avx2_branchfree,
-				.hwcaps = HWCAPS_SIMD_AVX2,
-				.name 	= "imul AVX2"
-			},
-			{
-				.fun 	= ffmadd256_region_c_ssse3,
-				.hwcaps = HWCAPS_SIMD_SSSE3,
-				.name 	= "shuffle SSSE3"
-			},
-			{
-				.fun 	= ffmadd256_region_c_avx2,
-				.hwcaps = HWCAPS_SIMD_AVX2,
-				.name 	= "shuffle AVX2"
-			},
-		}
-	},
-	{
-		.type = GF16,
-		.name = {"GF16"},
-		.mask = 0x0f,
-		.maddrc = {
-			{
-				.fun 	= ffmadd16_region_c_log,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "log table"
-			},
-			{
-				.fun 	= ffmadd16_region_c_table,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "lookup table"
-			},
-			{
-				.fun 	= ffmadd16_region_c_gpr,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "imul GPR"
-			},
-			{
-				.fun 	= ffmadd16_region_c_sse2,
-				.hwcaps = HWCAPS_SIMD_SSE2,
-				.name 	= "imul SSE2"
-			},
-			{
-				.fun 	= ffmadd16_region_c_avx2_branchfree,
-				.hwcaps = HWCAPS_SIMD_AVX2,
-				.name 	= "imul AVX2"
-			},
-			{
-				.fun 	= ffmadd16_region_c_ssse3,
-				.hwcaps = HWCAPS_SIMD_SSSE3,
-				.name 	= "shuffle SSSE3"
-			},
-			{
-				.fun 	= ffmadd16_region_c_avx2,
-				.hwcaps = HWCAPS_SIMD_AVX2,
-				.name 	= "shuffle AVX2"
-			},
-		}
-	},
-	{
-		.type = GF4,
-		.name = {"GF4"},
-		.mask = 0x03,
-		.maddrc = {
-			{
-				.fun 	= ffmadd4_region_c_table,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "lookup table"
-			},
-			{
-				.fun 	= ffmadd4_region_c_gpr,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "imul GPR"
-			},
-			{
-				.fun 	= ffmadd4_region_c_sse2_imul,
-				.hwcaps = HWCAPS_SIMD_SSE2,
-				.name 	= "imul SSE2"
-			},
-			{
-				.fun 	= ffmadd4_region_c_avx2_imul,
-				.hwcaps = HWCAPS_SIMD_AVX2,
-				.name 	= "imul AVX2"
-			},
-			{
-				.fun 	= ffmadd4_region_c_ssse3_shuffle,
-				.hwcaps = HWCAPS_SIMD_SSSE3,
-				.name 	= "shuffle SSSE3"
-			},
-			{
-				.fun 	= ffmadd4_region_c_avx2_shuffle,
-				.hwcaps = HWCAPS_SIMD_AVX2,
-				.name 	= "shuffle AVX2"
-			},
-			{
-				.fun 	= NULL,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= ""
-			},
-		}
-	},
-	{
-		.type = GF2,
-		.name = {"GF2"},
-		.mask = 0x01,
-		.maddrc = {
-			{
-				.fun 	= ffmadd2_region_c_gpr,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= "XOR GPR"
-			},
-			{
-				.fun 	= ffmadd2_region_c_sse2,
-				.hwcaps = HWCAPS_SIMD_SSE2,
-				.name 	= "XOR SSE2"
-			},
-			{
-				.fun 	= ffmadd2_region_c_avx2,
-				.hwcaps = HWCAPS_SIMD_AVX2,
-				.name 	= "XOR AVX2"
-			},
-			{
-				.fun 	= NULL,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= ""
-			},
-			{
-				.fun 	= NULL,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= ""
-			},
-			{
-				.fun 	= NULL,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= ""
-			},
-			{
-				.fun 	= NULL,
-				.hwcaps = HWCAPS_SIMD_NONE,
-				.name 	= ""
-			},
-		}
-	}
-};
-
 static void
 init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 {
@@ -365,10 +181,12 @@ init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 static void
 selftest()
 {
-	int i,j,k,fset;
+	int i,k,fset;
 	int tlen = 16384+19;
 	uint8_t	*test1, *test2, *test3;
-	struct galois_field field;
+	struct algorithm *alg;
+	struct galois_field gf;
+	LIST_HEAD(alglist);
 
 	fset = check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: \n");
@@ -399,32 +217,28 @@ selftest()
 	if (posix_memalign((void *)&test3, 32, tlen))
 		exit(-1);
 
-	// FIXME SIMD detection does not work as expected
 	for (i=0; i<4; i++) {
-		fprintf(stderr, "%s:\n", gf[i].name);
-		for (j=0; j<7; j++) {
-			if (!gf[i].maddrc[j].fun)
-				continue;
+		gf_get(&gf, i, GF_SELFTEST);
+		gf_get_algorithms(&alglist, gf.type);
+		fprintf(stderr, "%s:\n", gf.name);
 
-			if (!(fset & gf[i].maddrc[j].hwcaps)) {
-				fprintf(stderr, "%s:\t\t\t Necessary SIMD "
-						"instructions not supported\n",
-						gf[i].maddrc[j].name);
+		list_for_each_entry(alg, &alglist, list) {
+			fprintf(stderr, "- selftest (%s)    ",
+							gf_a2name(alg->type));
+			if (!(fset & (1 << alg->hwcaps))) {
+				fprintf(stderr, "\tNecessary SIMD "
+						"instructions not supported\n");
 				continue;
 			}
 
-			get_galois_field(&field, gf[i].type, 0);
-			fprintf(stderr, "- selftest (%s)    ", 
-					gf[i].maddrc[j].name);
-
-			for (k=field.size-1; k>=0; k--) {
+			for (k=gf.size-1; k>=0; k--) {
 				init_test_buffers(test1, test2, test3, tlen);
 
-				field.fmaddrctest(test1, test3, k, tlen);
-				gf[i].maddrc[j].fun(test2, test3, k, tlen);
+				gf.maddrc(test1, test3, k, tlen);
+				alg->maddrc(test2, test3, k, tlen);
 	
 				if (memcmp(test1, test2, tlen)){
-					fprintf(stderr,"FAIL: results differ, c = %d\n", j);
+					fprintf(stderr,"FAIL: results differ, c = %d\n", k);
 					exit(-1);
 				}
 			}
@@ -463,12 +277,14 @@ encode_permutation(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb
 static void
 benchmark(struct args *args)
 {
-	int i,j,l,m,rep,fset;
+	int i,l,m,rep,fset;
 	struct timespec start, end;
-	struct galois_field field;
+	struct galois_field gf;
+	struct algorithm *alg;
 	struct coding_buffer cb;
 	uint8_t *frame;
 	double gbps;
+	LIST_HEAD(list);
 	void (*encode)(madd_t, int, uint8_t *, struct coding_buffer *);
 
 	encode = encode_random;
@@ -485,14 +301,13 @@ benchmark(struct args *args)
 		exit(-1);
 
 	for (i=0; i<4; i++) {
-		get_galois_field(&field, i, 0);
+		gf_get(&gf, i, 0);
+		gf_get_algorithms(&list, gf.type);
+
 		fprintf(stderr, "size \t");
-		for (j=0; j<7; j++) {
-			if (!gf[i].maddrc[j].fun)
-				continue;
-			else
-				fprintf(stderr, "%s \t", gf[i].maddrc[j].name);
-		}
+
+		list_for_each_entry(alg, &list, list)
+			fprintf(stderr, "%s \t", gf_a2name(alg->type));
 		fprintf(stderr, "\n");
 
 		for (l=128, rep=args->repeat; l<=args->maxsize; l*=2, rep/=2) {
@@ -500,11 +315,8 @@ benchmark(struct args *args)
 				exit(-1);
 
 			fprintf(stderr, "%d\t", l);
-			for (j=0; j<7; j++) {
-				if (!gf[i].maddrc[j].fun)
-					continue;
-
-				if (!(fset & gf[i].maddrc[j].hwcaps)) {
+			list_for_each_entry(alg, &list, list) {
+				if (!(fset & (1 << alg->hwcaps))) {
 					fprintf(stderr, "n/a      \t");
 					continue;
 				}
@@ -517,10 +329,8 @@ benchmark(struct args *args)
 				fill_random(&cb);
 
 				clock_gettime(CLOCK_MONOTONIC, &start);
-				for (m=0; m<rep; m++) {
-					encode(gf[i].maddrc[j].fun, gf[i].mask,
-						frame, &cb);
-				}
+				for (m=0; m<rep; m++)
+					encode(alg->maddrc,gf.mask,frame,&cb);
 				clock_gettime(CLOCK_MONOTONIC, &end);
 				timespecsub(&end, &start);
 

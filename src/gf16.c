@@ -41,19 +41,13 @@ static const uint8_t mult[GF16_SIZE][GF16_SIZE] = GF16_MUL_TABLE;
 static const uint8_t multab[GF16_SIZE][256] = GF16_LOOKUP_TABLE;
 
 inline uint8_t
-ffinv16(uint8_t element)
+inv16(uint8_t element)
 {
 	return inverses[element];
 }
 
-inline void
-ffadd16_region_gpr(uint8_t* region1, const uint8_t* region2, int length)
-{
-	ffxor_region_gpr(region1, region2, length);
-}
-
 void
-ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
+maddrc16_imul_scalar(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
@@ -63,7 +57,7 @@ ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
+		xorr_scalar(region1, region2, length);
 		return;
 	}
 
@@ -77,8 +71,41 @@ ffmadd16_region_c_slow(uint8_t* region1, const uint8_t* region2,
 }
 
 void
-ffmadd16_region_c_gpr(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
+maddrc16_imul_gpr32(uint8_t* region1, const uint8_t* region2, uint8_t constant,
+								int length)
+{
+	const uint8_t *p = pt[constant];
+	uint8_t r[4];
+	uint32_t r64[4];
+
+	if (constant == 0)
+		return;
+
+	if (constant == 1) {
+		xorr_gpr32(region1, region2, length);
+		return;
+	}
+
+	for (; length & 0xfffffff8; region1+=4, region2+=4, length-=4) {
+		r64[0] = ((*(uint32_t *)region2 & 0x11111111)>>0)*p[0];
+		r64[1] = ((*(uint32_t *)region2 & 0x22222222)>>1)*p[1];
+		r64[2] = ((*(uint32_t *)region2 & 0x44444444)>>2)*p[2];
+		r64[3] = ((*(uint32_t *)region2 & 0x88888888)>>3)*p[3];
+		*((uint32_t *)region1) ^= r64[0] ^ r64[1] ^ r64[2] ^ r64[3];
+	}
+
+	for (; length; region1++, region2++, length--) {
+		r[0] = ((*region2 & 0x11) >> 0) * p[0];
+		r[1] = ((*region2 & 0x22) >> 1) * p[1];
+		r[2] = ((*region2 & 0x44) >> 2) * p[2];
+		r[3] = ((*region2 & 0x88) >> 3) * p[3];
+		*region1 ^= r[0] ^ r[1] ^ r[2] ^ r[3];
+	}
+}
+
+void
+maddrc16_imul_gpr64(uint8_t* region1, const uint8_t* region2, uint8_t constant,
+								int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
@@ -88,7 +115,7 @@ ffmadd16_region_c_gpr(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
+		xorr_gpr64(region1, region2, length);
 		return;
 	}
 
@@ -110,14 +137,14 @@ ffmadd16_region_c_gpr(uint8_t* region1, const uint8_t* region2,
 }
 
 void
-ffmadd16_region_c_table(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
+maddrc16_flat_table(uint8_t* region1, const uint8_t* region2, uint8_t constant, 
+								int length)
 {
 	if (constant == 0)
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
+		xorr_gpr64(region1, region2, length);
 		return;
 	}
 
@@ -127,8 +154,8 @@ ffmadd16_region_c_table(uint8_t* region1, const uint8_t* region2,
 }
 
 void
-ffmadd16_region_c_log(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
+maddrc16_log_table(uint8_t* region1, const uint8_t* region2, uint8_t constant, 
+								int length)
 {
 	uint8_t l;
 	uint8_t tmp,r;
@@ -138,7 +165,7 @@ ffmadd16_region_c_log(uint8_t* region1, const uint8_t* region2,
 		return;
 
 	if (constant == 1) {
-		ffxor_region_gpr(region1, region2, length);
+		xorr_gpr64(region1, region2, length);
 		return ;
 	}
 
@@ -164,7 +191,7 @@ ffmadd16_region_c_log(uint8_t* region1, const uint8_t* region2,
 }
 
 void
-ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
+mulrc16_imul_scalar(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
@@ -187,7 +214,39 @@ ffmul16_region_c_slow(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-ffmul16_region_c_gpr(uint8_t *region, uint8_t constant, int length)
+mulrc16_imul_gpr32(uint8_t *region, uint8_t constant, int length)
+{
+	const uint8_t *p = pt[constant];
+	uint8_t r[4];
+	uint32_t r64[4];
+
+	if (constant == 0) {
+		memset(region, 0, length);
+		return;
+	}
+
+	if (constant == 1)
+		return;
+
+	for (; length & 0xfffffff8; region+=4, length-=4) {
+		r64[0] = ((*(uint32_t *)region & 0x11111111)>>0)*p[0];
+		r64[1] = ((*(uint32_t *)region & 0x22222222)>>1)*p[1];
+		r64[2] = ((*(uint32_t *)region & 0x44444444)>>2)*p[2];
+		r64[3] = ((*(uint32_t *)region & 0x88888888)>>3)*p[3];
+		*((uint32_t *)region) = r64[0] ^ r64[1] ^ r64[2] ^ r64[3];
+	}
+
+	for (; length; region++, length--) {
+		r[0] = ((*region & 0x11) >> 0) * p[0];
+		r[1] = ((*region & 0x22) >> 1) * p[1];
+		r[2] = ((*region & 0x44) >> 2) * p[2];
+		r[3] = ((*region & 0x88) >> 3) * p[3];
+		*region = r[0] ^ r[1] ^ r[2] ^ r[3];
+	}
+}
+
+void
+mulrc16_imul_gpr64(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
