@@ -126,7 +126,7 @@ maddrc16_flat_table(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 		return;
 
 	if (constant == 1) {
-		xorr_gpr64(region1, region2, length);
+		xorr_scalar(region1, region2, length);
 		return;
 	}
 
@@ -147,7 +147,7 @@ maddrc16_log_table(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 		return;
 
 	if (constant == 1) {
-		xorr_gpr64(region1, region2, length);
+		xorr_scalar(region1, region2, length);
 		return ;
 	}
 

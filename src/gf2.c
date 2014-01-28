@@ -34,7 +34,7 @@ maddrc2_scalar(uint8_t *region1, const uint8_t *region2,
 				uint8_t constant, int length)
 {
 	if (constant != 0)
-		xorr_gpr32(region1, region2, length);
+		xorr_scalar(region1, region2, length);
 }
 
 inline void
