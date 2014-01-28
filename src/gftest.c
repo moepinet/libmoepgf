@@ -303,9 +303,6 @@ benchmark(struct args *args)
 		gf_get(&gf, i, 0);
 		gf_get_algorithms(&list, gf.type);
 
-		if (gf.type != GF256)
-			continue;
-
 		fprintf(stderr, "%s\n", gf.name);
 		fprintf(stderr, "size \t");
 

@@ -152,7 +152,7 @@ maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	uint8_t *p = pt[constant];
-	register uint8x16_t mi[1], sp[8], ri[8], reg1, reg2;
+	register uint8x16_t mi[8], sp[8], ri[8], reg1, reg2;
 
 	if (constant == 0)
 		return;
@@ -161,8 +161,15 @@ maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 		xorr_neon_128(region1, region2, length);
 		return;
 	}
-
-	fprintf(stderr, "hello\n");
+	
+	mi[0] = vdupq_n_u8(0x01);
+	mi[1] = vdupq_n_u8(0x02);
+	mi[2] = vdupq_n_u8(0x04);
+	mi[3] = vdupq_n_u8(0x08);
+	mi[4] = vdupq_n_u8(0x10);
+	mi[5] = vdupq_n_u8(0x20);
+	mi[6] = vdupq_n_u8(0x40);
+	mi[7] = vdupq_n_u8(0x80);
 
 	sp[0] = vdupq_n_u8(p[0]);
 	sp[1] = vdupq_n_u8(p[1]);
@@ -177,22 +184,14 @@ maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 		reg2 = vld1q_u8((void *)region2);
 		reg1 = vld1q_u8((void *)region1);
 
-		mi[0] = vdupq_n_u8(0x01);
 		ri[0] = vandq_u8(reg2, mi[0]);
-		mi[0] = vshlq_n_u8(mi[0], 1);
-		ri[1] = vandq_u8(reg2, mi[0]);
-		mi[0] = vshlq_n_u8(mi[0], 1);
-		ri[2] = vandq_u8(reg2, mi[0]);
-		mi[0] = vshlq_n_u8(mi[0], 1);
-		ri[3] = vandq_u8(reg2, mi[0]);
-		mi[0] = vshlq_n_u8(mi[0], 1);
-		ri[4] = vandq_u8(reg2, mi[0]);
-		mi[0] = vshlq_n_u8(mi[0], 1);
-		ri[5] = vandq_u8(reg2, mi[0]);
-		mi[0] = vshlq_n_u8(mi[0], 1);
-		ri[6] = vandq_u8(reg2, mi[0]);
-		mi[0] = vshlq_n_u8(mi[0], 1);
-		ri[7] = vandq_u8(reg2, mi[0]);
+		ri[1] = vandq_u8(reg2, mi[1]);
+		ri[2] = vandq_u8(reg2, mi[2]);
+		ri[3] = vandq_u8(reg2, mi[3]);
+		ri[4] = vandq_u8(reg2, mi[4]);
+		ri[5] = vandq_u8(reg2, mi[5]);
+		ri[6] = vandq_u8(reg2, mi[6]);
+		ri[7] = vandq_u8(reg2, mi[7]);
 
 		ri[1] = vshrq_n_u8(ri[1], 1);
 		ri[2] = vshrq_n_u8(ri[2], 2);
