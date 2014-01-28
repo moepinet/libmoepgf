@@ -59,7 +59,7 @@ maddrc16_imul_sse2(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 	sp[2] = _mm_set1_epi16(p[2]);
 	sp[3] = _mm_set1_epi16(p[3]);
 
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length > 0; region1+=16, region2+=16, length-=16) {
 		reg2 = _mm_load_si128((void *)region2);
 		reg1 = _mm_load_si128((void *)region1);
 		ri[0] = _mm_and_si128(reg2, mi[0]);
@@ -79,8 +79,6 @@ maddrc16_imul_sse2(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 		ri[0] = _mm_xor_si128(ri[0], reg1);
 		_mm_store_si128((void *)region1, ri[0]);
 	}
-
-	maddrc16_imul_gpr64(region1, region2, constant, length);
 }
 
 void
@@ -106,7 +104,7 @@ mulrc16_imul_sse2(uint8_t *region, uint8_t constant, int length)
 	sp[2] = _mm_set1_epi16(p[2]);
 	sp[3] = _mm_set1_epi16(p[3]);
 
-	for (; length & 0xfffffff0; region+=16, length-=16) {
+	for (; length > 0; region+=16, length-=16) {
 		reg = _mm_load_si128((void *)region);
 		ri[0] = _mm_and_si128(reg, mi[0]);
 		ri[1] = _mm_and_si128(reg, mi[1]);
@@ -124,7 +122,5 @@ mulrc16_imul_sse2(uint8_t *region, uint8_t constant, int length)
 		ri[0] = _mm_xor_si128(ri[0], ri[2]);
 		_mm_store_si128((void *)region, ri[0]);
 	}
-	
-	mulrc16_imul_gpr64(region, constant, length);
 }
 

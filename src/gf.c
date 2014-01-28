@@ -345,18 +345,14 @@ xorr_scalar(uint8_t *region1, const uint8_t *region2, int length)
 inline void
 xorr_gpr32(uint8_t *region1, const uint8_t *region2, int length)
 {
-	for(; length & 0xfffffff8; region1+=4, region2+=4, length-=4)
+	for(; length > 0; region1+=4, region2+=4, length-=4)
 		*(uint32_t *)region1 ^= *(uint32_t *)region2;
-
-	xorr_scalar(region1, region2, length);
 }
 
 inline void
 xorr_gpr64(uint8_t *region1, const uint8_t *region2, int length)
 {
-	for(; length & 0xfffffff8; region1+=8, region2+=8, length-=8)
+	for(; length > 0; region1+=8, region2+=8, length-=8)
 		*(uint64_t *)region1 ^= *(uint64_t *)region2;
-
-	xorr_scalar(region1, region2, length);
 }
 

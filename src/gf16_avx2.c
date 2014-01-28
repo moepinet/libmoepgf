@@ -34,8 +34,8 @@
 #endif
 
 static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
+static const uint8_t tl[GF16_SIZE][16] = GF16_SHUFFLE_LOW_TABLE;
+static const uint8_t th[GF16_SIZE][16] = GF16_SHUFFLE_HIGH_TABLE;
 
 void
 maddrc16_shuffle_avx2(uint8_t* region1, const uint8_t* region2,
@@ -64,7 +64,7 @@ maddrc16_shuffle_avx2(uint8_t* region1, const uint8_t* region2,
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
 
-	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {
+	for (; length > 0; region1+=32, region2+=32, length-=32) {
 		in2 = _mm256_load_si256((void *)region2);
 		in1 = _mm256_load_si256((void *)region1);
 		l = _mm256_and_si256(in2, m1);
@@ -76,8 +76,6 @@ maddrc16_shuffle_avx2(uint8_t* region1, const uint8_t* region2,
 		out = _mm256_xor_si256(out, in1);
 		_mm256_store_si256((void *)region1, out);
 	}
-	
-	maddrc16_imul_gpr64(region1, region2, constant, length);
 }
 
 void
@@ -104,7 +102,7 @@ maddrc16_imul_avx2(uint8_t* region1, const uint8_t* region2,
 	sp[2] = _mm256_set1_epi16(p[2]);
 	sp[3] = _mm256_set1_epi16(p[3]);
 
-	for (; length & 0xffffffe0; region1+=32, region2+=32, length-=32) {
+	for (; length > 0; region1+=32, region2+=32, length-=32) {
 		reg2 = _mm256_load_si256((void *)region2);
 		reg1 = _mm256_load_si256((void *)region1);
 		ri[0] = _mm256_and_si256(reg2, mi[0]);
@@ -124,8 +122,6 @@ maddrc16_imul_avx2(uint8_t* region1, const uint8_t* region2,
 		ri[0] = _mm256_xor_si256(ri[0], reg1);
 		_mm256_store_si256((void *)region1, ri[0]);
 	}
-
-	maddrc16_imul_gpr64(region1, region2, constant, length);
 }
 
 void
@@ -154,7 +150,7 @@ mulrc16_shuffle_avx2(uint8_t *region, uint8_t constant, int length)
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
 
-	for (; length & 0xffffffe0; region+=32, length-=32) {
+	for (; length > 0; region+=32, length-=32) {
 		in = _mm256_load_si256((void *)region);
 		l = _mm256_and_si256(in, m1);
 		l = _mm256_shuffle_epi8(t1, l);
@@ -164,7 +160,5 @@ mulrc16_shuffle_avx2(uint8_t *region, uint8_t constant, int length)
 		out = _mm256_xor_si256(h, l);
 		_mm256_store_si256((void *)region, out);
 	}
-	
-	mulrc16_imul_gpr64(region, constant, length);
 }
 

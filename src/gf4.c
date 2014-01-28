@@ -69,7 +69,6 @@ maddrc4_imul_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 								int length)
 {
 	const uint8_t *p = pt[constant];
-	uint8_t r[4];
 	uint32_t r64[4];
 
 	if (constant == 0)
@@ -80,16 +79,10 @@ maddrc4_imul_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 	       return;
         }
 
-	for (; length & 0xfffffffc; region1+=4, region2+=4, length-=4) {
+	for (; length > 0; region1+=4, region2+=4, length-=4) {
 		r64[0] = ((*(uint32_t *)region2 & 0x55555555)>>0)*p[0];
 		r64[1] = ((*(uint32_t *)region2 & 0xaaaaaaaa)>>1)*p[1];
 		*((uint32_t *)region1) ^= r64[0] ^ r64[1];
-	}
-
-	for (; length; region1++, region2++, length--) {
-		r[0] = ((*region2 & 0x55) >> 0) * p[0];
-		r[1] = ((*region2 & 0xaa) >> 1) * p[1];
-		*region1 ^= r[0] ^ r[1];
 	}
 }
 
@@ -98,7 +91,6 @@ maddrc4_imul_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 								int length)
 {
 	const uint8_t *p = pt[constant];
-	uint8_t r[4];
 	uint64_t r64[4];
 
 	if (constant == 0)
@@ -109,16 +101,10 @@ maddrc4_imul_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 	       return;
         }
 
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+	for (; length > 0; region1+=8, region2+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x5555555555555555)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region2 & 0xaaaaaaaaaaaaaaaa)>>1)*p[1];
 		*((uint64_t *)region1) ^= r64[0] ^ r64[1];
-	}
-
-	for (; length; region1++, region2++, length--) {
-		r[0] = ((*region2 & 0x55) >> 0) * p[0];
-		r[1] = ((*region2 & 0xaa) >> 1) * p[1];
-		*region1 ^= r[0] ^ r[1];
 	}
 }
 
@@ -164,7 +150,6 @@ void
 mulrc4_imul_gpr32(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
-	uint8_t r[2];
 	uint64_t r64[2];
 
 	if (constant == 0) {
@@ -175,16 +160,10 @@ mulrc4_imul_gpr32(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 	
-	for (; length & 0xfffffff8; region+=8, length-=8) {
+	for (; length > 0; region+=8, length-=8) {
 		r64[0] = ((*(uint32_t *)region & 0x55555555)>>0)*p[0];
 		r64[1] = ((*(uint32_t *)region & 0xaaaaaaaa)>>1)*p[1];
 		*((uint32_t *)region) = r64[0] ^ r64[1];
-	}
-
-	for (; length; region++, length--) {
-		r[0] = ((*region & 0x55) >> 0) * p[0];
-		r[1] = ((*region & 0xaa) >> 1) * p[1];
-		*region = r[0] ^ r[1];
 	}
 }
 
@@ -192,7 +171,6 @@ void
 mulrc4_imul_gpr64(uint8_t *region, uint8_t constant, int length)
 {
 	const uint8_t *p = pt[constant];
-	uint8_t r[2];
 	uint64_t r64[2];
 
 	if (constant == 0) {
@@ -203,16 +181,10 @@ mulrc4_imul_gpr64(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 	
-	for (; length & 0xfffffff8; region+=8, length-=8) {
+	for (; length > 0; region+=8, length-=8) {
 		r64[0] = ((*(uint64_t *)region & 0x5555555555555555)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region & 0xaaaaaaaaaaaaaaaa)>>1)*p[1];
 		*((uint64_t *)region) = r64[0] ^ r64[1];
-	}
-
-	for (; length; region++, length--) {
-		r[0] = ((*region & 0x55) >> 0) * p[0];
-		r[1] = ((*region & 0xaa) >> 1) * p[1];
-		*region = r[0] ^ r[1];
 	}
 }
 

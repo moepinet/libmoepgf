@@ -35,14 +35,12 @@ xorr_neon_64(uint8_t *region1, const uint8_t *region2, int length)
 {
 	register uint64x1_t in, out;
 
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+	for (; length > 0; region1+=8, region2+=8, length-=8) {
 		in  = vld1_u64((void *)region2);
 		out = vld1_u64((void *)region1);
 		out = veor_u64(in, out);
 		vst1_u64((void *)region1, out);
 	}
-
-	xorr_gpr32(region1, region2, length);
 }
 
 void
@@ -50,13 +48,11 @@ xorr_neon_128(uint8_t *region1, const uint8_t *region2, int length)
 {
 	register uint64x2_t in, out;
 
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length > 0; region1+=16, region2+=16, length-=16) {
 		in  = vld1q_u64((void *)region2);
 		out = vld1q_u64((void *)region1);
 		out = veorq_u64(in, out);
 		vst1q_u64((void *)region1, out);
 	}
-
-	xorr_gpr32(region1, region2, length);
 }
 

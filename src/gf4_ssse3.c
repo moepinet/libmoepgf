@@ -55,7 +55,7 @@ maddrc4_shuffle_ssse3(uint8_t* region1, const uint8_t* region2, uint8_t constant
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
 
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length > 0; region1+=16, region2+=16, length-=16) {
 		in2 = _mm_load_si128((void *)region2);
 		in1 = _mm_load_si128((void *)region1);
 		l = _mm_and_si128(in2, m1);
@@ -67,8 +67,6 @@ maddrc4_shuffle_ssse3(uint8_t* region1, const uint8_t* region2, uint8_t constant
 		out = _mm_xor_si128(out, in1);
 		_mm_store_si128((void *)region1, out);
 	}
-	
-	maddrc4_imul_gpr64(region1, region2, constant, length);
 }
 
 void
@@ -89,7 +87,7 @@ mulrc4_shuffle_ssse3(uint8_t *region, uint8_t constant, int length)
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
 
-	for (; length & 0xfffffff0; region+=16, length-=16) {
+	for (; length > 0; region+=16, length-=16) {
 		in = _mm_load_si128((void *)region);
 		l = _mm_and_si128(in, m1);
 		l = _mm_shuffle_epi8(t1, l);
@@ -99,7 +97,5 @@ mulrc4_shuffle_ssse3(uint8_t *region, uint8_t constant, int length)
 		out = _mm_xor_si128(h, l);
 		_mm_store_si128((void *)region, out);
 	}
-	
-	mulrc4_imul_gpr64(region, constant, length);
 }
 

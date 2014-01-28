@@ -68,7 +68,7 @@ maddrc256_imul_sse2(uint8_t *region1, const uint8_t *region2,
 	sp[6] = _mm_set1_epi16(p[6]);
 	sp[7] = _mm_set1_epi16(p[7]);
 
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length > 0; region1+=16, region2+=16, length-=16) {
 		reg1 = _mm_load_si128((void *)region1);
 		reg2 = _mm_load_si128((void *)region2);
 
@@ -109,8 +109,6 @@ maddrc256_imul_sse2(uint8_t *region1, const uint8_t *region2,
 
 		_mm_store_si128((void *)region1, ri[0]);
 	}
-
-	maddrc256_imul_gpr64(region1, region2, constant, length);
 }
 
 void
@@ -145,7 +143,7 @@ mulrc256_imul_sse2(uint8_t *region, uint8_t constant, int length)
 	sp[6] = _mm_set1_epi16(p[6]);
 	sp[7] = _mm_set1_epi16(p[7]);
 
-	for (; length & 0xfffffff0; region+=16, length-=16) {
+	for (; length > 0; region+=16, length-=16) {
 		reg = _mm_load_si128((void *)region);
 
 		ri[0] = _mm_and_si128(reg, mi[0]);
@@ -184,7 +182,5 @@ mulrc256_imul_sse2(uint8_t *region, uint8_t constant, int length)
 
 		_mm_store_si128((void *)region, ri[0]);
 	}
-	
-	mulrc256_imul_gpr64(region, constant, length);
 }
 

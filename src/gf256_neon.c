@@ -57,7 +57,7 @@ maddrc256_shuffle_neon(uint8_t *region1, const uint8_t *region2,
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+	for (; length > 0; region1+=8, region2+=8, length-=8) {
 		in2 = vld1_u8((void *)region2);
 		in1 = vld1_u8((void *)region1);
 		l = vand_u8(in2, m1);
@@ -69,8 +69,6 @@ maddrc256_shuffle_neon(uint8_t *region1, const uint8_t *region2,
 		out = veor_u8(out, in1);
 		vst1_u8(region1, out);
 	}
-	
-	maddrc256_imul_gpr32(region1, region2, constant, length);
 }
 
 void
@@ -106,7 +104,7 @@ maddrc256_imul_neon_64(uint8_t *region1, const uint8_t *region2,
 	sp[6] = vdup_n_u8(p[6]);
 	sp[7] = vdup_n_u8(p[7]);
 
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+	for (; length > 0; region1+=8, region2+=8, length-=8) {
 		reg2 = vld1_u8((void *)region2);
 		reg1 = vld1_u8((void *)region1);
 
@@ -147,8 +145,6 @@ maddrc256_imul_neon_64(uint8_t *region1, const uint8_t *region2,
 
 		vst1_u8(region1, ri[0]);
 	}
-
-	maddrc256_imul_gpr32(region1, region2, constant, length);
 }
 
 void
@@ -156,7 +152,7 @@ maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, int length)
 {
 	uint8_t *p = pt[constant];
-	register uint8x16_t mi[8], sp[8], ri[8], reg1, reg2;
+	register uint8x16_t mi[1], sp[8], ri[8], reg1, reg2;
 
 	if (constant == 0)
 		return;
@@ -166,14 +162,7 @@ maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 		return;
 	}
 
-	mi[0] = vdupq_n_u8(0x01);
-	mi[1] = vdupq_n_u8(0x02);
-	mi[2] = vdupq_n_u8(0x04);
-	mi[3] = vdupq_n_u8(0x08);
-	mi[4] = vdupq_n_u8(0x10);
-	mi[5] = vdupq_n_u8(0x20);
-	mi[6] = vdupq_n_u8(0x40);
-	mi[7] = vdupq_n_u8(0x80);
+	fprintf(stderr, "hello\n");
 
 	sp[0] = vdupq_n_u8(p[0]);
 	sp[1] = vdupq_n_u8(p[1]);
@@ -184,18 +173,26 @@ maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 	sp[6] = vdupq_n_u8(p[6]);
 	sp[7] = vdupq_n_u8(p[7]);
 
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length > 0; region1+=16, region2+=16, length-=16) {
 		reg2 = vld1q_u8((void *)region2);
 		reg1 = vld1q_u8((void *)region1);
 
+		mi[0] = vdupq_n_u8(0x01);
 		ri[0] = vandq_u8(reg2, mi[0]);
-		ri[1] = vandq_u8(reg2, mi[1]);
-		ri[2] = vandq_u8(reg2, mi[2]);
-		ri[3] = vandq_u8(reg2, mi[3]);
-		ri[4] = vandq_u8(reg2, mi[4]);
-		ri[5] = vandq_u8(reg2, mi[5]);
-		ri[6] = vandq_u8(reg2, mi[6]);
-		ri[7] = vandq_u8(reg2, mi[7]);
+		mi[0] = vshlq_n_u8(mi[0], 1);
+		ri[1] = vandq_u8(reg2, mi[0]);
+		mi[0] = vshlq_n_u8(mi[0], 1);
+		ri[2] = vandq_u8(reg2, mi[0]);
+		mi[0] = vshlq_n_u8(mi[0], 1);
+		ri[3] = vandq_u8(reg2, mi[0]);
+		mi[0] = vshlq_n_u8(mi[0], 1);
+		ri[4] = vandq_u8(reg2, mi[0]);
+		mi[0] = vshlq_n_u8(mi[0], 1);
+		ri[5] = vandq_u8(reg2, mi[0]);
+		mi[0] = vshlq_n_u8(mi[0], 1);
+		ri[6] = vandq_u8(reg2, mi[0]);
+		mi[0] = vshlq_n_u8(mi[0], 1);
+		ri[7] = vandq_u8(reg2, mi[0]);
 
 		ri[1] = vshrq_n_u8(ri[1], 1);
 		ri[2] = vshrq_n_u8(ri[2], 2);
@@ -225,8 +222,6 @@ maddrc256_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 
 		vst1q_u8(region1, ri[0]);
 	}
-
-	maddrc256_imul_gpr32(region1, region2, constant, length);
 }
 
 void
@@ -248,7 +243,7 @@ mulrc256_shuffle_neon(uint8_t *region, uint8_t constant, int length)
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
-	for (; length & 0xfffffff8; region+=8, length-=8) {
+	for (; length > 0; region+=8, length-=8) {
 		in = vld1_u8((void *)region);
 		l = vand_u8(in, m1);
 		l = vtbl2_u8(t1, l);
@@ -258,7 +253,5 @@ mulrc256_shuffle_neon(uint8_t *region, uint8_t constant, int length)
 		out = veor_u8(h, l);
 		vst1_u8((void *)region, out);
 	}
-	
-	mulrc256_imul_gpr32(region, constant, length);
 }
 

@@ -34,8 +34,8 @@
 #endif
 
 static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF16_SIZE][GF16_SIZE] = GF16_SHUFFLE_HIGH_TABLE;
+static const uint8_t tl[GF16_SIZE][16] = GF16_SHUFFLE_LOW_TABLE;
+static const uint8_t th[GF16_SIZE][16] = GF16_SHUFFLE_HIGH_TABLE;
 
 void
 maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
@@ -57,7 +57,7 @@ maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+	for (; length > 0; region1+=8, region2+=8, length-=8) {
 		in2 = vld1_u8((void *)region2);
 		in1 = vld1_u8((void *)region1);
 		l = vand_u8(in2, m1);
@@ -69,8 +69,6 @@ maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 		out = veor_u8(out, in1);
 		vst1_u8(region1, out);
 	}
-
-	maddrc16_imul_gpr32(region1, region2, constant, length);
 }
 
 void
@@ -98,7 +96,7 @@ maddrc16_imul_neon_64(uint8_t *region1, const uint8_t *region2,
 	sp[2] = vdup_n_u8(p[2]);
 	sp[3] = vdup_n_u8(p[3]);
 
-	for (; length & 0xfffffff8; region1+=8, region2+=8, length-=8) {
+	for (; length > 0; region1+=8, region2+=8, length-=8) {
 		reg2 = vld1_u8((void *)region2);
 		reg1 = vld1_u8((void *)region1);
 
@@ -123,8 +121,6 @@ maddrc16_imul_neon_64(uint8_t *region1, const uint8_t *region2,
 
 		vst1_u8(region1, ri[0]);
 	}
-
-	maddrc16_imul_gpr32(region1, region2, constant, length);
 }
 
 void
@@ -152,7 +148,7 @@ maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 	sp[2] = vdupq_n_u8(p[2]);
 	sp[3] = vdupq_n_u8(p[3]);
 
-	for (; length & 0xfffffff0; region1+=16, region2+=16, length-=16) {
+	for (; length > 0; region1+=16, region2+=16, length-=16) {
 		reg2 = vld1q_u8((void *)region2);
 		reg1 = vld1q_u8((void *)region1);
 
@@ -177,8 +173,6 @@ maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 
 		vst1q_u8(region1, ri[0]);
 	}
-
-	maddrc16_imul_gpr32(region1, region2, constant, length);
 }
 
 void
@@ -200,7 +194,7 @@ mulrc16_shuffle_neon(uint8_t *region, uint8_t constant, int length)
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
-	for (; length & 0xfffffff8; region+=8, length-=8) {
+	for (; length > 0; region+=8, length-=8) {
 		in = vld1_u8((void *)region);
 		l = vand_u8(in, m1);
 		l = vtbl2_u8(t1, l);
@@ -210,7 +204,5 @@ mulrc16_shuffle_neon(uint8_t *region, uint8_t constant, int length)
 		out = veor_u8(h, l);
 		vst1_u8((void *)region, out);
 	}
-
-	mulrc16_imul_gpr32(region, constant, length);
 }
 
