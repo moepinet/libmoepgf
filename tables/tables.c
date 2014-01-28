@@ -363,20 +363,20 @@ print_shuffle_table(struct galois_field *gf)
 	for (i=0; i<gf->size; i++) {
 		for (j=0; j<16; j++) {
 			lt_arm[i][(2*j)%15] = lt[i][j];
-			lt_arm[i][(2*j)%15] = lt[i][j];
+			ht_arm[i][(2*j)%15] = ht[i][j];
 		}
 		t = lt_arm[i][0];
-		lt_arm[i][0] = lt_arm[i][15];
+		lt_arm[i][0] = 0;
 		lt_arm[i][15] = t;
-		t = lt[i][0];
-		ht_arm[i][0] = ht_arm[i][15];
+		t = ht_arm[i][0];
+		ht_arm[i][0] = 0;
 		ht_arm[i][15] = t;
 	}
 	fprintf(stdout, "#ifdef __arm__\n");
 	fprintf(stdout, "#define GF%d_SHUFFLE_LOW_TABLE { \\", gf->size);
-	print_2d_table(lt, gf->size, 16);
+	print_2d_table(lt_arm, gf->size, 16);
 	fprintf(stdout, "#define GF%d_SHUFFLE_HIGH_TABLE { \\", gf->size);
-	print_2d_table(ht, gf->size, 16);
+	print_2d_table(ht_arm, gf->size, 16);
 	fprintf(stdout, "#endif //__arm__\n");
 
 	for (i=0; i<gf->size; i++) {
