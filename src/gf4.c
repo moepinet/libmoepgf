@@ -160,7 +160,7 @@ mulrc4_imul_gpr32(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 	
-	for (; length > 0; region+=8, length-=8) {
+	for (; length > 0; region+=4, length-=4) {
 		r64[0] = ((*(uint32_t *)region & 0x55555555)>>0)*p[0];
 		r64[1] = ((*(uint32_t *)region & 0xaaaaaaaa)>>1)*p[1];
 		*((uint32_t *)region) = r64[0] ^ r64[1];
