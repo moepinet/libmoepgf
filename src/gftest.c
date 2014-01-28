@@ -268,7 +268,7 @@ encode_permutation(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb
 	int i,c;
 
 	for (i=0; i<cb->scount; i++) {
-		c = i % mask;
+		c = i & mask;
 		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }
@@ -303,9 +303,6 @@ benchmark(struct args *args)
 		gf_get(&gf, i, 0);
 		gf_get_algorithms(&list, gf.type);
 
-		if (gf.type != GF256)
-			continue;
-
 		fprintf(stderr, "%s\n", gf.name);
 		fprintf(stderr, "size \t");
 
@@ -324,7 +321,7 @@ benchmark(struct args *args)
 					continue;
 				}
 
-				if (rep < 1024) {
+				if (rep < 256) {
 					fprintf(stderr, "rep too small\t");
 					continue;
 				}
