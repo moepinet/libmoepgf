@@ -231,9 +231,10 @@ static void
 encode_random(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb)
 {
 	int i,c;
+	unsigned int seed = 42;
 
 	for (i=0; i<cb->scount; i++) {
-		c = rand() & mask;
+		c = rand_r(&seed) & mask;
 		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }
