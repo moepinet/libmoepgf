@@ -7,7 +7,7 @@ CC:=gcc
 LDFLAGS:= 
 
 ifeq ($(OS), linux)
-LDFLAGS+= -lrt
+LDFLAGS+= -lrt -lpthread
 endif
 
 ALL_OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
