@@ -190,23 +190,23 @@ selftest()
 
 	fset = check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: \n");
-	if (fset & HWCAPS_SIMD_MMX)
+	if (fset & (1 << HWCAPS_SIMD_MMX))
 		fprintf(stderr, "MMX ");
-	if (fset & HWCAPS_SIMD_SSE)
+	if (fset & (1 << HWCAPS_SIMD_SSE))
 		fprintf(stderr, "SSE ");
-	if (fset & HWCAPS_SIMD_SSE2)
+	if (fset & (1 << HWCAPS_SIMD_SSE2))
 		fprintf(stderr, "SSE2 ");
-	if (fset & HWCAPS_SIMD_SSSE3)
+	if (fset & (1 << HWCAPS_SIMD_SSSE3))
 		fprintf(stderr, "SSSE3 ");
-	if (fset & HWCAPS_SIMD_SSE41)
+	if (fset & (1 << HWCAPS_SIMD_SSE41))
 		fprintf(stderr, "SSE41 ");
-	if (fset & HWCAPS_SIMD_SSE42)
+	if (fset & (1 << HWCAPS_SIMD_SSE42))
 		fprintf(stderr, "SSE42 ");
-	if (fset & HWCAPS_SIMD_AVX)
+	if (fset & (1 << HWCAPS_SIMD_AVX))
 		fprintf(stderr, "AVX ");
-	if (fset & HWCAPS_SIMD_AVX2)
+	if (fset & (1 << HWCAPS_SIMD_AVX2))
 		fprintf(stderr, "AVX2 ");
-	if (fset & HWCAPS_SIMD_NEON)
+	if (fset & (1 << HWCAPS_SIMD_NEON))
 		fprintf(stderr, "NEON ");
 	fprintf(stderr, "\n\n");
 
