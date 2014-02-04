@@ -336,8 +336,8 @@ benchmark(struct args *args)
 
 				gbps = (double)rep/((double)end.tv_sec +
 						(double)end.tv_nsec*1e-9);
-				gbps *= l;
-				gbps /= 1024*1024*1024;
+				gbps *= l * 8;
+				gbps /= 1e9;
 
 				fprintf(stderr, "%.6f \t", gbps);
 			}
