@@ -22,7 +22,9 @@
 #include <time.h>
 #include <errno.h>
 #include <unistd.h>
+#include <pthread.h>
 
+#include "coding_buffer.h"
 #include "gf.h"
 #include "gf2.h"
 #include "gf4.h"
@@ -111,50 +113,24 @@ struct args {
 	int maxsize;
 	int random;
 	int repeat;
+	int threads;
 } args;
 
-struct coding_buffer {
-	int scount;
-	int ssize;
-	uint8_t *pcb;
-	uint8_t **slot;
+struct thread_args {
+	madd_t	madd;
+	uint8_t	mask;
+	double	gbps;
+	int	length;
+	int	rep;
+	int	random;
+	int	count;
 };
 
-static int
-cb_init(struct coding_buffer *cb, int scount, int ssize, int alignment)
-{ 
-	int totlen, i;
-
-	ssize = ((ssize + alignment - 1) / alignment) * alignment;
-
-	totlen = ssize * scount;
-
-	if (posix_memalign((void *)&cb->pcb, alignment, totlen))
-		return -1;
-
-	memset(cb->pcb, 0, totlen);
-
-	if (NULL == (cb->slot = malloc(scount * sizeof(cb->pcb)))) {
-		free(cb->pcb);
-		return -1;
-	}
-
-	for (i=0; i<scount; i++)
-		cb->slot[i] = &cb->pcb[i*ssize];
-
-	cb->ssize = ssize;
-	cb->scount = scount;
-
-	return 0;
-}
-
-static void
-cb_free(struct coding_buffer *cb)
-{
-	free(cb->pcb);
-	free(cb->slot);
-	memset(cb, 0, sizeof(*cb));
-}
+struct thread_info {
+	int 			tid;
+	pthread_t 		thread;
+	struct thread_args 	args;
+};
 
 static void
 fill_random(struct coding_buffer *cb)
@@ -255,9 +231,10 @@ static void
 encode_random(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb)
 {
 	int i,c;
+	unsigned int seed = 42;
 
 	for (i=0; i<cb->scount; i++) {
-		c = rand() & mask;
+		c = rand_r(&seed) & mask;
 		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }
@@ -273,31 +250,64 @@ encode_permutation(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb
 	}
 }
 
+static void *
+encode_thread(void *args)
+{
+	struct thread_args *ta = args;
+	struct coding_buffer cb;
+	struct timespec start, end;
+	uint8_t *frame;
+	int i;
+	void (*encode)(madd_t, int, uint8_t *, struct coding_buffer *);
+	
+	encode = encode_random;
+	if (ta->random == 0)
+		encode = encode_permutation;
+	
+	if (posix_memalign((void *)&frame, 32, ta->length))
+		exit(-1);
+			
+	if (cb_init(&cb, ta->count, ta->length, 32))
+		exit(-1);
+				
+	fill_random(&cb);
+
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	for (i=0; i<ta->rep; i++)
+		encode(ta->madd, ta->mask, frame, &cb);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+				
+	timespecsub(&end, &start);
+				
+	ta->gbps = (double)ta->rep/((double)end.tv_sec
+			+ (double)end.tv_nsec*1e-9);
+	ta->gbps *= ta->length*8.0*1e-9;
+
+	cb_free(&cb);
+	free(frame);
+
+	return NULL;
+}
+
 static void
 benchmark(struct args *args)
 {
 	int i,l,m,rep,fset;
-	struct timespec start, end;
-	struct galois_field gf;
 	struct algorithm *alg;
-	struct coding_buffer cb;
-	uint8_t *frame;
+	struct galois_field gf;
+	struct thread_info *tinfo;
 	double gbps;
 	LIST_HEAD(list);
-	void (*encode)(madd_t, int, uint8_t *, struct coding_buffer *);
 
-	encode = encode_random;
-	if (args->random == 0)
-		encode = encode_permutation;
-	
+	tinfo = malloc(args->threads * sizeof(*tinfo));
+	memset(tinfo, 0, args->threads * sizeof(*tinfo));
+
 	fset = check_available_simd_extensions();
 
 	fprintf(stderr, 
-		"\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d\n", 
-		args->maxsize, args->count, args->repeat);
-
-	if (posix_memalign((void *)&frame, 32, args->maxsize))
-		exit(-1);
+		"\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d, "\
+		"threads=%d\n",	args->maxsize, args->count, args->repeat, 
+		args->threads);
 
 	for (i=0; i<4; i++) {
 		gf_get(&gf, i, 0);
@@ -311,9 +321,6 @@ benchmark(struct args *args)
 		fprintf(stderr, "\n");
 
 		for (l=128, rep=args->repeat; l<=args->maxsize; l*=2, rep/=2) {
-			if (cb_init(&cb, args->count, l, 32))
-				exit(-1);
-
 			fprintf(stderr, "%d\t", l);
 			list_for_each_entry(alg, &list, list) {
 				if (!(fset & (1 << alg->hwcaps))) {
@@ -326,29 +333,37 @@ benchmark(struct args *args)
 					continue;
 				}
 
-				fill_random(&cb);
+				for (m=0; m<args->threads; m++) {
+					tinfo[m].args.madd = alg->maddrc;
+					tinfo[m].args.mask = gf.mask;
+					tinfo[m].args.length = l;
+					tinfo[m].args.rep = rep;
+					tinfo[m].args.random = args->random;
+					tinfo[m].args.count = args->count;
+				}
+				
+				for (m=0; m<args->threads; m++) {
+					tinfo[m].tid = 
+						pthread_create(
+							&tinfo[m].thread, NULL, 
+							encode_thread,
+							(void *)&tinfo[m].args);
+				}
+				for (m=0; m<args->threads; m++)
+					pthread_join(tinfo[m].thread, NULL);
 
-				clock_gettime(CLOCK_MONOTONIC, &start);
-				for (m=0; m<rep; m++)
-					encode(alg->maddrc,gf.mask,frame,&cb);
-				clock_gettime(CLOCK_MONOTONIC, &end);
-				timespecsub(&end, &start);
-
-				gbps = (double)rep/((double)end.tv_sec +
-						(double)end.tv_nsec*1e-9);
-				gbps *= l * 8;
-				gbps /= 1e9;
+				gbps = 0;
+				for (m=0; m<args->threads; m++)
+					gbps += tinfo[m].args.gbps;
 
 				fprintf(stderr, "%.6f \t", gbps);
 			}
 			fprintf(stderr, "\n");
-
-			cb_free(&cb);
 		}
 		fprintf(stderr, "\n");
 	}
-			
-	free(frame);
+
+	free(tinfo);
 }
 
 int
@@ -360,8 +375,9 @@ main(int argc, char **argv)
 	args.maxsize = 1024*1024*8;
 	args.repeat = 1024*1024;
 	args.random = 1;
+	args.threads = 1;
 
-	while (-1 != (opt = getopt(argc, argv, "m:c:r:d"))) {
+	while (-1 != (opt = getopt(argc, argv, "m:c:r:t:d"))) {
 		switch (opt) {
 		case 'm':
 			args.maxsize = atoi(optarg);
@@ -386,6 +402,13 @@ main(int argc, char **argv)
 			break;
 		case 'd':
 			args.random = 0;
+			break;
+		case 't':
+			args.threads = atoi(optarg);
+			if (args.threads < 1) {
+				fprintf(stderr, "invalid thread cound\n\n");
+				exit(-1);
+			}
 			break;
 		default:
 			fprintf(stderr, "unknown option %c\n\n", (char)opt);

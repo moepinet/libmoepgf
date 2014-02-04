@@ -1,6 +1,7 @@
 include ../Makefile.inc
 
 CFLAGS+= -I../$(LIBGFDIR)
+LDFLAGS+= -lpthread
 
 SRCDIR:=.
 
@@ -11,7 +12,7 @@ endif
 OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
 
 all: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) ../$(LIBGFDIR)/$(LIBGF) -o $(GFTEST)
+	$(CC) $(CFLAGS) $(OBJS) ../$(LIBGFDIR)/$(LIBGF) -o $(GFTEST) $(LDFLAGS)
 
 $(OBJS):
 	$(CC) $(CFLAGS) -c $(@:.o=.c) -o $@
