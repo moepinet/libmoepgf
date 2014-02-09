@@ -31,26 +31,132 @@
 
 const char *gf_names[] =
 {
-	"selftest",
-	"xor_scalar",
-	"xor_gpr32",
-	"xor_gpr64",
-	"xor_sse2",
-	"xor_avx2",
-	"xor_neon_128",
-	"log_table",
-	"flat_table",
-	"imul_scalar",
-	"imul_gpr32",
-	"imul_gpr64",
-	"imul_sse2",
-	"imul_avx2",
-	"imul_neon_64",
-	"imul_neon_128",
-	"shuffle_ssse3",
-	"shuffle_avx2",
-	"shuffle_neon_64"
+	[GF_SELFTEST]		= "selftest",
+	[GF_XOR_SCALAR]		= "xor_scalar",
+	[GF_XOR_GPR32]		= "xor_gpr32",
+	[GF_XOR_GPR64]		= "xor_gpr64",
+	[GF_XOR_SSE2]		= "xor_sse2",
+	[GF_XOR_AVX2]		= "xor_avx2",
+	[GF_XOR_NEON_128]	= "xor_neon_128",
+	[GF_LOG_TABLE]		= "log_table",
+	[GF_FLAT_TABLE]		= "flat_table",
+	[GF_IMUL_SCALAR]	= "imul_scalar",
+	[GF_IMUL_GPR32]		= "imul_gpr32",
+	[GF_IMUL_GPR64]		= "imul_gpr64",
+	[GF_IMUL_SSE2]		= "imul_sse2",
+	[GF_IMUL_AVX2]		= "imul_avx2",
+	[GF_IMUL_NEON_64]	= "imul_neon_64",
+	[GF_IMUL_NEON_128]	= "imul_neon_128",
+	[GF_SHUFFLE_SSSE3]	= "shuffle_ssse3",
+	[GF_SHUFFLE_AVX2]	= "shuffle_avx2",
+	[GF_SHUFFLE_NEON_64]	= "shuffle_neon_64"
 };
+
+const struct {
+	mulrc_t		mulrc;
+	maddrc_t	maddrc;
+} best_algorithms[GF_COUNT][HWCAPS_COUNT] = {
+	[GF2][HWCAPS_SIMD_NONE]  = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_gpr64
+	},
+#ifdef __x86_64__
+	[GF2][HWCAPS_SIMD_SSE2]  = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_sse2
+	},
+	[GF2][HWCAPS_SIMD_SSSE3] = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_sse2
+	},
+	[GF2][HWCAPS_SIMD_AVX2]  = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_avx2
+	},
+#endif
+#ifdef __arm__
+	[GF2][HWCAPS_SIMD_NEON]  = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_neon
+	},
+#endif
+
+	[GF4][HWCAPS_SIMD_NONE]  = {
+		.mulrc	= mulrc4_imul_gpr64,
+		.maddrc	= maddrc4_imul_gpr64
+	},
+#ifdef __x86_64__
+	[GF4][HWCAPS_SIMD_SSE2]  = {
+		.mulrc	= mulrc4_imul_sse2,
+		.maddrc	= maddrc4_imul_sse2
+	},
+	[GF4][HWCAPS_SIMD_SSSE3] = {
+		.mulrc	= mulrc4_shuffle_ssse3,
+		.maddrc	= maddrc4_shuffle_ssse3
+	},
+	[GF4][HWCAPS_SIMD_AVX2]  = {
+		.mulrc	= mulrc4_shuffle_avx2,
+		.maddrc	= maddrc4_shuffle_avx2
+	},
+#endif
+#ifdef __arm__
+	[GF4][HWCAPS_SIMD_NEON]  = {
+		.mulrc	= mulrc4_imul_neon_64,
+		.maddrc	= maddrc4_imul_neon_128
+	},
+#endif
+
+	[GF16][HWCAPS_SIMD_NONE]  = {
+		.mulrc	= mulrc16_imul_gpr64,
+		.maddrc	= maddrc16_imul_gpr64
+	},
+#ifdef __x86_64__
+	[GF16][HWCAPS_SIMD_SSE2]  = {
+		.mulrc	= mulrc16_imul_sse2,
+		.maddrc	= maddrc16_imul_sse2
+	},
+	[GF16][HWCAPS_SIMD_SSSE3] = {
+		.mulrc	= mulrc16_shuffle_ssse3,
+		.maddrc	= maddrc16_shuffle_ssse3
+	},
+	[GF16][HWCAPS_SIMD_AVX2]  = {
+		.mulrc	= mulrc16_shuffle_avx2,
+		.maddrc	= maddrc16_shuffle_avx2
+	},
+#endif
+#ifdef __arm__
+	[GF16][HWCAPS_SIMD_NEON]  = {
+		.mulrc	= mulrc16_shuffle_neon_64,
+		.maddrc	= maddrc16_shuffle_neon_64
+	},
+#endif
+
+	[GF256][HWCAPS_SIMD_NONE]  = {
+		.mulrc	= mulrc256_imul_gpr64,
+		.maddrc	= maddrc256_imul_gpr64
+	},
+#ifdef __x86_64__
+	[GF256][HWCAPS_SIMD_SSE2]  = {
+		.mulrc	= mulrc256_imul_sse2,
+		.maddrc	= maddrc256_imul_sse2
+	},
+	[GF256][HWCAPS_SIMD_SSSE3] = {
+		.mulrc	= mulrc256_shuffle_ssse3,
+		.maddrc	= maddrc256_shuffle_ssse3
+	},
+	[GF256][HWCAPS_SIMD_AVX2]  = {
+		.mulrc	= mulrc256_shuffle_avx2,
+		.maddrc	= maddrc256_shuffle_avx2
+	},
+#endif
+#ifdef __arm__
+	[GF256][HWCAPS_SIMD_NEON]  = {
+		.mulrc	= mulrc256_shuffle_neon_64,
+		.maddrc	= maddrc256_shuffle_neon_64
+	},
+#endif
+};
+
 
 const char *
 gf_a2name(enum GF_ALGORITHM a)
@@ -117,15 +223,16 @@ check_available_simd_extensions()
 
 	return ret;
 }
-
+	
 int
 gf_get(struct galois_field *gf, enum GF_TYPE type, enum GF_ALGORITHM atype)
 {
 	int ret = 0;
+	int hwcaps;
 	
 	memset(gf, 0, sizeof(*gf));
 
-//	hwcaps = check_available_simd_extensions();
+	hwcaps = check_available_simd_extensions();
 		
 	switch (type) {
 		gf->hwcaps = (1 << HWCAPS_SIMD_NONE);
@@ -168,6 +275,8 @@ gf_get(struct galois_field *gf, enum GF_TYPE type, enum GF_ALGORITHM atype)
 		gf->mask		= GF256_MASK;
 		gf->inv			= inv256;
 		break;
+	default:
+		return -1;
 	}
 
 	switch (atype) {
@@ -189,13 +298,47 @@ gf_get(struct galois_field *gf, enum GF_TYPE type, enum GF_ALGORITHM atype)
 			gf->mulrc = mulrc256_pdiv;
 			gf->maddrc = maddrc256_pdiv; 
 			break;
+		default:
+			return -1;
+		}
+		break;
+
+	case GF_ALGORITHM_BEST:
+#ifdef __x86_64__
+		if (hwcaps & (1 << HWCAPS_SIMD_AVX2)) {
+			gf->hwcaps = (1 << HWCAPS_SIMD_AVX2);
+			gf->mulrc  = best_algorithms[type][HWCAPS_SIMD_AVX2].mulrc;
+			gf->maddrc = best_algorithms[type][HWCAPS_SIMD_AVX2].maddrc;
+		}
+		else if (hwcaps & (1 << HWCAPS_SIMD_SSSE3)) {
+			gf->hwcaps = (1 << HWCAPS_SIMD_SSSE3);
+			gf->mulrc  = best_algorithms[type][HWCAPS_SIMD_SSSE3].mulrc;
+			gf->maddrc = best_algorithms[type][HWCAPS_SIMD_SSSE3].maddrc;
+		}
+		else if (hwcaps & (1 << HWCAPS_SIMD_SSE2)) {
+			gf->hwcaps = (1 << HWCAPS_SIMD_SSE2);
+			gf->mulrc  = best_algorithms[type][HWCAPS_SIMD_SSE2].mulrc;
+			gf->maddrc = best_algorithms[type][HWCAPS_SIMD_SSE2].maddrc;
+		}
+#endif
+#ifdef __arm__
+		if (hwcaps & (1 << HWCAPS_SIMD_NEON)) {
+			gf->hwcaps = (1 << HWCAPS_SIMD_NEON);
+			gf->mulrc  = best_algorithms[type][HWCAPS_SIMD_NEON].mulrc;
+			gf->maddrc = best_algorithms[type][HWCAPS_SIMD_NEON].maddrc;
+		}
+#endif
+		else if (hwcaps & (1 << HWCAPS_SIMD_NONE)) {
+			gf->mulrc  = best_algorithms[type][HWCAPS_SIMD_NONE].mulrc;
+			gf->maddrc = best_algorithms[type][HWCAPS_SIMD_NONE].maddrc;
+		}
+		else {
+			return -1;
 		}
 		break;
 
 	default:
-		fprintf(stderr, "not implemented\n\n");
-		exit(-1);
-		break;
+		return -1;
 	}
 
 	return ret;
@@ -329,6 +472,9 @@ gf_get_algorithms(struct list_head *list, enum GF_TYPE field)
 				maddrc256_shuffle_neon, NULL);
 #endif
 		break;
+
+	default:
+		return -1;
 	}
 
 	return 0;
