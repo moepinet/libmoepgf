@@ -48,6 +48,7 @@ enum HWCAPS
 	HWCAPS_SIMD_AVX		= 7,
 	HWCAPS_SIMD_AVX2	= 8,
 	HWCAPS_SIMD_NEON	= 9,
+	HWCAPS_COUNT		= 10
 };
 
 /*
@@ -84,7 +85,8 @@ enum GF_TYPE {
 	GF2	= 0,
 	GF4	= 1,
 	GF16	= 2,
-	GF256	= 3
+	GF256	= 3,
+	GF_COUNT
 };
 
 enum GF_ALGORITHM
