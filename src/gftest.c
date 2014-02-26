@@ -329,8 +329,8 @@ benchmark(struct args *args)
 		args->threads);
 		
 	for (i=0; i<RVAL_COUNT; i++) {
-		//_rval[i] = rand() & 0xff;
-		_rval[i] = i%2;
+		_rval[i] = rand() & 0xff;
+		//_rval[i] = i%2;
 	}
 
 	for (i=0; i<4; i++) {
