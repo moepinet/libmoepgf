@@ -31,6 +31,11 @@
 #include "gf16.h"
 #include "gf256.h"
 
+/* Size of the array containing a predetermined sequence of pseudo random
+ * values. Must be a power of two or bad things will happen. */
+#define RVAL_COUNT (1 << 14)
+static uint8_t _rval[RVAL_COUNT];
+
 #ifdef __MACH__
 #include <mach/mach_time.h>
 
@@ -227,25 +232,32 @@ selftest()
 	free(test3);
 }
 
+struct thread_state {
+	unsigned int 	rseed;
+};
+
 static void
-encode_random(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb)
+encode_random(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb,
+						struct thread_state *state)
 {
 	int i,c;
-	unsigned int seed = 42;
 
 	for (i=0; i<cb->scount; i++) {
-		c = rand_r(&seed) & mask;
+		c = rand_r(&state->rseed) & mask;
 		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }
 
 static void
-encode_permutation(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb)
+encode_permutation(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb,
+						struct thread_state *state)
 {
+	(void) state;
 	int i,c;
+	static int pos = 0;
 
-	for (i=0; i<cb->scount; i++) {
-		c = i & mask;
+	for (i=0; i<cb->scount; i++, pos++) {
+		c = _rval[pos & (RVAL_COUNT-1)] & mask;
 		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }
@@ -256,14 +268,21 @@ encode_thread(void *args)
 	struct thread_args *ta = args;
 	struct coding_buffer cb;
 	struct timespec start, end;
+	struct thread_state state;
 	uint8_t *frame;
 	int i;
-	void (*encode)(madd_t, int, uint8_t *, struct coding_buffer *);
-	
+	void (*encode)(madd_t, int, uint8_t *, struct coding_buffer *,
+						struct thread_state *state);
+
+	memset(&state, 0, sizeof(state));
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	state.rseed = (unsigned int)start.tv_nsec;
 	encode = encode_random;
-	if (ta->random == 0)
+
+	if (ta->random == 0) {
 		encode = encode_permutation;
-	
+	}
+
 	if (posix_memalign((void *)&frame, 32, ta->length))
 		exit(-1);
 			
@@ -274,7 +293,7 @@ encode_thread(void *args)
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for (i=0; i<ta->rep; i++)
-		encode(ta->madd, ta->mask, frame, &cb);
+		encode(ta->madd, ta->mask, frame, &cb, &state);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 				
 	timespecsub(&end, &start);
@@ -308,6 +327,11 @@ benchmark(struct args *args)
 		"\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d, "\
 		"threads=%d\n",	args->maxsize, args->count, args->repeat, 
 		args->threads);
+		
+	for (i=0; i<RVAL_COUNT; i++) {
+		//_rval[i] = rand() & 0xff;
+		_rval[i] = i%2;
+	}
 
 	for (i=0; i<4; i++) {
 		gf_get(&gf, i, 0);
