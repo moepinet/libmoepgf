@@ -1,23 +1,23 @@
 include Makefile.inc
 
-all: libgf gftest
-	mv $(GFTESTDIR)/$(GFTEST) .
-	cp $(LIBGFDIR)/$(LIBGF) .
+all: $(LIBMOEPGF) $(LIBMOEPGFBENCH)
+	mv $(LIBMOEPGFBENCHDIR)/$(LIBMOEPGFBENCH) .
+	cp $(LIBMOEPGFDIR)/$(LIBMOEPGF) .
 
-gftest: libgf
-	cd $(GFTESTDIR); make
+$(LIBMOEPGFBENCH): $(LIBMOEPG)
+	cd $(LIBMOEPGFBENCHDIR); make
 
-libgf:
-	cd $(LIBGFDIR); make
+$(LIBMOEPGF):
+	cd $(LIBMOEPGFDIR); make
 
 .PHONY: clean
 clean:
-	cd $(LIBGFDIR); make clean; cd ..
-	cd $(GFTESTDIR); make clean; cd ..
+	cd $(LIBMOEPGFDIR); make clean; cd ..
+	cd $(LIBMOEPGFBENCHDIR); make clean; cd ..
 
 .PHONY: dist-clean
 dist-clean: clean
-	rm -fv $(GFTEST)
-	rm -fv $(LIBGF)
-	cd $(LIBGFDIR); make dist-clean; cd ..
-	cd $(GFTESTDIR); make dist-clean; cd ..
+	rm -fv $(LIBMOEPGFBENCH)
+	rm -fv $(LIBMOEPGF)
+	cd $(LIBMOEPGFDIR); make dist-clean; cd ..
+	cd $(LIBMOEPGFBENCHDIR); make dist-clean; cd ..
