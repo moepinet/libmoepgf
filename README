@@ -35,6 +35,20 @@ Documentation
 All functions users should interface with are defined and documented in gf.h.
 
 
+Knwon bugs
+----------
+- On ARM platforms, the check for available SIMD extensions does not work. The
+  library assumes that the processor supports NEON. If this is not the case, the
+  library will abort at runtime with an illegal instruction.
+
+- The function gf_get() currently accepts only GF_SELFTEST and GF_ALGORITHM_BEST
+  as algorithms, i.e., either the most trivial implementation or the best
+  implementation available according to the supported feature set is returned.
+  In order to get, for instance, the SSE2 implementation on a processor
+  supporting AVX2, you have to use gf_get_algorithms() which returns a list with
+  all algorithms.
+
+
 Where to get the latest
 -----------------------
 
