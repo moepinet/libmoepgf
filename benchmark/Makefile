@@ -1,6 +1,6 @@
 include ../Makefile.inc
 
-CFLAGS+= -I../$(LIBMOEPGFDIR)
+CFLAGS+= -I../$(LIBGFDIR)
 LDFLAGS+= -lpthread
 
 SRCDIR:=.
@@ -12,7 +12,7 @@ endif
 OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
 
 all: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) ../$(LIBMOEPGFDIR)/$(LIBMOEPGF) -o $(LIBMOEPGFBENCH) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(OBJS) ../$(LIBGFDIR)/$(LIBGF) -o $(BENCH) $(LDFLAGS)
 
 $(OBJS):
 	$(CC) $(CFLAGS) -c $(@:.o=.c) -o $@
@@ -23,4 +23,4 @@ clean:
 
 .PHONY: dist-clean
 dist-clean: clean
-	rm -fv $(GFTEST)
+	rm -fv $(BENCH)

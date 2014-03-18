@@ -1,23 +1,23 @@
 include Makefile.inc
 
-all: $(LIBMOEPGF) $(LIBMOEPGFBENCH)
-	mv $(LIBMOEPGFBENCHDIR)/$(LIBMOEPGFBENCH) .
-	cp $(LIBMOEPGFDIR)/$(LIBMOEPGF) .
+all: $(LIBGF) $(BENCH)
+	cp $(BENCHDIR)/$(BENCH) .
+	cp $(LIBGFDIR)/$(LIBGF) .
 
-$(LIBMOEPGFBENCH): $(LIBMOEPG)
-	cd $(LIBMOEPGFBENCHDIR); make
+$(BENCH): $(LIBGF)
+	cd $(BENCHDIR); make
 
-$(LIBMOEPGF):
-	cd $(LIBMOEPGFDIR); make
+$(LIBGF):
+	cd $(LIBGFDIR); make
 
 .PHONY: clean
 clean:
-	cd $(LIBMOEPGFDIR); make clean; cd ..
-	cd $(LIBMOEPGFBENCHDIR); make clean; cd ..
+	cd $(LIBGFDIR); make clean; cd ..
+	cd $(BENCHDIR); make clean; cd ..
 
 .PHONY: dist-clean
 dist-clean: clean
-	rm -fv $(LIBMOEPGFBENCH)
-	rm -fv $(LIBMOEPGF)
-	cd $(LIBMOEPGFDIR); make dist-clean; cd ..
-	cd $(LIBMOEPGFBENCHDIR); make dist-clean; cd ..
+	rm -fv $(BENCH)
+	rm -fv $(LIBGF)
+	cd $(LIBGFDIR); make dist-clean; cd ..
+	cd $(BENCHDIR); make dist-clean; cd ..

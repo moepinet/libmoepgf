@@ -31,7 +31,7 @@ OBJS_SIMD=$(OBJS_NEON)
 endif
 
 all: $(OBJS) $(OBJS_SIMD)
-	$(AR) $(ARFLAGS) $(LIBMOEPGF) $(OBJS) $(OBJS_SIMD)
+	$(AR) $(ARFLAGS) $(LIBGF) $(OBJS) $(OBJS_SIMD)
 
 ifeq ($(ARCH), x86)
 $(OBJS_SSE2):
@@ -57,5 +57,5 @@ clean:
 
 .PHONY: dist-clean
 dist-clean: clean
-	rm -fv $(LIBMOEPGF)
+	rm -fv $(LIBGF)
 

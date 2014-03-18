@@ -1,17 +1,15 @@
 ARCH:=x86
 OS:=osx
 
-LIBMOEPGF:=libmoepgf.a
-LIBMOEPGFDIR:=src
+LIBGF:=libmoepgf.a
+LIBGFDIR:=src
 
-LIBMOEPGFBENCH:=libmoepgfbench
-LIBMOEPGFBENCHDIR:=benchmark
+BENCH:=libmoepgfbench
+BENCHDIR:=benchmark
 
 CFLAGS:= -O2 -Wall -Wextra
 CC:=gcc
 AR:=ar
 ARFLAGS:=rcs
 LDFLAGS:=
-TARGET:=libmoepgf.a
-
 

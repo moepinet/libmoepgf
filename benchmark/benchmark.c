@@ -329,10 +329,8 @@ benchmark(struct args *args)
 		"threads=%d\n",	args->maxsize, args->count, args->repeat, 
 		args->threads);
 		
-	for (i=0; i<RVAL_COUNT; i++) {
+	for (i=0; i<RVAL_COUNT; i++)
 		_rval[i] = rand() & 0xff;
-		//_rval[i] = i%2;
-	}
 
 	for (i=0; i<4; i++) {
 		gf_get(&gf, i, 0);
@@ -391,6 +389,19 @@ benchmark(struct args *args)
 	free(tinfo);
 }
 
+static void
+print_help(const char *name)
+{
+	fprintf(stdout, "Usage: %s [-m maxsize] [-c count] [-r repeat] "\
+			"[-t threads] [-d]\n\n", name);
+	fprintf(stdout, "    -m maxsize   Maximum packet size [Byte]\n");
+	fprintf(stdout, "    -c count     Number of packets per generation\n");
+	fprintf(stdout, "    -r repeat    Number of repetitions per setting\n");
+	fprintf(stdout, "    -t threads   Number of threads to use\n");
+	fprintf(stdout, "    -d           Deterministic permutation of coefficients\n");
+	fprintf(stdout, "\n");
+}
+
 int
 main(int argc, char **argv)
 {
@@ -402,7 +413,7 @@ main(int argc, char **argv)
 	args.random = 1;
 	args.threads = 1;
 
-	while (-1 != (opt = getopt(argc, argv, "m:c:r:t:d"))) {
+	while (-1 != (opt = getopt(argc, argv, "m:c:r:t:dh"))) {
 		switch (opt) {
 		case 'm':
 			args.maxsize = atoi(optarg);
@@ -435,8 +446,12 @@ main(int argc, char **argv)
 				exit(-1);
 			}
 			break;
+		case 'h':
+			print_help(argv[0]);
+			exit(0);
 		default:
 			fprintf(stderr, "unknown option %c\n\n", (char)opt);
+			print_help(argv[0]);
 			exit(-1);
 		}
 	}
