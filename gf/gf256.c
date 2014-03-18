@@ -1,20 +1,20 @@
 /*
- * This file is part of moep80211gf.
- * 
- * Copyright (C) 2014 	Stephan M. Guenther <moepi@moepi.net>
- * Copyright (C) 2014 	Maximilian Riemensberger <riemensberger@tum.de>
- * Copyright (C) 2013 	Alexander Kurtz <alexander@kurtz.be>
- * 
- * moep80211gf is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, version 2 of the License.
- * 
- * moep80211gf is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License * along
- * with moep80211gf.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2014	Stephan M. Guenther <moepi@moepi.net>
+ * 			Maximilian Riemensberger <riemensberger@tum.de>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * See COPYING for more details.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <stdio.h>
@@ -33,8 +33,6 @@
 
 static const uint8_t inverses[GF256_SIZE] = GF256_INV_TABLE;
 static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF256_SIZE][16] = GF256_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF256_SIZE][16] = GF256_SHUFFLE_HIGH_TABLE;
 static const uint8_t alogt[2*GF256_SIZE-1] = GF256_ALOG_TABLE;
 static const uint8_t logt[GF256_SIZE] = GF256_LOG_TABLE;
 static const uint8_t mult[GF256_SIZE][GF256_SIZE] = GF256_MUL_TABLE;

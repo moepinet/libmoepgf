@@ -1,20 +1,20 @@
 /*
- * This file is part of moep80211gf.
- * 
- * Copyright (C) 2014 	Stephan M. Guenther <moepi@moepi.net>
- * Copyright (C) 2014 	Maximilian Riemensberger <riemensberger@tum.de>
- * Copyright (C) 2013 	Alexander Kurtz <alexander@kurtz.be>
- * 
- * moep80211gf is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, version 2 of the License.
- * 
- * moep80211gf is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License * along
- * with moep80211gf.  If not, see <http://www.gnu.org/licenses/>.
+ * Copyright 2014	Stephan M. Guenther <moepi@moepi.net>
+ * 			Maximilian Riemensberger <riemensberger@tum.de>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * See COPYING for more details.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <immintrin.h>
@@ -85,16 +85,11 @@ maddrc4_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 		return;
 	}
 
-#ifdef __MACH__
-	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
-	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
-#else	
 	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
 	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	bc = _mm_load_si128((void *)th[constant]);
 	t2 = __builtin_ia32_vbroadcastsi256(bc);
-#endif
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
 
@@ -156,16 +151,11 @@ mulrc4_shuffle_avx2(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-#ifdef __MACH__
-	t1 = __builtin_ia32_vbroadcastsi256((void *)tl[constant]);
-	t2 = __builtin_ia32_vbroadcastsi256((void *)th[constant]);
-#else	
 	register __m128i bc;
 	bc = _mm_load_si128((void *)tl[constant]);
 	t1 = __builtin_ia32_vbroadcastsi256(bc);
 	bc = _mm_load_si128((void *)th[constant]);
 	t2 = __builtin_ia32_vbroadcastsi256(bc);
-#endif
 	m1 = _mm256_set1_epi8(0x0f);
 	m2 = _mm256_set1_epi8(0xf0);
 

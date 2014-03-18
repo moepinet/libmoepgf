@@ -1,0 +1,41 @@
+
+moepgf finite field arithmetic library
+======================================
+
+The moepgf finite field arithmetic library offers high-performance operations
+over GF(2), GF(4), GF(16), and GF(256) using SSE/AVX/NEON SIMD extensions on
+x86/ARM platforms.
+
+
+Installation
+------------
+  
+  1. Select the target architecture (ARCH) and target operating system (OS) in
+     Makefile.inc. Available options are ARCH:={x86,arm} and OS:={linux,osx}.
+
+  2. `cd' to the directory containing the package's source code and type
+     `make' to compile the package
+
+  3. Type `make' to compile the package.
+
+  4. The binary `gftest' performs sleftests and a basic benchmark. The shared
+     library object libgf.a can be linked to your own application.
+
+
+Compilers and Options
+---------------------
+
+The library requires a version of the GNU C compiler supporting AVX2 instrinsics
+(x86) or NEON instrinsics (ARM). Otherwise, compilation will fail.
+
+
+Documentation
+-------------
+
+All functions users should interface with are defined and documented in gf.h.
+
+
+Where to get the latest
+-----------------------
+
+moepgf is available at moep80211.net.
