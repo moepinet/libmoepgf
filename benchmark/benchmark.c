@@ -26,11 +26,7 @@
 #include <pthread.h>
 
 #include "coding_buffer.h"
-#include "gf.h"
-#include "gf2.h"
-#include "gf4.h"
-#include "gf16.h"
-#include "gf256.h"
+#include "moepgf.h"
 
 /* Size of the array containing a predetermined sequence of pseudo random
  * values. Must be a power of two or bad things will happen. */

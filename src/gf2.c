@@ -20,7 +20,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "gf.h"
 #include "gf2.h"
 #include "xor.h"
 

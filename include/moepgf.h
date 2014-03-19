@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GF_H_
-#define _GF_H_
+#ifndef __MOEPGF_H_
+#define __MOEPGF_H_
 
 #include <stdint.h>
 #include "list.h"
@@ -158,5 +158,5 @@ uint32_t check_available_simd_extensions();
 int gf_get(struct galois_field *gf, enum GF_TYPE type, enum GF_ALGORITHM atype);
 int gf_get_algorithms(struct list_head *list, enum GF_TYPE type);
 
-#endif
+#endif // __MOEPGF_H_
 

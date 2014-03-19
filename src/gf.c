@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "gf.h"
+#include "moepgf.h"
 #include "gf2.h"
 #include "gf4.h"
 #include "gf16.h"

@@ -7,7 +7,7 @@ LIBGFDIR:=src
 BENCH:=libmoepgfbench
 BENCHDIR:=benchmark
 
-CFLAGS:= -O2 -Wall -Wextra
+CFLAGS:= -O2 -Wall -Wextra -I../include -Isrc
 CC:=gcc
 AR:=ar
 ARFLAGS:=rcs

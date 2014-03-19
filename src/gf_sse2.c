@@ -24,7 +24,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "gf.h"
 #include "gf2.h"
 #include "gf4.h"
 #include "gf16.h"

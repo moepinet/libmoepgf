@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gf.h"
+#include "moepgf.h"
 #include "gf16.h"
 
 #if GF16_POLYNOMIAL == 19

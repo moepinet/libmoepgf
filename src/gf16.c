@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gf.h"
+#include "moepgf.h"
 #include "gf16.h"
 #include "xor.h"
 
