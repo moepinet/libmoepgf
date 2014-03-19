@@ -158,23 +158,5 @@ uint32_t check_available_simd_extensions();
 int gf_get(struct galois_field *gf, enum GF_TYPE type, enum GF_ALGORITHM atype);
 int gf_get_algorithms(struct list_head *list, enum GF_TYPE type);
 
-void xorr_scalar(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_gpr32(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_gpr64(uint8_t *region1, const uint8_t *region2, int length);
-
-/*
- * These functions should not be called directly. Use the function pointers
- * provided by the galois_field structure instead.
- */
-#ifdef __x86_64__
-void xorr_sse2(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_avx2(uint8_t *region1, const uint8_t *region2, int length);
-#endif
-
-#ifdef __arm__
-void xorr_neon_64(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_neon_128(uint8_t *region1, const uint8_t *region2, int length);
-#endif
-
 #endif
 

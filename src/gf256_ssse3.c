@@ -24,8 +24,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gf256.h"
 #include "gf.h"
+#include "gf256.h"
+#include "xor.h"
 
 #if GF256_POLYNOMIAL == 285
 #include "gf256tables285.h"

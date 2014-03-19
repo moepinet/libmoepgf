@@ -26,6 +26,7 @@
 
 #include "gf.h"
 #include "gf4.h"
+#include "xor.h"
 
 #if GF4_POLYNOMIAL == 7
 #include "gf4tables7.h"

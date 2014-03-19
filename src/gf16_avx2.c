@@ -26,6 +26,7 @@
 
 #include "gf.h"
 #include "gf16.h"
+#include "xor.h"
 
 #if GF16_POLYNOMIAL == 19
 #include "gf16tables19.h"

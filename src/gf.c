@@ -28,6 +28,7 @@
 #include "gf4.h"
 #include "gf16.h"
 #include "gf256.h"
+#include "xor.h"
 
 const char *gf_names[] =
 {
@@ -478,27 +479,5 @@ gf_get_algorithms(struct list_head *list, enum GF_TYPE field)
 	}
 
 	return 0;
-}
-
-
-inline void
-xorr_scalar(uint8_t *region1, const uint8_t *region2, int length)
-{
-	for(; length; region1++, region2++, length--)
-		*region1 ^= *region2;
-}
-
-inline void
-xorr_gpr32(uint8_t *region1, const uint8_t *region2, int length)
-{
-	for(; length > 0; region1+=4, region2+=4, length-=4)
-		*(uint32_t *)region1 ^= *(uint32_t *)region2;
-}
-
-inline void
-xorr_gpr64(uint8_t *region1, const uint8_t *region2, int length)
-{
-	for(; length > 0; region1+=8, region2+=8, length-=8)
-		*(uint64_t *)region1 ^= *(uint64_t *)region2;
 }
 

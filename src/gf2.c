@@ -20,8 +20,9 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "gf2.h"
 #include "gf.h"
+#include "gf2.h"
+#include "xor.h"
 
 inline uint8_t
 inv2(uint8_t element)
