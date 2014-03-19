@@ -26,17 +26,17 @@
 #include "gf16.h"
 #include "xor.h"
 
-#if GF16_POLYNOMIAL == 19
+#if MOEPGF16_POLYNOMIAL == 19
 #include "gf16tables19.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF16_SIZE] = GF16_INV_TABLE;
-static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
-static const uint8_t alogt[2*GF16_SIZE-1] = GF16_ALOG_TABLE;
-static const uint8_t logt[GF16_SIZE] = GF16_LOG_TABLE;
-static const uint8_t multab[GF16_SIZE][256] = GF16_LOOKUP_TABLE;
+static const uint8_t inverses[MOEPGF16_SIZE] = MOEPGF16_INV_TABLE;
+static const uint8_t pt[MOEPGF16_SIZE][MOEPGF16_EXPONENT] = MOEPGF16_POLYNOMIAL_DIV_TABLE;
+static const uint8_t alogt[2*MOEPGF16_SIZE-1] = MOEPGF16_ALOG_TABLE;
+static const uint8_t logt[MOEPGF16_SIZE] = MOEPGF16_LOG_TABLE;
+static const uint8_t multab[MOEPGF16_SIZE][256] = MOEPGF16_LOOKUP_TABLE;
 
 inline uint8_t
 inv16(uint8_t element)

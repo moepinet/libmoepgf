@@ -28,13 +28,13 @@
 #include "gf16.h"
 #include "xor.h"
 
-#if GF16_POLYNOMIAL == 19
+#if MOEPGF16_POLYNOMIAL == 19
 #include "gf16tables19.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
+static const uint8_t pt[MOEPGF16_SIZE][MOEPGF16_EXPONENT] = MOEPGF16_POLYNOMIAL_DIV_TABLE;
 
 void
 maddrc16_imul_sse2(uint8_t* region1, const uint8_t* region2, uint8_t constant,

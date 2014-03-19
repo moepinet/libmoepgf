@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GF256_H_
-#define _GF256_H_
+#ifndef _MOEPGF256_H_
+#define _MOEPGF256_H_
 
 #include <stdint.h>
 

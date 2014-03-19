@@ -162,29 +162,29 @@ selftest()
 	int i,k,fset;
 	int tlen = (1 << 15);
 	uint8_t	*test1, *test2, *test3;
-	struct algorithm *alg;
-	struct galois_field gf;
+	struct moepgf_algorithm *alg;
+	struct moepgf gf;
 	LIST_HEAD(alglist);
 
-	fset = check_available_simd_extensions();
+	fset = moepgf_check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: \n");
-	if (fset & (1 << HWCAPS_SIMD_MMX))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_MMX))
 		fprintf(stderr, "MMX ");
-	if (fset & (1 << HWCAPS_SIMD_SSE))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_SSE))
 		fprintf(stderr, "SSE ");
-	if (fset & (1 << HWCAPS_SIMD_SSE2))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_SSE2))
 		fprintf(stderr, "SSE2 ");
-	if (fset & (1 << HWCAPS_SIMD_SSSE3))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_SSSE3))
 		fprintf(stderr, "SSSE3 ");
-	if (fset & (1 << HWCAPS_SIMD_SSE41))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_SSE41))
 		fprintf(stderr, "SSE41 ");
-	if (fset & (1 << HWCAPS_SIMD_SSE42))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_SSE42))
 		fprintf(stderr, "SSE42 ");
-	if (fset & (1 << HWCAPS_SIMD_AVX))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_AVX))
 		fprintf(stderr, "AVX ");
-	if (fset & (1 << HWCAPS_SIMD_AVX2))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_AVX2))
 		fprintf(stderr, "AVX2 ");
-	if (fset & (1 << HWCAPS_SIMD_NEON))
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_NEON))
 		fprintf(stderr, "NEON ");
 	fprintf(stderr, "\n\n");
 
@@ -196,13 +196,13 @@ selftest()
 		exit(-1);
 
 	for (i=0; i<4; i++) {
-		gf_get(&gf, i, GF_SELFTEST);
-		gf_get_algorithms(&alglist, gf.type);
+		moepgf_init(&gf, i, MOEPGF_SELFTEST);
+		moepgf_get_algorithms(&alglist, gf.type);
 		fprintf(stderr, "%s:\n", gf.name);
 
 		list_for_each_entry(alg, &alglist, list) {
 			fprintf(stderr, "- selftest (%s)    ",
-							gf_a2name(alg->type));
+						moepgf_a2name(alg->type));
 			if (!(fset & (1 << alg->hwcaps))) {
 				fprintf(stderr, "\tNecessary SIMD "
 						"instructions not supported\n");
@@ -309,8 +309,8 @@ static void
 benchmark(struct args *args)
 {
 	int i,l,m,rep,fset;
-	struct algorithm *alg;
-	struct galois_field gf;
+	struct moepgf_algorithm *alg;
+	struct moepgf gf;
 	struct thread_info *tinfo;
 	double gbps;
 	LIST_HEAD(list);
@@ -318,7 +318,7 @@ benchmark(struct args *args)
 	tinfo = malloc(args->threads * sizeof(*tinfo));
 	memset(tinfo, 0, args->threads * sizeof(*tinfo));
 
-	fset = check_available_simd_extensions();
+	fset = moepgf_check_available_simd_extensions();
 
 	fprintf(stderr, 
 		"\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d, "\
@@ -329,14 +329,14 @@ benchmark(struct args *args)
 		_rval[i] = rand() & 0xff;
 
 	for (i=0; i<4; i++) {
-		gf_get(&gf, i, 0);
-		gf_get_algorithms(&list, gf.type);
+		moepgf_init(&gf, i, 0);
+		moepgf_get_algorithms(&list, gf.type);
 
 		fprintf(stderr, "%s\n", gf.name);
 		fprintf(stderr, "size \t");
 
 		list_for_each_entry(alg, &list, list)
-			fprintf(stderr, "%s \t", gf_a2name(alg->type));
+			fprintf(stderr, "%s \t", moepgf_a2name(alg->type));
 		fprintf(stderr, "\n");
 
 		for (l=128, rep=args->repeat; l<=args->maxsize; l*=2, rep/=2) {

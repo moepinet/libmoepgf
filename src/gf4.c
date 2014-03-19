@@ -26,15 +26,15 @@
 #include "gf4.h"
 #include "xor.h"
 
-#if GF4_POLYNOMIAL == 7
+#if MOEPGF4_POLYNOMIAL == 7
 #include "gf4tables7.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF4_SIZE] = GF4_INV_TABLE;
-static const uint8_t pt[GF4_SIZE][GF16_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
-static const uint8_t multab[GF4_SIZE][256] = GF4_LOOKUP_TABLE;
+static const uint8_t inverses[MOEPGF4_SIZE] = MOEPGF4_INV_TABLE;
+static const uint8_t pt[MOEPGF4_SIZE][MOEPGF16_EXPONENT] = MOEPGF4_POLYNOMIAL_DIV_TABLE;
+static const uint8_t multab[MOEPGF4_SIZE][256] = MOEPGF4_LOOKUP_TABLE;
 
 inline uint8_t
 inv4(uint8_t element)

@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GF16_H_
-#define _GF16_H_
+#ifndef _MOEPGF16_H_
+#define _MOEPGF16_H_
 
 #include <stdint.h>
 

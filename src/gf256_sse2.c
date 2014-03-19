@@ -28,13 +28,13 @@
 #include "gf256.h"
 #include "xor.h"
 
-#if GF256_POLYNOMIAL == 285
+#if MOEPGF256_POLYNOMIAL == 285
 #include "gf256tables285.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIV_TABLE;
+static const uint8_t pt[MOEPGF256_SIZE][MOEPGF256_EXPONENT] = MOEPGF256_POLYNOMIAL_DIV_TABLE;
 
 void
 maddrc256_imul_sse2(uint8_t *region1, const uint8_t *region2,

@@ -28,13 +28,13 @@
 #include "gf16.h"
 #include "xor.h"
 
-#if GF16_POLYNOMIAL == 19
+#if MOEPGF16_POLYNOMIAL == 19
 #include "gf16tables19.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t tl[GF16_SIZE][16] = GF16_SHUFFLE_LOW_TABLE;
+static const uint8_t tl[MOEPGF16_SIZE][16] = MOEPGF16_SHUFFLE_LOW_TABLE;
 
 void
 maddrc16_shuffle_ssse3(uint8_t* region1, const uint8_t* region2,

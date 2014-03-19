@@ -28,13 +28,13 @@
 #include "gf4.h"
 #include "xor.h"
 
-#if GF4_POLYNOMIAL == 7
+#if MOEPGF4_POLYNOMIAL == 7
 #include "gf4tables7.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t tl[GF4_SIZE][16] = GF4_SHUFFLE_LOW_TABLE;
+static const uint8_t tl[MOEPGF4_SIZE][16] = MOEPGF4_SHUFFLE_LOW_TABLE;
 
 void
 maddrc4_shuffle_ssse3(uint8_t* region1, const uint8_t* region2, uint8_t constant, 

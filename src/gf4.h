@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _GF4_H_
-#define _GF4_H_
+#ifndef _MOEPGF4_H_
+#define _MOEPGF4_H_
 
 #include <stdint.h>
 

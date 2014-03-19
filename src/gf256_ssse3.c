@@ -28,14 +28,14 @@
 #include "gf256.h"
 #include "xor.h"
 
-#if GF256_POLYNOMIAL == 285
+#if MOEPGF256_POLYNOMIAL == 285
 #include "gf256tables285.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t tl[GF256_SIZE][16] = GF256_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF256_SIZE][16] = GF256_SHUFFLE_HIGH_TABLE;
+static const uint8_t tl[MOEPGF256_SIZE][16] = MOEPGF256_SHUFFLE_LOW_TABLE;
+static const uint8_t th[MOEPGF256_SIZE][16] = MOEPGF256_SHUFFLE_HIGH_TABLE;
 
 void
 maddrc256_shuffle_ssse3(uint8_t *region1, const uint8_t *region2,

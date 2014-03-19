@@ -27,15 +27,15 @@
 #include "moepgf.h"
 #include "gf4.h"
 
-#if GF4_POLYNOMIAL == 7
+#if MOEPGF4_POLYNOMIAL == 7
 #include "gf4tables7.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t pt[GF4_SIZE][GF4_EXPONENT] = GF4_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF4_SIZE][16] = GF4_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF4_SIZE][16] = GF4_SHUFFLE_HIGH_TABLE;
+static const uint8_t pt[MOEPGF4_SIZE][MOEPGF4_EXPONENT] = MOEPGF4_POLYNOMIAL_DIV_TABLE;
+static const uint8_t tl[MOEPGF4_SIZE][16] = MOEPGF4_SHUFFLE_LOW_TABLE;
+static const uint8_t th[MOEPGF4_SIZE][16] = MOEPGF4_SHUFFLE_HIGH_TABLE;
 
 void
 maddrc4_shuffle_neon(uint8_t* region1, const uint8_t* region2,

@@ -27,15 +27,15 @@
 #include "moepgf.h"
 #include "gf16.h"
 
-#if GF16_POLYNOMIAL == 19
+#if MOEPGF16_POLYNOMIAL == 19
 #include "gf16tables19.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t pt[GF16_SIZE][GF16_EXPONENT] = GF16_POLYNOMIAL_DIV_TABLE;
-static const uint8_t tl[GF16_SIZE][16] = GF16_SHUFFLE_LOW_TABLE;
-static const uint8_t th[GF16_SIZE][16] = GF16_SHUFFLE_HIGH_TABLE;
+static const uint8_t pt[MOEPGF16_SIZE][MOEPGF16_EXPONENT] = MOEPGF16_POLYNOMIAL_DIV_TABLE;
+static const uint8_t tl[MOEPGF16_SIZE][16] = MOEPGF16_SHUFFLE_LOW_TABLE;
+static const uint8_t th[MOEPGF16_SIZE][16] = MOEPGF16_SHUFFLE_HIGH_TABLE;
 
 void
 maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,

@@ -26,17 +26,17 @@
 #include "gf256.h"
 #include "xor.h"
 
-#if GF256_POLYNOMIAL == 285
+#if MOEPGF256_POLYNOMIAL == 285
 #include "gf256tables285.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
 
-static const uint8_t inverses[GF256_SIZE] = GF256_INV_TABLE;
-static const uint8_t pt[GF256_SIZE][GF256_EXPONENT] = GF256_POLYNOMIAL_DIV_TABLE;
-static const uint8_t alogt[2*GF256_SIZE-1] = GF256_ALOG_TABLE;
-static const uint8_t logt[GF256_SIZE] = GF256_LOG_TABLE;
-static const uint8_t mult[GF256_SIZE][GF256_SIZE] = GF256_MUL_TABLE;
+static const uint8_t inverses[MOEPGF256_SIZE] = MOEPGF256_INV_TABLE;
+static const uint8_t pt[MOEPGF256_SIZE][MOEPGF256_EXPONENT] = MOEPGF256_POLYNOMIAL_DIV_TABLE;
+static const uint8_t alogt[2*MOEPGF256_SIZE-1] = MOEPGF256_ALOG_TABLE;
+static const uint8_t logt[MOEPGF256_SIZE] = MOEPGF256_LOG_TABLE;
+static const uint8_t mult[MOEPGF256_SIZE][MOEPGF256_SIZE] = MOEPGF256_MUL_TABLE;
 
 inline uint8_t
 inv256(uint8_t element)
