@@ -24,19 +24,19 @@
 
 uint8_t inv2(uint8_t element);
 
-void maddrc2_scalar(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
-void maddrc2_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
-void maddrc2_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc2_scalar(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc2_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc2_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 
-void mulrc2(uint8_t *region, uint8_t constant, int length);
+void mulrc2(uint8_t *region, uint8_t constant, size_t length);
 
 #ifdef __x86_64__
-void maddrc2_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
-void maddrc2_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc2_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc2_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 #endif
 
 #ifdef __arm__
-void maddrc2_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant, int length);
+void maddrc2_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 #endif
 
 #endif

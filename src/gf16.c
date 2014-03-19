@@ -46,7 +46,7 @@ inv16(uint8_t element)
 
 void
 maddrc16_imul_scalar(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
@@ -70,8 +70,9 @@ maddrc16_imul_scalar(uint8_t* region1, const uint8_t* region2,
 
 void
 maddrc16_imul_gpr32(uint8_t* region1, const uint8_t* region2, uint8_t constant,
-								int length)
+								size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint32_t r64[4];
 
@@ -83,7 +84,7 @@ maddrc16_imul_gpr32(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 		return;
 	}
 
-	for (; length > 0; region1+=4, region2+=4, length-=4) {
+	for (end=region1+length; region1<end; region1+=4, region2+=4) {
 		r64[0] = ((*(uint32_t *)region2 & 0x11111111)>>0)*p[0];
 		r64[1] = ((*(uint32_t *)region2 & 0x22222222)>>1)*p[1];
 		r64[2] = ((*(uint32_t *)region2 & 0x44444444)>>2)*p[2];
@@ -94,8 +95,9 @@ maddrc16_imul_gpr32(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 
 void
 maddrc16_imul_gpr64(uint8_t* region1, const uint8_t* region2, uint8_t constant,
-								int length)
+								size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint64_t r64[4];
 
@@ -107,7 +109,7 @@ maddrc16_imul_gpr64(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 		return;
 	}
 
-	for (; length > 0; region1+=8, region2+=8, length-=8) {
+	for (end=region1+length; region1<end; region1+=8, region2+=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x1111111111111111)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region2 & 0x2222222222222222)>>1)*p[1];
 		r64[2] = ((*(uint64_t *)region2 & 0x4444444444444444)>>2)*p[2];
@@ -118,7 +120,7 @@ maddrc16_imul_gpr64(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 
 void
 maddrc16_flat_table(uint8_t* region1, const uint8_t* region2, uint8_t constant, 
-								int length)
+								size_t length)
 {
 	if (constant == 0)
 		return;
@@ -135,7 +137,7 @@ maddrc16_flat_table(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 
 void
 maddrc16_log_table(uint8_t* region1, const uint8_t* region2, uint8_t constant, 
-								int length)
+								size_t length)
 {
 	uint8_t l;
 	uint8_t tmp,r;
@@ -171,7 +173,7 @@ maddrc16_log_table(uint8_t* region1, const uint8_t* region2, uint8_t constant,
 }
 
 void
-mulrc16_imul_scalar(uint8_t *region, uint8_t constant, int length)
+mulrc16_imul_scalar(uint8_t *region, uint8_t constant, size_t length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[4];
@@ -194,8 +196,9 @@ mulrc16_imul_scalar(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-mulrc16_imul_gpr32(uint8_t *region, uint8_t constant, int length)
+mulrc16_imul_gpr32(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint32_t r64[4];
 
@@ -207,7 +210,7 @@ mulrc16_imul_gpr32(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-	for (; length > 0; region+=4, length-=4) {
+	for (end=region+length; region<end; region+=4) {
 		r64[0] = ((*(uint32_t *)region & 0x11111111)>>0)*p[0];
 		r64[1] = ((*(uint32_t *)region & 0x22222222)>>1)*p[1];
 		r64[2] = ((*(uint32_t *)region & 0x44444444)>>2)*p[2];
@@ -217,8 +220,9 @@ mulrc16_imul_gpr32(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-mulrc16_imul_gpr64(uint8_t *region, uint8_t constant, int length)
+mulrc16_imul_gpr64(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint64_t r64[4];
 
@@ -230,7 +234,7 @@ mulrc16_imul_gpr64(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-	for (; length > 0; region+=8, length-=8) {
+	for (end=region+length; region<end; region+=8) {
 		r64[0] = ((*(uint64_t *)region & 0x1111111111111111)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region & 0x2222222222222222)>>1)*p[1];
 		r64[2] = ((*(uint64_t *)region & 0x4444444444444444)>>2)*p[2];

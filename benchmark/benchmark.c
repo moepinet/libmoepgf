@@ -108,7 +108,7 @@ void clock_gettime(void *clk_id, struct timespec *t) {
 		(u8)((x)*255.0);                			\
 	})
 
-typedef void (*madd_t)(uint8_t *, const uint8_t *, uint8_t, int);
+typedef void (*madd_t)(uint8_t *, const uint8_t *, uint8_t, size_t);
 
 struct args {
 	int count;

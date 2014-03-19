@@ -21,23 +21,24 @@
 #define _XOR_H_
 
 #include <stdint.h>
+#include <sys/types.h>
 
 /*
  * These functions should not be called directly. Use the function pointers
  * provided by the galois_field structure instead.
  */
-void xorr_scalar(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_gpr32(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_gpr64(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_scalar(uint8_t *region1, const uint8_t *region2, size_t length);
+void xorr_gpr32(uint8_t *region1, const uint8_t *region2, size_t length);
+void xorr_gpr64(uint8_t *region1, const uint8_t *region2, size_t length);
 
 #ifdef __x86_64__
-void xorr_sse2(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_avx2(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_sse2(uint8_t *region1, const uint8_t *region2, size_t length);
+void xorr_avx2(uint8_t *region1, const uint8_t *region2, size_t length);
 #endif
 
 #ifdef __arm__
-void xorr_neon_64(uint8_t *region1, const uint8_t *region2, int length);
-void xorr_neon_128(uint8_t *region1, const uint8_t *region2, int length);
+void xorr_neon_64(uint8_t *region1, const uint8_t *region2, size_t length);
+void xorr_neon_128(uint8_t *region1, const uint8_t *region2, size_t length);
 #endif
 
 #endif // _XOR_H_

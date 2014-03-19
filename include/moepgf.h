@@ -24,21 +24,7 @@
 #include "list.h"
 
 /*
- * Definitions for hardware SIMD capabilities:
- * MOEPGF_HWCAPS_SIMD_NONE: No SIMD extensions, usage of general purpose registers
- * (GPRs) only. Makes use of 64bit instructions if supported by hardware.
- *
- * MOEPGF_HWCAPS_SIMD_SSE2: Uses SIMD instructions up to and including SSE2 extensions
- * (x86/x86-64 only). 
- *
- * MOEPGF_HWCAPS_SIMD_SSE41: Uses SIMD instructions up to and including SSE4.1 
- * extensions (x86/x86-64 only). 
- *
- * MOEPGF_HWCAPS_SIMD_AVX2: Uses SIMD instructions up to and including AVX2 extensions 
- * (x86/x86-64 only). 
- *
- * MOEPGF_HWCAPS_SIMD_NEON: Uses SIMD instructions up to and including AVX2 extensions 
- * (ARM only). 
+ * Definitions for hardware SIMD capabilities.
  */
 enum MOEPGF_HWCAPS
 {
@@ -78,9 +64,9 @@ enum MOEPGF_HWCAPS
 #define MOEPGF256_SIZE			(1 << MOEPGF256_EXPONENT)
 #define MOEPGF256_MASK			(MOEPGF256_SIZE - 1)
 
-typedef void (*maddrc_t)(uint8_t *, const uint8_t *, uint8_t, int);
-typedef void (*mulrc_t)(uint8_t *, uint8_t, int);
-typedef uint8_t (*inv_t)(uint8_t);
+typedef void	(*maddrc_t)	(uint8_t *, const uint8_t *, uint8_t, size_t);
+typedef void	(*mulrc_t)	(uint8_t *, uint8_t, size_t);
+typedef uint8_t	(*inv_t)	(uint8_t);
 
 /*
  * Used to identify differen GFs.
@@ -169,7 +155,8 @@ uint32_t moepgf_check_available_simd_extensions();
  * automatically determined. The function returns 0 on succes and -1 on any
  * error, e.g. the requested SIMD extensions are not available.
  */
-int moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atype);
+int moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type,
+						enum MOEPGF_ALGORITHM atype);
 
 /*
  * Returns a list of all algorithms for the given field. Use the functions

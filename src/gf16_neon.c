@@ -39,8 +39,9 @@ static const uint8_t th[MOEPGF16_SIZE][16] = MOEPGF16_SHUFFLE_HIGH_TABLE;
 
 void
 maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	register uint8x8x2_t t1, t2;
 	register uint8x8_t m1, m2, in1, in2, out, l, h;
 
@@ -57,7 +58,7 @@ maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
-	for (; length > 0; region1+=8, region2+=8, length-=8) {
+	for (end=region1+length; region1<end; region1+=8, region2+=8) {
 		in2 = vld1_u8((void *)region2);
 		in1 = vld1_u8((void *)region1);
 		l = vand_u8(in2, m1);
@@ -73,8 +74,9 @@ maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 
 void
 maddrc16_imul_neon_64(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	uint8_t *p = pt[constant];
 	register uint8x8_t mi[4], sp[4], ri[4], reg1, reg2;
 
@@ -96,7 +98,7 @@ maddrc16_imul_neon_64(uint8_t *region1, const uint8_t *region2,
 	sp[2] = vdup_n_u8(p[2]);
 	sp[3] = vdup_n_u8(p[3]);
 
-	for (; length > 0; region1+=8, region2+=8, length-=8) {
+	for (end=region1+length; region1<end; region1+=8, region2+=8) {
 		reg2 = vld1_u8((void *)region2);
 		reg1 = vld1_u8((void *)region1);
 
@@ -125,8 +127,9 @@ maddrc16_imul_neon_64(uint8_t *region1, const uint8_t *region2,
 
 void
 maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	uint8_t *p = pt[constant];
 	register uint8x16_t mi[4], sp[4], ri[4], reg1, reg2;
 
@@ -148,7 +151,7 @@ maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 	sp[2] = vdupq_n_u8(p[2]);
 	sp[3] = vdupq_n_u8(p[3]);
 
-	for (; length > 0; region1+=16, region2+=16, length-=16) {
+	for (end=region1+length; region1<end; region1+=16, region2+=16) {
 		reg2 = vld1q_u8((void *)region2);
 		reg1 = vld1q_u8((void *)region1);
 
@@ -176,8 +179,9 @@ maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 }
 
 void
-mulrc16_shuffle_neon(uint8_t *region, uint8_t constant, int length)
+mulrc16_shuffle_neon(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	register uint8x8x2_t t1, t2;
 	register uint8x8_t m1, m2, in, out, l, h;
 
@@ -194,7 +198,7 @@ mulrc16_shuffle_neon(uint8_t *region, uint8_t constant, int length)
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
-	for (; length > 0; region+=8, length-=8) {
+	for (end=region+length; region<end; region+=8) {
 		in = vld1_u8((void *)region);
 		l = vand_u8(in, m1);
 		l = vtbl2_u8(t1, l);

@@ -38,8 +38,9 @@ static const uint8_t pt[MOEPGF4_SIZE][MOEPGF16_EXPONENT] = MOEPGF4_POLYNOMIAL_DI
 
 void
 maddrc4_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant,
-								int length)
+								size_t length)
 {
+	uint8_t *end;
 	register __m128i reg1, reg2, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
 
@@ -56,7 +57,7 @@ maddrc4_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 	sp[0] = _mm_set1_epi16(p[0]);
 	sp[1] = _mm_set1_epi16(p[1]);
 
-	for (; length > 0; region1+=16, region2+=16, length-=16) {
+	for (end=region1+length; region1<end; region1+=16, region2+=16) {
 		reg2 = _mm_load_si128((void *)region2);
 		reg1 = _mm_load_si128((void *)region1);
 		ri[0] = _mm_and_si128(reg2, mi[0]);
@@ -71,8 +72,9 @@ maddrc4_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 }
 
 void
-mulrc4_imul_sse2(uint8_t *region, uint8_t constant, int length)
+mulrc4_imul_sse2(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	register __m128i reg, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
 
@@ -89,7 +91,7 @@ mulrc4_imul_sse2(uint8_t *region, uint8_t constant, int length)
 	sp[0] = _mm_set1_epi16(p[0]);
 	sp[1] = _mm_set1_epi16(p[1]);
 
-	for (; length > 0; region+=16, length-=16) {
+	for (end=region+length; region<end; region+=16) {
 		reg = _mm_load_si128((void *)region);
 		ri[0] = _mm_and_si128(reg, mi[0]);
 		ri[1] = _mm_and_si128(reg, mi[1]);

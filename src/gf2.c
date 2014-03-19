@@ -31,7 +31,7 @@ inv2(uint8_t element)
 
 inline void
 maddrc2_scalar(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length)
+				uint8_t constant, size_t length)
 {
 	if (constant != 0)
 		xorr_scalar(region1, region2, length);
@@ -39,7 +39,7 @@ maddrc2_scalar(uint8_t *region1, const uint8_t *region2,
 
 inline void
 maddrc2_gpr32(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length)
+				uint8_t constant, size_t length)
 {
 	if (constant != 0)
 		xorr_gpr32(region1, region2, length);
@@ -47,29 +47,23 @@ maddrc2_gpr32(uint8_t *region1, const uint8_t *region2,
 
 inline void
 maddrc2_gpr64(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length)
+				uint8_t constant, size_t length)
 {
 	if (constant != 0)
 		xorr_gpr64(region1, region2, length);
 }
 
 inline void
-mulrc2(uint8_t *region, uint8_t constant, int length)
+mulrc2(uint8_t *region, uint8_t constant, size_t length)
 {
 	if (constant == 0)
 		memset(region, 0, length);
 }
 
-void
-gf2_init()
-{
-	return;
-}
-
 #ifdef __x86_64__
 inline void
 maddrc2_sse2(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length)
+				uint8_t constant, size_t length)
 {
 	if (constant != 0)
 		xorr_sse2(region1, region2, length);
@@ -77,7 +71,7 @@ maddrc2_sse2(uint8_t *region1, const uint8_t *region2,
 
 inline void
 maddrc2_avx2(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length)
+				uint8_t constant, size_t length)
 {
 	if (constant != 0)
 		xorr_avx2(region1, region2, length);
@@ -87,7 +81,7 @@ maddrc2_avx2(uint8_t *region1, const uint8_t *region2,
 #ifdef __arm__
 inline void
 maddrc2_neon(uint8_t *region1, const uint8_t *region2,
-				uint8_t constant, int length)
+				uint8_t constant, size_t length)
 {
 	if (constant != 0)
 		xorr_neon_128(region1, region2, length);

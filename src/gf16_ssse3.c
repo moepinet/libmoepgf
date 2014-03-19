@@ -38,8 +38,9 @@ static const uint8_t tl[MOEPGF16_SIZE][16] = MOEPGF16_SHUFFLE_LOW_TABLE;
 
 void
 maddrc16_shuffle_ssse3(uint8_t* region1, const uint8_t* region2,
-						uint8_t constant, int length)
+						uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	register __m128i in1, in2, out, t1, t2, m1, m2, l, h;
 
 	if (constant == 0)
@@ -55,7 +56,7 @@ maddrc16_shuffle_ssse3(uint8_t* region1, const uint8_t* region2,
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
 
-	for (; length > 0; region1+=16, region2+=16, length-=16) {
+	for (end=region1+length; region1<end; region1+=16, region2+=16) {
 		in2 = _mm_load_si128((void *)region2);
 		in1 = _mm_load_si128((void *)region1);
 		l = _mm_and_si128(in2, m1);
@@ -70,8 +71,9 @@ maddrc16_shuffle_ssse3(uint8_t* region1, const uint8_t* region2,
 }
 
 void
-mulrc16_shuffle_ssse3(uint8_t *region, uint8_t constant, int length)
+mulrc16_shuffle_ssse3(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	register __m128i in, out, t1, t2, m1, m2, l, h;
 
 	if (constant == 0) {
@@ -87,7 +89,7 @@ mulrc16_shuffle_ssse3(uint8_t *region, uint8_t constant, int length)
 	m1 = _mm_set1_epi8(0x0f);
 	m2 = _mm_set1_epi8(0xf0);
 
-	for (; length > 0; region+=16, length-=16) {
+	for (end=region+length; region<end; region+=16) {
 		in = _mm_load_si128((void *)region);
 		l = _mm_and_si128(in, m1);
 		l = _mm_shuffle_epi8(t1, l);

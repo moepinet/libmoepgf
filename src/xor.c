@@ -20,22 +20,26 @@
 #include "xor.h"
 
 void
-xorr_scalar(uint8_t *region1, const uint8_t *region2, int length)
+xorr_scalar(uint8_t *region1, const uint8_t *region2, size_t length)
 {
 	for(; length; region1++, region2++, length--)
 		*region1 ^= *region2;
 }
 
 void
-xorr_gpr32(uint8_t *region1, const uint8_t *region2, int length)
+xorr_gpr32(uint8_t *region1, const uint8_t *region2, size_t length)
 {
-	for(; length > 0; region1+=4, region2+=4, length-=4)
+	uint8_t *end = region1 + length;
+
+	for(; region1 < end; region1+=4, region2+=4)
 		*(uint32_t *)region1 ^= *(uint32_t *)region2;
 }
 
 void
-xorr_gpr64(uint8_t *region1, const uint8_t *region2, int length)
+xorr_gpr64(uint8_t *region1, const uint8_t *region2, size_t length)
 {
-	for(; length > 0; region1+=8, region2+=8, length-=8)
+	uint8_t *end = region1 + length;
+
+	for(; region1 < end; region1+=8, region2+=8)
 		*(uint64_t *)region1 ^= *(uint64_t *)region2;
 }

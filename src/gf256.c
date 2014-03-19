@@ -46,7 +46,7 @@ inv256(uint8_t element)
 
 void
 maddrc256_pdiv(uint8_t *region1, const uint8_t *region2, uint8_t constant,
-								int length)
+								size_t length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[8];
@@ -74,7 +74,7 @@ maddrc256_pdiv(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 
 void
 maddrc256_log_table(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
 	uint8_t l;
 	int x;
@@ -99,7 +99,7 @@ maddrc256_log_table(uint8_t *region1, const uint8_t *region2,
 
 void
 maddrc256_flat_table(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
 	if (constant == 0)
 		return;
@@ -116,8 +116,9 @@ maddrc256_flat_table(uint8_t *region1, const uint8_t *region2,
 
 void
 maddrc256_imul_gpr32(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint32_t r32[8];
 	
@@ -129,7 +130,7 @@ maddrc256_imul_gpr32(uint8_t *region1, const uint8_t *region2,
 		return;
 	}
 
-	for (; length > 0; region1+=4, region2+=4, length-=4) {
+	for (end=region1+length; region1<end; region1+=4, region2+=4) {
 		r32[0] = ((*(uint32_t *)region2 & 0x01010101)>>0)*p[0];
 		r32[1] = ((*(uint32_t *)region2 & 0x02020202)>>1)*p[1];
 		r32[2] = ((*(uint32_t *)region2 & 0x04040404)>>2)*p[2];
@@ -145,8 +146,9 @@ maddrc256_imul_gpr32(uint8_t *region1, const uint8_t *region2,
 
 void
 maddrc256_imul_gpr64(uint8_t *region1, const uint8_t *region2,
-					uint8_t constant, int length)
+					uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint64_t r64[8];
 	
@@ -158,7 +160,7 @@ maddrc256_imul_gpr64(uint8_t *region1, const uint8_t *region2,
 		return;
 	}
 
-	for (; length > 0; region1+=8, region2+=8, length-=8) {
+	for (end=region1+length; region1<end; region1+=8, region2+=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x0101010101010101)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region2 & 0x0202020202020202)>>1)*p[1];
 		r64[2] = ((*(uint64_t *)region2 & 0x0404040404040404)>>2)*p[2];
@@ -173,7 +175,7 @@ maddrc256_imul_gpr64(uint8_t *region1, const uint8_t *region2,
 }
 
 
-void mulrc256_pdiv(uint8_t *region, uint8_t constant, int length)
+void mulrc256_pdiv(uint8_t *region, uint8_t constant, size_t length)
 {
 	const uint8_t *p = pt[constant];
 	uint8_t r[8];
@@ -200,8 +202,9 @@ void mulrc256_pdiv(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-mulrc256_imul_gpr32(uint8_t *region, uint8_t constant, int length)
+mulrc256_imul_gpr32(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint32_t r32[8];
 
@@ -213,7 +216,7 @@ mulrc256_imul_gpr32(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-	for (; length > 0; region+=4, length-=4) {
+	for (end=region+length; region<end; region+=4) {
 		r32[0] = ((*(uint32_t *)region & 0x01010101)>>0)*p[0];
 		r32[1] = ((*(uint32_t *)region & 0x02020202)>>1)*p[1];
 		r32[2] = ((*(uint32_t *)region & 0x04040404)>>2)*p[2];
@@ -228,8 +231,9 @@ mulrc256_imul_gpr32(uint8_t *region, uint8_t constant, int length)
 }
 
 void
-mulrc256_imul_gpr64(uint8_t *region, uint8_t constant, int length)
+mulrc256_imul_gpr64(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint64_t r64[8];
 
@@ -241,7 +245,7 @@ mulrc256_imul_gpr64(uint8_t *region, uint8_t constant, int length)
 	if (constant == 1)
 		return;
 
-	for (; length > 0; region+=8, length-=8) {
+	for (end=region+length; region<end; region+=8) {
 		r64[0] = ((*(uint64_t *)region & 0x0101010101010101)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region & 0x0202020202020202)>>1)*p[1];
 		r64[2] = ((*(uint64_t *)region & 0x0404040404040404)>>2)*p[2];
