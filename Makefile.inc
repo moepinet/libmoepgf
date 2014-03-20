@@ -1,5 +1,5 @@
-ARCH:=x86
-OS:=osx
+ARCH:=arm
+OS:=linux
 
 LIBGF:=libmoepgf.a
 LIBGFDIR:=src

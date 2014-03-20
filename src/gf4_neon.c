@@ -26,6 +26,7 @@
 
 #include "moepgf.h"
 #include "gf4.h"
+#include "xor.h"
 
 #if MOEPGF4_POLYNOMIAL == 7
 #include "gf4tables7.h"
@@ -38,9 +39,10 @@ static const uint8_t tl[MOEPGF4_SIZE][16] = MOEPGF4_SHUFFLE_LOW_TABLE;
 static const uint8_t th[MOEPGF4_SIZE][16] = MOEPGF4_SHUFFLE_HIGH_TABLE;
 
 void
-maddrc4_shuffle_neon(uint8_t* region1, const uint8_t* region2,
-					uint8_t constant, int length)
+maddrc4_shuffle_neon_64(uint8_t* region1, const uint8_t* region2,
+					uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	register uint8x8x2_t t1, t2;
 	register uint8x8_t m1, m2, in1, in2, out, l, h;
 
@@ -57,7 +59,7 @@ maddrc4_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 	m1 = vdup_n_u8(0x0f);
 	m2 = vdup_n_u8(0xf0);
 
-	for (; length > 0; region1+=8, region2+=8, length-=8) {
+	for (end=region1+length; region1<end; region1+=8, region2+=8) {
 		in2 = vld1_u8((void *)region2);
 		in1 = vld1_u8((void *)region1);
 		l = vand_u8(in2, m1);
@@ -73,9 +75,11 @@ maddrc4_shuffle_neon(uint8_t* region1, const uint8_t* region2,
 
 void
 maddrc4_imul_neon_64(uint8_t *region1, const uint8_t *region2, uint8_t constant,
-								int length)
+								size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
+	register uint8x8_t reg1, reg2, ri[2], sp[2], mi[2];
 
 	if (constant == 0)
 		return;
@@ -85,13 +89,12 @@ maddrc4_imul_neon_64(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 		return;
 	}
 
-	register uint8x8_t reg1, reg2, ri[2], sp[2], mi[2];
 	mi[0] = vdup_n_u8(0x55);
 	mi[1] = vdup_n_u8(0xaa);
 	sp[0] = vdup_n_u8(p[0]);
 	sp[1] = vdup_n_u8(p[1]);
 
-	for (; length > 0; region1+=8, region2+=8, length-=8) {
+	for (end=region1+length; region1<end; region1+=8, region2+=8) {
 		reg2 = vld1_u8((void *)region2);
 		reg1 = vld1_u8((void *)region1);
 		ri[0] = vand_u8(reg2, mi[0]);
@@ -107,9 +110,11 @@ maddrc4_imul_neon_64(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 
 void
 maddrc4_imul_neon_128(uint8_t *region1, const uint8_t *region2, uint8_t constant,
-								int length)
+								size_t length)
 {
+	uint8_t *end;
 	const uint8_t *p = pt[constant];
+	register uint8x16_t reg1, reg2, ri[2], sp[2], mi[2];
 
 	if (constant == 0)
 		return;
@@ -119,13 +124,12 @@ maddrc4_imul_neon_128(uint8_t *region1, const uint8_t *region2, uint8_t constant
 		return;
 	}
 
-	register uint8x16_t reg1, reg2, ri[2], sp[2], mi[2];
 	mi[0] = vdupq_n_u8(0x55);
 	mi[1] = vdupq_n_u8(0xaa);
 	sp[0] = vdupq_n_u8(p[0]);
 	sp[1] = vdupq_n_u8(p[1]);
 
-	for (; length > 0; region1+=16, region2+=16, length-=16) {
+	for (end=region1+length; region1<end; region1+=16, region2+=16) {
 		reg2 = vld1q_u8((void *)region2);
 		reg1 = vld1q_u8((void *)region1);
 		ri[0] = vandq_u8(reg2, mi[0]);
@@ -140,8 +144,9 @@ maddrc4_imul_neon_128(uint8_t *region1, const uint8_t *region2, uint8_t constant
 }
 
 void
-mulrc4_imul_neon_64(uint8_t *region, uint8_t constant, int length)
+mulrc4_imul_neon_64(uint8_t *region, uint8_t constant, size_t length)
 {
+	uint8_t *end;
 	register uint8x8_t reg, ri[2], sp[2], mi[2];
 	const uint8_t *p = pt[constant];
 
@@ -158,7 +163,7 @@ mulrc4_imul_neon_64(uint8_t *region, uint8_t constant, int length)
 	sp[0] = vdup_n_u8(p[0]);
 	sp[1] = vdup_n_u8(p[1]);
 
-	for (; length > 0; region+=8, length-=8) {
+	for (end=region+length; region<end; region+=8) {
 		reg = vld1_u8((void *)region);
 		ri[0] = vand_u8(reg, mi[0]);
 		ri[1] = vand_u8(reg, mi[1]);

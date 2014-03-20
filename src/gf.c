@@ -418,7 +418,7 @@ moepgf_get_algorithms(struct list_head *list, enum MOEPGF_TYPE field)
 		add_algorithm(list, field, MOEPGF_IMUL_NEON_128, MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc4_imul_neon_128, NULL);
 		add_algorithm(list, field, MOEPGF_SHUFFLE_NEON_64, MOEPGF_HWCAPS_SIMD_NEON,
-				maddrc4_shuffle_neon, NULL);
+				maddrc4_shuffle_neon_64, NULL);
 #endif
 		break;
 	case MOEPGF16:
@@ -444,7 +444,7 @@ moepgf_get_algorithms(struct list_head *list, enum MOEPGF_TYPE field)
 		add_algorithm(list, field, MOEPGF_IMUL_NEON_128, MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc16_imul_neon_128, NULL);
 		add_algorithm(list, field, MOEPGF_SHUFFLE_NEON_64, MOEPGF_HWCAPS_SIMD_NEON,
-				maddrc16_shuffle_neon, NULL);
+				maddrc16_shuffle_neon_64, NULL);
 #endif
 		break;
 	case MOEPGF256:
@@ -470,7 +470,7 @@ moepgf_get_algorithms(struct list_head *list, enum MOEPGF_TYPE field)
 		add_algorithm(list, field, MOEPGF_IMUL_NEON_128, MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc256_imul_neon_128, NULL);
 		add_algorithm(list, field, MOEPGF_SHUFFLE_NEON_64, MOEPGF_HWCAPS_SIMD_NEON,
-				maddrc256_shuffle_neon, NULL);
+				maddrc256_shuffle_neon_64, NULL);
 #endif
 		break;
 

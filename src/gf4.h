@@ -46,7 +46,7 @@ void maddrc4_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t cons
 #endif
 
 #ifdef __arm__
-void maddrc4_shuffle_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc4_shuffle_neon_64(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc4_imul_neon_64(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc4_imul_neon_128(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void mulrc4_imul_neon_64(uint8_t *region, uint8_t constant, size_t length);

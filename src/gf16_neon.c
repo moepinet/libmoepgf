@@ -26,6 +26,7 @@
 
 #include "moepgf.h"
 #include "gf16.h"
+#include "xor.h"
 
 #if MOEPGF16_POLYNOMIAL == 19
 #include "gf16tables19.h"
@@ -38,7 +39,7 @@ static const uint8_t tl[MOEPGF16_SIZE][16] = MOEPGF16_SHUFFLE_LOW_TABLE;
 static const uint8_t th[MOEPGF16_SIZE][16] = MOEPGF16_SHUFFLE_HIGH_TABLE;
 
 void
-maddrc16_shuffle_neon(uint8_t* region1, const uint8_t* region2,
+maddrc16_shuffle_neon_64(uint8_t* region1, const uint8_t* region2,
 					uint8_t constant, size_t length)
 {
 	uint8_t *end;
@@ -77,7 +78,7 @@ maddrc16_imul_neon_64(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, size_t length)
 {
 	uint8_t *end;
-	uint8_t *p = pt[constant];
+	const uint8_t *p = pt[constant];
 	register uint8x8_t mi[4], sp[4], ri[4], reg1, reg2;
 
 	if (constant == 0)
@@ -130,7 +131,7 @@ maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 					uint8_t constant, size_t length)
 {
 	uint8_t *end;
-	uint8_t *p = pt[constant];
+	const uint8_t *p = pt[constant];
 	register uint8x16_t mi[4], sp[4], ri[4], reg1, reg2;
 
 	if (constant == 0)
@@ -179,7 +180,7 @@ maddrc16_imul_neon_128(uint8_t *region1, const uint8_t *region2,
 }
 
 void
-mulrc16_shuffle_neon(uint8_t *region, uint8_t constant, size_t length)
+mulrc16_shuffle_neon_64(uint8_t *region, uint8_t constant, size_t length)
 {
 	uint8_t *end;
 	register uint8x8x2_t t1, t2;
