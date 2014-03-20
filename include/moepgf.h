@@ -24,6 +24,13 @@
 #include "list.h"
 
 /*
+ * Maximum memory alignemnt used by kernels. Any memory regions supplied to the
+ * library must be aligned to this value and the length of those regions must
+ * be a multiple of this value.
+ */
+#define MOEPGF_MAX_ALIGNMENT 32
+
+/*
  * Definitions for hardware SIMD capabilities.
  */
 enum MOEPGF_HWCAPS
@@ -122,7 +129,32 @@ struct moepgf_algorithm {
 
 /*
  * Structure representing a GF, including functions to user-accessible
- * functions.
+ * functions maddrc, mulrc, and inv.
+ *
+ * void maddrc(uint8_t * r1, const uint8_t *r2, uint8_t constant, size_t len)
+ * Multiplies region r2 by constant and adds the result to region r1. The result
+ * is stored in region r1. Length len specifies the length of the regions.
+ *
+ * void mulrc(uint8_t * r, uint8_t constant, size_t len)
+ * Multiplies region r of length len by constant. The result is stored in
+ * region r.
+ *
+ * uint8_t inv(uint8_t x)
+ * Returns the inverse element of x.
+ *
+ *
+ * IMPORTANT: If len is not a multiple of MOEPGF_MAX_ALIGNMENT, SIMD
+ * implementations may silently access memory addresses up to the next multiple
+ * of MOEPGF_MAX_ALIGNMENT. The rational behind this behavior is to allow for 
+ * 1) easy usage since len may be the true length of data to be multiplied
+ *    instead of the length of a zero-padded memory region, and
+ * 2) efficient processing since no special treatment of the border cases are
+ *    needed in the arithmetic kernels.
+ *
+ * All you have to obey is that one of the following conditions is met:
+ * 1) Regions r1 and r2 must be aligned to MOEPGF_MAX_ALIGNMENT and the
+ *    allocated memory regions must be a multiple of MOEPGF_MAX_ALIGNMENT.
+ * 2) len must be a multiple of MOEPGF_MAX_ALIGNMENT.
  */
 struct moepgf {
 	enum MOEPGF_TYPE		type;
@@ -157,7 +189,6 @@ uint32_t moepgf_check_available_simd_extensions();
  */
 int moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type,
 						enum MOEPGF_ALGORITHM atype);
-
 /*
  * Returns a list of all algorithms for the given field. Use the functions
  * privded in list.h to iterate over the algorithms. Useful for benchmarks only.
