@@ -30,11 +30,12 @@
 #include "gf256.h"
 
 void
-xorr_sse2(uint8_t *region1, const uint8_t *region2, int length)
+xorr_sse2(uint8_t *region1, const uint8_t *region2, size_t length)
 {
+	uint8_t *end;
 	register __m128i in, out;
 
-	for (; length > 0; region1+=16, region2+=16, length-=16) {
+	for (end=region1+length; region1<end; region1+=16, region2+=16) {
 		in  = _mm_load_si128((void *)region2);
 		out = _mm_load_si128((void *)region1);
 		out = _mm_xor_si128(in, out);

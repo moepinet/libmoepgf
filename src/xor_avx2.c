@@ -30,11 +30,12 @@
 #include "gf256.h"
 
 void
-xorr_avx2(uint8_t *region1, const uint8_t *region2, int length)
+xorr_avx2(uint8_t *region1, const uint8_t *region2, size_t length)
 {
+	uint8_t *end;
 	register __m256i in, out;
 
-	for (; length > 0; region1+=32, region2+=32, length-=32) {
+	for (end=region1+length; region1<end; region1+=32, region2+=32) {
 		in  = _mm256_load_si256((void *)region2);
 		out = _mm256_load_si256((void *)region1);
 		out = _mm256_xor_si256(in, out);
