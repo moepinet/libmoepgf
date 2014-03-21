@@ -365,18 +365,15 @@ add_algorithm(struct list_head *list, enum MOEPGF_TYPE gt, enum MOEPGF_ALGORITHM
 	return 0;
 }
 
-int
-moepgf_get_algorithms(struct list_head *list, enum MOEPGF_TYPE field)
+struct list_head *
+moepgf_get_alg_list(enum MOEPGF_TYPE field)
 {
-	struct moepgf_algorithm *alg, tmp;
+	struct list_head *list;
 
-	if (!list)
-		return -1;
+	if (!(list = malloc(sizeof(*list))))
+		return NULL;
 
-	list_for_each_entry_extra_safe(alg, &tmp, list, list) {
-		list_del(&alg->list);
-		free(alg);
-	} list_end_extra_safe(list); 
+	INIT_LIST_HEAD(list);
 
 	switch (field) {
 	case MOEPGF2:
@@ -475,9 +472,23 @@ moepgf_get_algorithms(struct list_head *list, enum MOEPGF_TYPE field)
 		break;
 
 	default:
-		return -1;
+		// free everything before
+		free(list);
+		return NULL;
 	}
 
-	return 0;
+	return list;
 }
 
+void
+moepgf_free_alg_list(struct list_head *list)
+{
+	struct moepgf_algorithm *alg, *tmp;
+
+	list_for_each_entry_safe(alg, tmp, list, list) {
+		list_del(&alg->list);
+		free(alg);
+	}
+
+	free(list);
+}

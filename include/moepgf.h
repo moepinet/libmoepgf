@@ -189,11 +189,18 @@ uint32_t moepgf_check_available_simd_extensions();
  */
 int moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type,
 						enum MOEPGF_ALGORITHM atype);
+
 /*
  * Returns a list of all algorithms for the given field. Use the functions
  * privded in list.h to iterate over the algorithms. Useful for benchmarks only.
  */
-int moepgf_get_algorithms(struct list_head *list, enum MOEPGF_TYPE type);
+struct list_head * moepgf_get_alg_list(enum MOEPGF_TYPE type);
+
+/*
+ * Frees a list of algorithms previously initialized by moepgf_get_alg_list(). 
+ * Pointer list is unusable after calling this function.
+ */
+void moepgf_free_alg_list(struct list_head *list);
 
 #endif // __MOEPGF_H_
 

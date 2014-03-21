@@ -164,7 +164,7 @@ selftest()
 	uint8_t	*test1, *test2, *test3;
 	struct moepgf_algorithm *alg;
 	struct moepgf gf;
-	LIST_HEAD(alglist);
+	struct list_head *list;
 
 	fset = moepgf_check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: \n");
@@ -197,10 +197,10 @@ selftest()
 
 	for (i=0; i<4; i++) {
 		moepgf_init(&gf, i, MOEPGF_SELFTEST);
-		moepgf_get_algorithms(&alglist, gf.type);
+		list = moepgf_get_alg_list(gf.type);
 		fprintf(stderr, "%s:\n", gf.name);
 
-		list_for_each_entry(alg, &alglist, list) {
+		list_for_each_entry(alg, list, list) {
 			fprintf(stderr, "- selftest (%s)    ",
 						moepgf_a2name(alg->type));
 			if (!(fset & (1 << alg->hwcaps))) {
@@ -222,6 +222,7 @@ selftest()
 			fprintf(stderr, "\tPASS\n");
 		}
 		fprintf(stderr, "\n");
+		moepgf_free_alg_list(list);
 	}
 
 	free(test1);
@@ -312,8 +313,8 @@ benchmark(struct args *args)
 	struct moepgf_algorithm *alg;
 	struct moepgf gf;
 	struct thread_info *tinfo;
+	struct list_head *list;
 	double gbps;
-	LIST_HEAD(list);
 
 	tinfo = malloc(args->threads * sizeof(*tinfo));
 	memset(tinfo, 0, args->threads * sizeof(*tinfo));
@@ -330,18 +331,18 @@ benchmark(struct args *args)
 
 	for (i=0; i<4; i++) {
 		moepgf_init(&gf, i, 0);
-		moepgf_get_algorithms(&list, gf.type);
+		list = moepgf_get_alg_list(gf.type);
 
 		fprintf(stderr, "%s\n", gf.name);
 		fprintf(stderr, "size \t");
 
-		list_for_each_entry(alg, &list, list)
+		list_for_each_entry(alg, list, list)
 			fprintf(stderr, "%s \t", moepgf_a2name(alg->type));
 		fprintf(stderr, "\n");
 
 		for (l=128, rep=args->repeat; l<=args->maxsize; l*=2, rep/=2) {
 			fprintf(stderr, "%d\t", l);
-			list_for_each_entry(alg, &list, list) {
+			list_for_each_entry(alg, list, list) {
 				if (!(fset & (1 << alg->hwcaps))) {
 					fprintf(stderr, "n/a      \t");
 					continue;
@@ -380,6 +381,7 @@ benchmark(struct args *args)
 			fprintf(stderr, "\n");
 		}
 		fprintf(stderr, "\n");
+		moepgf_free_alg_list(list);
 	}
 
 	free(tinfo);
