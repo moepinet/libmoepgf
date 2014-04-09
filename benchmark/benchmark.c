@@ -232,6 +232,7 @@ selftest()
 
 struct thread_state {
 	unsigned int 	rseed;
+	int		pos;
 };
 
 static void
@@ -252,10 +253,9 @@ encode_permutation(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb
 {
 	(void) state;
 	int i,c;
-	static int pos = 0;
 
-	for (i=0; i<cb->scount; i++, pos++) {
-		c = _rval[pos & (RVAL_COUNT-1)] & mask;
+	for (i=0; i<cb->scount; i++, state->pos++) {
+		c = _rval[state->pos & (RVAL_COUNT-1)] & mask;
 		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }

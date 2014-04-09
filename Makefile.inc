@@ -1,4 +1,4 @@
-ARCH:=arm
+ARCH:=x86
 OS:=linux
 
 LIBGF:=libmoepgf.a
