@@ -3,6 +3,7 @@ include ../Makefile.inc
 SRCDIR:=.
 AR:=ar
 ARFLAGS:=rcs
+CFLAGS+= -funroll-loops
 
 ALL_OBJS=$(patsubst $(SRCDIR)/%.c, $(SRCDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
 OBJS=$(filter-out %_sse2.o %_ssse3.o %_avx2.o %_neon.o, $(ALL_OBJS))
