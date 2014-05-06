@@ -25,8 +25,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <moepgf/moepgf.h>
+
 #include "coding_buffer.h"
-#include "moepgf.h"
 
 /* Size of the array containing a predetermined sequence of pseudo random
  * values. Must be a power of two or bad things will happen. */

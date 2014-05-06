@@ -21,7 +21,8 @@
 #define __MOEPGF_H_
 
 #include <stdint.h>
-#include "list.h"
+
+#include <moepgf/list.h>
 
 /*
  * Maximum memory alignemnt used by kernels. Any memory regions supplied to the

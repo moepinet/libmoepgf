@@ -30,8 +30,8 @@ libmoepgf_la_LDFLAGS = -version-info 0:0:0
 
 libmoepgf_la_includedir = $(includedir)/moepgf
 
-libmoepgf_la_include_HEADERS  = include/moepgf.h
-libmoepgf_la_include_HEADERS += include/list.h
+libmoepgf_la_include_HEADERS  = include/moepgf/moepgf.h
+libmoepgf_la_include_HEADERS += include/moepgf/list.h
 
 libmoepgf_la_LIBADD =
 if ARCH_X86_64

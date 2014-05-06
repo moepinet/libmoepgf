@@ -24,7 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "moepgf.h"
+#include <moepgf/moepgf.h>
+
 #include "gf256.h"
 #include "xor.h"
 
