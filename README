@@ -9,17 +9,23 @@ x86/ARM platforms.
 
 Installation
 ------------
-  
-  1. Select the target architecture (ARCH) and target operating system (OS) in
-     Makefile.inc. Available options are ARCH:={x86,arm} and OS:={linux,osx}.
 
-  2. `cd' to the directory containing the package's source code and type
-     `make' to compile the package
+To install moepgf you can use the following commands:
 
-  3. Type `make' to compile the package.
+	./configure
+	make
+	make install
 
-  4. The binary `gftest' performs sleftests and a basic benchmark. The shared
-     library object libgf.a can be linked to your own application.
+See ./configure --help for details on the available parameters. For example you
+can use --prefix=DIR to specify the installation prefix.
+
+To check the results before installation you can issue:
+
+	make check
+
+If you use a git checkout you must run the following command first:
+
+	autoreconf -fi
 
 
 Compilers and Options
@@ -33,7 +39,7 @@ Documentation
 -------------
 
 All functions users should interface with are defined and documented in
-./include/moepgf.h.
+includedir/moepgf/moepgf.h.
 
 
 Knwon bugs
