@@ -235,6 +235,17 @@ struct thread_state {
 	int		pos;
 };
 
+static inline uint8_t
+msvs_rand(uint32_t *s)
+{
+        const uint32_t a = 214013;
+        const uint32_t c = 2531011;
+
+        *s = a* (*s) + c;
+
+        return (uint8_t)(*s >> 16);
+}
+
 static void
 encode_random(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb,
 						struct thread_state *state)
@@ -242,7 +253,7 @@ encode_random(madd_t madd, int mask, uint8_t *dst, struct coding_buffer *cb,
 	int i,c;
 
 	for (i=0; i<cb->scount; i++) {
-		c = rand_r(&state->rseed) & mask;
+		c = msvs_rand(&state->rseed) & mask;
 		madd(dst, cb->slot[i], c, cb->ssize);
 	}
 }
