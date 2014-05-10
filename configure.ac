@@ -14,6 +14,7 @@ AC_CANONICAL_HOST
 
 AS_CASE([$host_cpu],
 	[x86_64], [
+		arch="x86_64"
 		AX_CHECK_COMPILE_FLAG([-msse2],
 			[AC_SUBST([SSE2_CFLAGS], ["-msse2"])],
 			[AC_MSG_ERROR("Your compiler does not support SSE2")])
@@ -24,15 +25,16 @@ AS_CASE([$host_cpu],
 			[AC_SUBST([AVX2_CFLAGS], ["-mavx2"])],
 			[AC_MSG_ERROR("Your compiler does not support AVX2")])
 	],
-	[arm], [
+	[arm*], [
+		arch="arm"
 		AX_CHECK_COMPILE_FLAG([-mfpu=neon],
 			[AC_SUBST([NEON_CFLAGS], ["-mfpu=neon"])],
 			[AC_MSG_ERROR("Your compiler does not support Neon")])
 	],
 	[AC_MSG_ERROR("Unsupported architecture '$host_cpu'")])
 
-AM_CONDITIONAL([ARCH_X86_64], [test "$host_cpu" = "x86_64"])
-AM_CONDITIONAL([ARCH_ARM], [test "$host_cpu" = "arm"])
+AM_CONDITIONAL([ARCH_X86_64], [test "$arch" = "x86_64"])
+AM_CONDITIONAL([ARCH_ARM], [test "$arch" = "arm"])
 
 AX_CHECK_COMPILE_FLAG([-funroll-loops], [AC_SUBST([UNROLL_CFLAGS], ["-funroll-loops"])], [])
 
