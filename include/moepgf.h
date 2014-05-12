@@ -202,5 +202,16 @@ struct list_head * moepgf_get_alg_list(enum MOEPGF_TYPE type);
  */
 void moepgf_free_alg_list(struct list_head *list);
 
+static inline uint8_t
+moepgf_rand(uint32_t *s)
+{
+	const uint32_t a = 214013;
+	const uint32_t c = 2531011;
+
+	*s = a * (*s) + c;
+
+	return (uint8_t)(*s >> 16);
+}
+
 #endif // __MOEPGF_H_
 
