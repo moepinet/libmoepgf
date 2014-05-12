@@ -80,7 +80,7 @@ libmoepgf_neon_la_SOURCES += src/gf16_neon.c
 libmoepgf_neon_la_SOURCES += src/gf256_neon.c
 libmoepgf_neon_la_SOURCES += src/xor_neon.c
 
-libmoepgf_sse2_la_CFLAGS = $(libmoepgf_la_CFLAGS) $(NEON_CFLAGS)
+libmoepgf_neon_la_CFLAGS = $(libmoepgf_la_CFLAGS) $(NEON_CFLAGS)
 endif
 
 
