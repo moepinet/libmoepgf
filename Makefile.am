@@ -21,10 +21,7 @@ libmoepgf_la_SOURCES += src/gf256tables285.h
 libmoepgf_la_SOURCES += src/xor.c
 libmoepgf_la_SOURCES += src/xor.h
 
-libmoepgf_la_CFLAGS = $(AM_CFLAGS) $(UNROLL_CFLAGS)
-if ARCH_ARM
-	libmoepgf_la_CFLAGS += -mfloat-abi=softfp
-endif
+libmoepgf_la_CFLAGS = $(AM_CFLAGS) $(LIB_CFLAGS)
 
 libmoepgf_la_LDFLAGS = -version-info 0:0:0
 

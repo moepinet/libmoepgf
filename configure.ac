@@ -12,6 +12,8 @@ AM_PROG_CC_C_O	# Needed for some buggy automake versions
 
 AC_CANONICAL_HOST
 
+lib_cflags=
+
 AS_CASE([$host_cpu],
 	[x86_64], [
 		arch="x86_64"
@@ -27,6 +29,9 @@ AS_CASE([$host_cpu],
 	],
 	[arm*], [
 		arch="arm"
+		AX_CHECK_COMPILE_FLAG([-mfloat-abi=softfp],
+			[lib_cflags="$lib_cflags -mfloat-abi=softfp"],
+			[AC_MSG_ERROR("Your compiler does not support soft-float ABI")])
 		AX_CHECK_COMPILE_FLAG([-mfpu=neon],
 			[AC_SUBST([NEON_CFLAGS], ["-mfpu=neon"])],
 			[AC_MSG_ERROR("Your compiler does not support Neon")])
@@ -36,7 +41,9 @@ AS_CASE([$host_cpu],
 AM_CONDITIONAL([ARCH_X86_64], [test "$arch" = "x86_64"])
 AM_CONDITIONAL([ARCH_ARM], [test "$arch" = "arm"])
 
-AX_CHECK_COMPILE_FLAG([-funroll-loops], [AC_SUBST([UNROLL_CFLAGS], ["-funroll-loops"])], [])
+AX_CHECK_COMPILE_FLAG([-funroll-loops], [lib_cflags="$lib_cflags -funroll-loops"], [])
+
+AC_SUBST([LIB_CFLAGS], ["$lib_cflags"])
 
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_SEARCH_LIBS([pthread_create], [pthread])
