@@ -23,7 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "moepgf.h"
+#include <moepgf/moepgf.h>
+
 #include "gf2.h"
 #include "gf4.h"
 #include "gf16.h"
