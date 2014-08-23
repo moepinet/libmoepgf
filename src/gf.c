@@ -218,9 +218,25 @@ moepgf_check_available_simd_extensions()
 #endif
 
 #ifdef __arm__
-	//FIXME ARM does not have this kind of cpuid. For now, we assume that
-	//the platform we are running on supports neon.
-	ret |= (1 << MOEPGF_HWCAPS_SIMD_NEON);
+	/* Obviously there is no cleaner way for ARM than parsing /proc */
+	size_t len;
+	char *ptr = NULL;
+	const char mode = 'r';
+	FILE *f = fopen("/proc/cpuinfo", &mode);
+
+	if (!f)
+		return ret; /* Assume that there is no NEON support */
+
+	while (getline(&ptr, &len, f)) {
+		if (!strstr(ptr, "neon"))
+			continue;
+
+		ret |= (1 << MOEPGF_HWCAPS_SIMD_NEON);
+		break;
+	}
+
+	free(ptr);
+	fclose(f);
 #endif
 
 	return ret;
