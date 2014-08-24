@@ -72,7 +72,8 @@ if ARCH_ARM
 noinst_LTLIBRARIES += libmoepgf_neon.la
 
 
-libmoepgf_neon_la_SOURCES  = src/gf4_neon.c
+libmoepgf_neon_la_SOURCES  = src/arm_detect_neon.c
+libmoepgf_neon_la_SOURCES += src/gf4_neon.c
 libmoepgf_neon_la_SOURCES += src/gf16_neon.c
 libmoepgf_neon_la_SOURCES += src/gf256_neon.c
 libmoepgf_neon_la_SOURCES += src/xor_neon.c

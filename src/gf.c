@@ -25,6 +25,10 @@
 
 #include <moepgf/moepgf.h>
 
+#ifdef __arm__
+#include "arm_detect_neon.h"
+#endif
+
 #include "gf2.h"
 #include "gf4.h"
 #include "gf16.h"
@@ -218,25 +222,8 @@ moepgf_check_available_simd_extensions()
 #endif
 
 #ifdef __arm__
-	/* Obviously there is no cleaner way for ARM than parsing /proc */
-	size_t len;
-	char *ptr = NULL;
-	const char mode = 'r';
-	FILE *f = fopen("/proc/cpuinfo", &mode);
-
-	if (!f)
-		return ret; /* Assume that there is no NEON support */
-
-	while (getline(&ptr, &len, f)) {
-		if (!strstr(ptr, "neon"))
-			continue;
-
+	if (arm_detect_neon())
 		ret |= (1 << MOEPGF_HWCAPS_SIMD_NEON);
-		break;
-	}
-
-	free(ptr);
-	fclose(f);
 #endif
 
 	return ret;
