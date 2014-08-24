@@ -26,7 +26,10 @@
 #include <moepgf/moepgf.h>
 
 #ifdef __arm__
-#include "arm_detect_neon.h"
+#include "detect_arm_neon.h"
+#endif
+#ifdef __x86_64__
+#include "detect_x86_simd.h"
 #endif
 
 #include "gf2.h"
@@ -173,57 +176,17 @@ moepgf_a2name(enum MOEPGF_ALGORITHM a)
 	return gf_names[a];
 }
 
-#ifdef __x86_64__
-static void
-cpuid(unsigned int *eax, unsigned int *ebx, unsigned int *ecx,
-							unsigned int *edx)
-{
-	asm volatile("cpuid"
-		: "=a" (*eax),
-		  "=b" (*ebx),
-		  "=c" (*ecx),
-		  "=d" (*edx)
-		: "0" (*eax), "2" (*ecx));
-}
-#endif
-
 uint32_t
 moepgf_check_available_simd_extensions()
 {
-	uint32_t ret = 0;
-	ret |= (1 << MOEPGF_HWCAPS_SIMD_NONE);
+	uint32_t ret = (1 << MOEPGF_HWCAPS_SIMD_NONE);
 
 #ifdef __x86_64__
-	unsigned int eax, ebx, ecx, edx;
-	
-	eax = 1;
-	ebx = ecx = edx = 0;
-	cpuid(&eax, &ebx, &ecx, &edx);
-	if (edx & (1 << 23))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_MMX);
-	if (edx & (1 << 25))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_SSE);
-	if (edx & (1 << 26))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_SSE2);
-	if (ecx & (1 << 9))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_SSSE3);
-	if (ecx & (1 << 19))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_SSE41);
-	if (ecx & (1 << 20))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_SSE42);
-	if (ecx & (1 << 28))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_AVX);
-
-	eax = 7;
-	ebx = ecx = edx = 0;
-	cpuid(&eax, &ebx, &ecx, &edx);
-	if (ebx & (1 << 5))
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_AVX2);
+	ret |= detect_x86_simd();
 #endif
 
 #ifdef __arm__
-	if (arm_detect_neon())
-		ret |= (1 << MOEPGF_HWCAPS_SIMD_NEON);
+	ret |= detect_arm_neon();
 #endif
 
 	return ret;

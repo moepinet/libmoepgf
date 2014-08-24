@@ -20,6 +20,10 @@ libmoepgf_la_SOURCES += src/gf256.h
 libmoepgf_la_SOURCES += src/gf256tables285.h
 libmoepgf_la_SOURCES += src/xor.c
 libmoepgf_la_SOURCES += src/xor.h
+if ARCH_X86_64
+libmoepgf_la_SOURCES += src/detect_x86_simd.c
+libmoepgf_la_SOURCES += src/detect_x86_simd.h
+endif
 
 libmoepgf_la_CFLAGS = $(AM_CFLAGS) $(LIB_CFLAGS)
 
@@ -72,7 +76,7 @@ if ARCH_ARM
 noinst_LTLIBRARIES += libmoepgf_neon.la
 
 
-libmoepgf_neon_la_SOURCES  = src/arm_detect_neon.c
+libmoepgf_neon_la_SOURCES  = src/detect_arm_neon.c
 libmoepgf_neon_la_SOURCES += src/gf4_neon.c
 libmoepgf_neon_la_SOURCES += src/gf16_neon.c
 libmoepgf_neon_la_SOURCES += src/gf256_neon.c

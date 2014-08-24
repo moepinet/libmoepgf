@@ -16,39 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <signal.h>
-#include <setjmp.h>
+#ifndef __DETECT_ARM_NEON
+#define __DETECT_ARM_NEON
 
-#include <moepgf/moepgf.h>
+#include <stddef.h>
 
-static sigjmp_buf jmpbuf;
+uint32_t detect_arm_neon();
 
-static void
-sigill_intrinsic_handler(int sig)
-{
-	siglongjmp(jmpbuf, 1);
-}
-
-int
-arm_detect_neon()
-{
-	struct sigaction new_action, old_action;
-	int have_neon = 0;
-
-	new_action.sa_handler = sigill_intrinsic_handler;
-	new_action.sa_flags = SA_RESTART;
-	sigemptyset(&new_action.sa_mask);
-	sigaction(SIGILL, &new_action, &old_action);
-
-	if (!sigsetjmp(jmpbuf, 1)) {
-		asm volatile (
-			"vand.u8 d0, d1, d0\n"
-		);
-		have_neon = 1;
-	}
-
-	sigaction(SIGILL, &old_action, NULL);
-
-	return have_neon;
-}
-
+#endif
