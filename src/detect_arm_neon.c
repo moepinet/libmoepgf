@@ -44,7 +44,7 @@ arm_detect_neon()
 		asm volatile (
 			"vand.u8 d0, d1, d0\n"
 		);
-		have_neon |= MOEPGF_HWCAPS_SIMD_NEON;
+		hwcaps |= MOEPGF_HWCAPS_SIMD_NEON;
 	}
 
 	sigaction(SIGILL, &old_action, NULL);
