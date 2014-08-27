@@ -29,9 +29,6 @@ AS_CASE([$host_cpu],
 	],
 	[arm*], [
 		arch="arm"
-		AX_CHECK_COMPILE_FLAG([-mfloat-abi=softfp],
-			[lib_cflags="$lib_cflags -mfloat-abi=softfp"],
-			[AC_MSG_ERROR("Your compiler does not support soft-float ABI")])
 		AX_CHECK_COMPILE_FLAG([-mfpu=neon],
 			[AC_SUBST([NEON_CFLAGS], ["-mfpu=neon"])],
 			[AC_MSG_ERROR("Your compiler does not support Neon")])

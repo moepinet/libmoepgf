@@ -30,7 +30,7 @@ sigill_intrinsic_handler(int sig)
 }
 
 uint32_t
-arm_detect_neon()
+detect_arm_neon()
 {
 	struct sigaction new_action, old_action;
 	uint32_t hwcaps = 0;
@@ -44,7 +44,7 @@ arm_detect_neon()
 		asm volatile (
 			"vand.u8 d0, d1, d0\n"
 		);
-		hwcaps |= MOEPGF_HWCAPS_SIMD_NEON;
+		hwcaps |= (1 << MOEPGF_HWCAPS_SIMD_NEON);
 	}
 
 	sigaction(SIGILL, &old_action, NULL);
