@@ -324,8 +324,10 @@ benchmark(struct args *args)
 	fset = moepgf_check_available_simd_extensions();
 
 	fprintf(stderr, 
-		"\nEncoding benchmark, maxsize=%d, count=%d, repetitions=%d, "\
-		"threads=%d\n",	args->maxsize, args->count, args->repeat, 
+		"\nEncoding benchmark: "
+		"Encoding throughput in Gbps (1e9 bits per sec)\n"
+		"maxsize=%d, count=%d, repetitions=%d, "
+		"threads=%d\n\n",	args->maxsize, args->count, args->repeat, 
 		args->threads);
 		
 	s = rand();
