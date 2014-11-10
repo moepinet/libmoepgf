@@ -1,0 +1,12 @@
+2014-11-10  libmoepgf v1.1   Stephan M. Guenther  <moepi@moepi.net>
+
+* Changed license for the library from GPL version 2 to LGPL version 2.1 to
+allow easier integration. Note that the license of the benchmark application
+remains GPL version 2.
+
+* Added runtime-detection of NEON SIMD.
+
+* Added custom PRNG moepgf_rand().
+
+* Changed build-system to autotools.
+
