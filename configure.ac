@@ -1,4 +1,4 @@
-AC_INIT([Moep Galois Field Library], [1.0], [moepi@moepi.net], [libmoepgf], [http://moep80211.net])
+AC_INIT([Moep Galois Field Library], [1.1], [moepi@moepi.net], [libmoepgf], [http://moep80211.net])
 #AC_PREREQ([2.69])
 
 AC_PROG_CC

@@ -1,18 +1,30 @@
+/*
+ * This list implementation is from linux kernel (include/linux/list.h)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * See COPYING for more details.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * 2012 iterator functionality - Maurice Leclaire <leclaire@in.tum.de>
+ *
+ * 2013 list_for_each_extra_safe - Maurice Leclaire <leclaire@in.tum.de>
+ */
 
 #ifndef _LIST_H
 #define _LIST_H
 
-/*
- * This list implementation is from linux kernel (include/linux/list.h)
- * 
- * 2012 iterator functionality. - Maurice Leclaire <leclaire@in.tum.de>
- * 
- * 2013 list_for_each_extra_safe - Maurice Leclaire <leclaire@in.tum.de>
- */
+#include <moep80211/linux_stddef.h>
 
-#ifndef offsetof
- #define offsetof(type, member) ((size_t) &((type *)0)->member)
-#endif
 
 /**
  * container_of - cast a member of a structure out to the containing structure
