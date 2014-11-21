@@ -41,7 +41,7 @@ detect_x86_simd()
 {
 	uint32_t hwcaps = 0;
 	unsigned int eax = 1;
-	unsigned int ebx, ecx, edx = 0;
+	unsigned int ebx = 0, ecx = 0, edx = 0;
 	
 	cpuid(&eax, &ebx, &ecx, &edx);
 
