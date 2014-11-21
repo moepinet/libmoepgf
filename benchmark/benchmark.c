@@ -160,12 +160,11 @@ init_test_buffers(uint8_t *test1, uint8_t *test2, uint8_t *test3, int size)
 static void
 selftest()
 {
-	int i,k,fset;
+	int i,j,k,fset;
 	int tlen = (1 << 15);
 	uint8_t	*test1, *test2, *test3;
-	struct moepgf_algorithm *alg;
+	struct moepgf_algorithm **algs;
 	struct moepgf gf;
-	struct list_head *list;
 
 	fset = moepgf_check_available_simd_extensions();
 	fprintf(stderr, "CPU SIMD extensions detected: \n");
@@ -198,13 +197,16 @@ selftest()
 
 	for (i=0; i<4; i++) {
 		moepgf_init(&gf, i, MOEPGF_SELFTEST);
-		list = moepgf_get_alg_list(gf.type);
+		algs = moepgf_get_algs(gf.type);
 		fprintf(stderr, "%s:\n", gf.name);
 
-		list_for_each_entry(alg, list, list) {
+		for (j=0; j<MOEPGF_ALGORITHM_COUNT; j++) {
+			if (!algs[j])
+				continue;
+
 			fprintf(stderr, "- selftest (%s)    ",
-						moepgf_a2name(alg->type));
-			if (!(fset & (1 << alg->hwcaps))) {
+						moepgf_a2name(algs[j]->type));
+			if (!(fset & (1 << algs[j]->hwcaps))) {
 				fprintf(stderr, "\tNecessary SIMD "
 						"instructions not supported\n");
 				continue;
@@ -214,7 +216,7 @@ selftest()
 				init_test_buffers(test1, test2, test3, tlen);
 
 				gf.maddrc(test1, test3, k, tlen);
-				alg->maddrc(test2, test3, k, tlen);
+				algs[j]->maddrc(test2, test3, k, tlen);
 	
 				if (memcmp(test1, test2, tlen)){
 					fprintf(stderr,"FAIL: results differ, c = %d\n", k);
@@ -223,7 +225,7 @@ selftest()
 			fprintf(stderr, "\tPASS\n");
 		}
 		fprintf(stderr, "\n");
-		moepgf_free_alg_list(list);
+		moepgf_free_algs(algs);
 	}
 
 	free(test1);
@@ -310,12 +312,11 @@ encode_thread(void *args)
 static void
 benchmark(struct args *args)
 {
-	int i,l,m,rep,fset;
+	int i,j,l,m,rep,fset;
 	uint32_t s;
-	struct moepgf_algorithm *alg;
+	struct moepgf_algorithm **algs;
 	struct moepgf gf;
 	struct thread_info *tinfo;
-	struct list_head *list;
 	double gbps;
 
 	tinfo = malloc(args->threads * sizeof(*tinfo));
@@ -336,19 +337,25 @@ benchmark(struct args *args)
 
 	for (i=0; i<4; i++) {
 		moepgf_init(&gf, i, 0);
-		list = moepgf_get_alg_list(gf.type);
+		algs = moepgf_get_algs(gf.type);
 
 		fprintf(stderr, "%s\n", gf.name);
 		fprintf(stderr, "size \t");
 
-		list_for_each_entry(alg, list, list)
-			fprintf(stderr, "%s \t", moepgf_a2name(alg->type));
+		for (j=0; j<MOEPGF_ALGORITHM_COUNT; j++) {
+			if (!algs[j])
+				continue;
+			fprintf(stderr, "%s \t", moepgf_a2name(algs[j]->type));
+		}
 		fprintf(stderr, "\n");
 
 		for (l=128, rep=args->repeat; l<=args->maxsize; l*=2, rep/=2) {
 			fprintf(stderr, "%d\t", l);
-			list_for_each_entry(alg, list, list) {
-				if (!(fset & (1 << alg->hwcaps))) {
+			for (j=0; j<MOEPGF_ALGORITHM_COUNT; j++) {
+				if (!algs[j])
+					continue;
+
+				if (!(fset & (1 << algs[j]->hwcaps))) {
 					fprintf(stderr, "n/a      \t");
 					continue;
 				}
@@ -359,7 +366,7 @@ benchmark(struct args *args)
 				}
 
 				for (m=0; m<args->threads; m++) {
-					tinfo[m].args.madd = alg->maddrc;
+					tinfo[m].args.madd = algs[j]->maddrc;
 					tinfo[m].args.mask = gf.mask;
 					tinfo[m].args.length = l;
 					tinfo[m].args.rep = rep;
@@ -386,7 +393,7 @@ benchmark(struct args *args)
 			fprintf(stderr, "\n");
 		}
 		fprintf(stderr, "\n");
-		moepgf_free_alg_list(list);
+		moepgf_free_algs(algs);
 	}
 
 	free(tinfo);

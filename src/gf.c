@@ -314,162 +314,158 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 	return ret;
 }
 
-static int
-add_algorithm(struct list_head *list, enum MOEPGF_TYPE gt, enum MOEPGF_ALGORITHM at, 
-		enum MOEPGF_HWCAPS hwcaps, maddrc_t maddrc, mulrc_t mulrc)
+static void
+add_algorithm(struct moepgf_algorithm **algs, enum MOEPGF_TYPE gt, 
+		enum MOEPGF_ALGORITHM at, enum MOEPGF_HWCAPS hwcaps, 
+		maddrc_t maddrc, mulrc_t mulrc)
 {
 	struct moepgf_algorithm *alg;
 
-	alg = malloc(sizeof(*alg));
-
-	memset(alg, 0, sizeof(*alg));
+	alg = calloc(1, sizeof(*alg));
 
 	alg->maddrc = maddrc;
 	alg->mulrc = mulrc;
 	alg->hwcaps = hwcaps;
 	alg->type = at;
 	alg->field = gt;
-	list_add_tail(&alg->list, list);
 
-	return 0;
+	algs[at] = alg;
 }
 
-struct list_head *
-moepgf_get_alg_list(enum MOEPGF_TYPE field)
+struct moepgf_algorithm **
+moepgf_get_algs(enum MOEPGF_TYPE field)
 {
-	struct list_head *list;
+	struct moepgf_algorithm **algs;
 
-	if (!(list = malloc(sizeof(*list))))
+	if (!(algs = calloc(MOEPGF_ALGORITHM_COUNT,sizeof(*algs))))
 		return NULL;
-
-	INIT_LIST_HEAD(list);
 
 	switch (field) {
 	case MOEPGF2:
-		add_algorithm(list, field, MOEPGF_XOR_GPR32,
+		add_algorithm(algs, field, MOEPGF_XOR_GPR32,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc2_gpr32, NULL);
-		add_algorithm(list, field, MOEPGF_XOR_GPR64,
+		add_algorithm(algs, field, MOEPGF_XOR_GPR64,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc2_gpr64, NULL);
 #ifdef __x86_64__
-		add_algorithm(list, field, MOEPGF_XOR_SSE2,
+		add_algorithm(algs, field, MOEPGF_XOR_SSE2,
 				MOEPGF_HWCAPS_SIMD_SSE2,
 				maddrc2_sse2, NULL);
-		add_algorithm(list, field, MOEPGF_XOR_AVX2,
+		add_algorithm(algs, field, MOEPGF_XOR_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc2_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, MOEPGF_XOR_NEON_128,
+		add_algorithm(algs, field, MOEPGF_XOR_NEON_128,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc2_neon, NULL);
 #endif
 		break;
 	case MOEPGF4:
-		add_algorithm(list, field, MOEPGF_FLAT_TABLE,
+		add_algorithm(algs, field, MOEPGF_FLAT_TABLE,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc4_flat_table, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_GPR32,
+		add_algorithm(algs, field, MOEPGF_IMUL_GPR32,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc4_imul_gpr32, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_GPR64,
+		add_algorithm(algs, field, MOEPGF_IMUL_GPR64,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc4_imul_gpr64, NULL);
 #ifdef __x86_64__
-		add_algorithm(list, field, MOEPGF_IMUL_SSE2,
+		add_algorithm(algs, field, MOEPGF_IMUL_SSE2,
 				MOEPGF_HWCAPS_SIMD_SSE2,
 				maddrc4_imul_sse2, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_AVX2,
+		add_algorithm(algs, field, MOEPGF_IMUL_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc4_imul_avx2, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_SSSE3,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_SSSE3,
 				MOEPGF_HWCAPS_SIMD_SSSE3,
 				maddrc4_shuffle_ssse3, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_AVX2,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc4_shuffle_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, MOEPGF_IMUL_NEON_64,
+		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc4_imul_neon_64, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_NEON_128,
+		add_algorithm(algs, field, MOEPGF_IMUL_NEON_128,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc4_imul_neon_128, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_NEON_64,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_NEON_64,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc4_shuffle_neon_64, NULL);
 #endif
 		break;
 	case MOEPGF16:
-		add_algorithm(list, field, MOEPGF_FLAT_TABLE,
+		add_algorithm(algs, field, MOEPGF_FLAT_TABLE,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc16_flat_table, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_GPR32,
+		add_algorithm(algs, field, MOEPGF_IMUL_GPR32,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc16_imul_gpr32, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_GPR64,
+		add_algorithm(algs, field, MOEPGF_IMUL_GPR64,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc16_imul_gpr64, NULL);
 #ifdef __x86_64__
-		add_algorithm(list, field, MOEPGF_IMUL_SSE2,
+		add_algorithm(algs, field, MOEPGF_IMUL_SSE2,
 				MOEPGF_HWCAPS_SIMD_SSE2,
 				maddrc16_imul_sse2, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_AVX2,
+		add_algorithm(algs, field, MOEPGF_IMUL_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc16_imul_avx2, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_SSSE3,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_SSSE3,
 				MOEPGF_HWCAPS_SIMD_SSSE3,
 				maddrc16_shuffle_ssse3, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_AVX2,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc16_shuffle_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, MOEPGF_IMUL_NEON_64,
+		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc16_imul_neon_64, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_NEON_128,
+		add_algorithm(algs, field, MOEPGF_IMUL_NEON_128,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc16_imul_neon_128, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_NEON_64,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_NEON_64,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc16_shuffle_neon_64, NULL);
 #endif
 		break;
 	case MOEPGF256:
-		add_algorithm(list, field, MOEPGF_FLAT_TABLE,
+		add_algorithm(algs, field, MOEPGF_FLAT_TABLE,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc256_flat_table, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_GPR32,
+		add_algorithm(algs, field, MOEPGF_IMUL_GPR32,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc256_imul_gpr32, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_GPR64,
+		add_algorithm(algs, field, MOEPGF_IMUL_GPR64,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc256_imul_gpr64, NULL);
 #ifdef __x86_64__
-		add_algorithm(list, field, MOEPGF_IMUL_SSE2,
+		add_algorithm(algs, field, MOEPGF_IMUL_SSE2,
 				MOEPGF_HWCAPS_SIMD_SSE2,
 				maddrc256_imul_sse2, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_AVX2,
+		add_algorithm(algs, field, MOEPGF_IMUL_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc256_imul_avx2, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_SSSE3,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_SSSE3,
 				MOEPGF_HWCAPS_SIMD_SSSE3,
 				maddrc256_shuffle_ssse3, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_AVX2,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc256_shuffle_avx2, NULL);
 #endif
 #ifdef __arm__
-		add_algorithm(list, field, MOEPGF_IMUL_NEON_64,
+		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc256_imul_neon_64, NULL);
-		add_algorithm(list, field, MOEPGF_IMUL_NEON_128,
+		add_algorithm(algs, field, MOEPGF_IMUL_NEON_128,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc256_imul_neon_128, NULL);
-		add_algorithm(list, field, MOEPGF_SHUFFLE_NEON_64,
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_NEON_64,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc256_shuffle_neon_64, NULL);
 #endif
@@ -477,22 +473,20 @@ moepgf_get_alg_list(enum MOEPGF_TYPE field)
 
 	default:
 		// free everything before
-		free(list);
+		free(algs);
 		return NULL;
 	}
 
-	return list;
+	return algs;
 }
 
 void
-moepgf_free_alg_list(struct list_head *list)
+moepgf_free_algs(struct moepgf_algorithm **algs)
 {
-	struct moepgf_algorithm *alg, *tmp;
+	struct moepgf_algorithm;
+	int i;
 
-	list_for_each_entry_safe(alg, tmp, list, list) {
-		list_del(&alg->list);
-		free(alg);
-	}
-
-	free(list);
+	for (i=0; i<MOEPGF_ALGORITHM_COUNT; i++)
+		free(algs[i]);
+	free(algs);
 }

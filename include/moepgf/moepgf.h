@@ -25,8 +25,6 @@
 
 #include <stdint.h>
 
-#include <moepgf/list.h>
-
 /*
  * Maximum memory alignemnt used by kernels. Any memory regions supplied to the
  * library must be aligned to this value and the length of those regions must
@@ -119,11 +117,10 @@ enum MOEPGF_ALGORITHM
 };
 
 /*
- * Structure representing a moepgf algorithm as list element, including function
- * poitners and informations about the algorithm, required hwcaps and field.
+ * Structure representing a moepgf algorithm, including function poitners and
+ * informations about the algorithm, required hwcaps and field.
  */
 struct moepgf_algorithm {
-	struct list_head	list;
 	maddrc_t		maddrc;
 	mulrc_t			mulrc;
 	enum MOEPGF_HWCAPS	hwcaps;
@@ -163,14 +160,14 @@ struct moepgf_algorithm {
 struct moepgf {
 	enum MOEPGF_TYPE		type;
 	enum MOEPGF_HWCAPS		hwcaps;
-	char 			name[256];
-	uint32_t		exponent;
-	uint32_t		mask;
-	uint32_t		ppoly;
-	int			size;
-	maddrc_t		maddrc;
-	mulrc_t			mulrc;
-	inv_t			inv;
+	char 				name[256];
+	uint32_t			exponent;
+	uint32_t			mask;
+	uint32_t			ppoly;
+	int				size;
+	maddrc_t			maddrc;
+	mulrc_t				mulrc;
+	inv_t				inv;
 };
 
 /*
@@ -195,16 +192,16 @@ int moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type,
 						enum MOEPGF_ALGORITHM atype);
 
 /*
- * Returns a list of all algorithms for the given field. Use the functions
- * privded in list.h to iterate over the algorithms. Useful for benchmarks only.
+ * Returns an array of all algorithms for the given field. Useful for benchmarks
+ * only.
  */
-struct list_head * moepgf_get_alg_list(enum MOEPGF_TYPE type);
+struct moepgf_algorithm ** moepgf_get_algs(enum MOEPGF_TYPE type);
 
 /*
- * Frees a list of algorithms previously initialized by moepgf_get_alg_list(). 
- * Pointer list is unusable after calling this function.
+ * Frees an array of algorithms previously initialized by moepgf_get_algs(). 
+ * Pointer is unusable after calling this function.
  */
-void moepgf_free_alg_list(struct list_head *list);
+void moepgf_free_algs(struct moepgf_algorithm **algs);
 
 static inline uint8_t
 moepgf_rand(uint32_t *s)
