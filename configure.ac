@@ -33,10 +33,17 @@ AS_CASE([$host_cpu],
 			[AC_SUBST([NEON_CFLAGS], ["-mfpu=neon"])],
 			[AC_MSG_ERROR("Your compiler does not support Neon")])
 	],
+	[mips*], [
+		arch="mips"
+		AX_CHECK_COMPILE_FLAG([-mmsa],
+			[AC_SUBST([NEON_CFLAGS], ["-mmsa"])],
+			[AC_MSG_ERROR("Your compiler does not support MSA")])
+	],
 	[AC_MSG_ERROR("Unsupported architecture '$host_cpu'")])
 
 AM_CONDITIONAL([ARCH_X86_64], [test "$arch" = "x86_64"])
 AM_CONDITIONAL([ARCH_ARM], [test "$arch" = "arm"])
+AM_CONDITIONAL([ARCH_MIPS], [test "$arch" = "mips"])
 
 AX_CHECK_COMPILE_FLAG([-funroll-loops], [lib_cflags="$lib_cflags -funroll-loops"], [])
 
