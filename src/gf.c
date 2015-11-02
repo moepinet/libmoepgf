@@ -33,6 +33,8 @@
 #ifdef __x86_64__
 #include "detect_x86_simd.h"
 #endif
+#ifdef __mips__
+#endif
 
 #include "gf2.h"
 #include "gf4.h"
@@ -49,6 +51,7 @@ const char *gf_names[] =
 	[MOEPGF_XOR_SSE2]		= "xor_sse2",
 	[MOEPGF_XOR_AVX2]		= "xor_avx2",
 	[MOEPGF_XOR_NEON_128]		= "xor_neon_128",
+	[MOEPGF_XOR_MSA]		= "xor_msa",
 	[MOEPGF_LOG_TABLE]		= "log_table",
 	[MOEPGF_FLAT_TABLE]		= "flat_table",
 	[MOEPGF_IMUL_SCALAR]		= "imul_scalar",
@@ -360,6 +363,11 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_XOR_NEON_128,
 				MOEPGF_HWCAPS_SIMD_NEON,
 				maddrc2_neon, NULL);
+#endif
+#ifdef __mips__
+		add_algorithm(algs, field, MOEPGF_XOR_MSA,
+				MOEPGF_HWCAPS_SIMD_MSA,
+				maddrc2_msa, NULL);
 #endif
 		break;
 	case MOEPGF4:
