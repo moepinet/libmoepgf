@@ -24,6 +24,9 @@ if ARCH_X86_64
 libmoepgf_la_SOURCES += src/detect_x86_simd.c
 libmoepgf_la_SOURCES += src/detect_x86_simd.h
 endif
+if ARCH_ARM
+libmoepgf_la_SOURCES += src/detect_arm_neon.h
+endif
 
 libmoepgf_la_CFLAGS = $(AM_CFLAGS) $(LIB_CFLAGS)
 
