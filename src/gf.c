@@ -196,17 +196,17 @@ moepgf_check_available_simd_extensions()
 
 	return ret;
 }
-	
+
 int
 moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atype)
 {
 	int ret = 0;
 	int hwcaps;
-	
+
 	memset(gf, 0, sizeof(*gf));
 
 	hwcaps = moepgf_check_available_simd_extensions();
-		
+
 	switch (type) {
 		gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_NONE);
 	case MOEPGF2:
@@ -228,7 +228,7 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 		gf->mask		= MOEPGF4_MASK;
 		gf->inv			= inv4;
 		break;
-	
+
 	case MOEPGF16:
 		strcpy(gf->name, "MOEPGF16");
 		gf->type		= MOEPGF16;
@@ -238,7 +238,7 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 		gf->mask		= MOEPGF16_MASK;
 		gf->inv			= inv16;
 		break;
-	
+
 	case MOEPGF256:
 		strcpy(gf->name, "MOEPGF256");
 		gf->type		= MOEPGF256;
@@ -257,19 +257,19 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 		switch (type) {
 		case MOEPGF2:
 			gf->mulrc = mulrc2;
-			gf->maddrc = maddrc2_scalar; 
+			gf->maddrc = maddrc2_scalar;
 			break;
 		case MOEPGF4:
 			gf->mulrc = mulrc4_imul_scalar;
-			gf->maddrc = maddrc4_imul_scalar; 
+			gf->maddrc = maddrc4_imul_scalar;
 			break;
 		case MOEPGF16:
 			gf->mulrc = mulrc16_imul_scalar;
-			gf->maddrc = maddrc16_imul_scalar; 
+			gf->maddrc = maddrc16_imul_scalar;
 			break;
 		case MOEPGF256:
 			gf->mulrc = mulrc256_pdiv;
-			gf->maddrc = maddrc256_pdiv; 
+			gf->maddrc = maddrc256_pdiv;
 			break;
 		default:
 			return -1;
@@ -318,8 +318,8 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 }
 
 static void
-add_algorithm(struct moepgf_algorithm **algs, enum MOEPGF_TYPE gt, 
-		enum MOEPGF_ALGORITHM at, enum MOEPGF_HWCAPS hwcaps, 
+add_algorithm(struct moepgf_algorithm **algs, enum MOEPGF_TYPE gt,
+		enum MOEPGF_ALGORITHM at, enum MOEPGF_HWCAPS hwcaps,
 		maddrc_t maddrc, mulrc_t mulrc)
 {
 	struct moepgf_algorithm *alg;
@@ -410,6 +410,9 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_FLAT_TABLE,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc16_flat_table, NULL);
+		add_algorithm(algs, field, MOEPGF_LOG_TABLE,
+				MOEPGF_HWCAPS_SIMD_NONE,
+				maddrc16_log_table, NULL);
 		add_algorithm(algs, field, MOEPGF_IMUL_GPR32,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc16_imul_gpr32, NULL);
@@ -446,6 +449,9 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_FLAT_TABLE,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc256_flat_table, NULL);
+		add_algorithm(algs, field, MOEPGF_LOG_TABLE,
+				MOEPGF_HWCAPS_SIMD_NONE,
+				maddrc256_log_table, NULL);
 		add_algorithm(algs, field, MOEPGF_IMUL_GPR32,
 				MOEPGF_HWCAPS_SIMD_NONE,
 				maddrc256_imul_gpr32, NULL);

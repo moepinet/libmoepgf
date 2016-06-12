@@ -91,7 +91,7 @@ maddrc256_log_table(uint8_t *region1, const uint8_t *region2,
 		xorr_scalar(region1, region2, length);
 		return ;
 	}
-	
+
 	l = logt[constant];
 
 	for (; length; region1++, region2++, length--) {
@@ -113,7 +113,7 @@ maddrc256_flat_table(uint8_t *region1, const uint8_t *region2,
 		xorr_scalar(region1, region2, length);
 		return ;
 	}
-	
+
 	for (; length; region1++, region2++, length--) {
 		*region1 ^= mult[constant][*region2];
 	}
@@ -126,7 +126,7 @@ maddrc256_imul_gpr32(uint8_t *region1, const uint8_t *region2,
 	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint32_t r32[8];
-	
+
 	if (constant == 0)
 		return;
 
@@ -156,7 +156,7 @@ maddrc256_imul_gpr64(uint8_t *region1, const uint8_t *region2,
 	uint8_t *end;
 	const uint8_t *p = pt[constant];
 	uint64_t r64[8];
-	
+
 	if (constant == 0)
 		return;
 

@@ -217,7 +217,7 @@ selftest()
 
 				gf.maddrc(test1, test3, k, tlen);
 				algs[j]->maddrc(test2, test3, k, tlen);
-	
+
 				if (memcmp(test1, test2, tlen)){
 					fprintf(stderr,"FAIL: results differ, c = %d\n", k);
 				}
