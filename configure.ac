@@ -10,6 +10,8 @@ AM_SILENT_RULES([yes])
 AM_PROG_AR
 AM_PROG_CC_C_O	# Needed for some buggy automake versions
 
+AC_SUBST(AR_FLAGS, [cr]) # Fixes ar warning during make
+
 AC_CANONICAL_HOST
 
 lib_cflags=
