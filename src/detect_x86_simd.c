@@ -1,7 +1,8 @@
 /*
  * This file is part of moep80211gf.
  *
- * Copyright (C) 2014   Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2014,2019   Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2016        Nicolas Appel <n.appel@tum.de>
  *
  *
  * This library is free software; you can redistribute it and/or modify it under
@@ -42,7 +43,7 @@ detect_x86_simd()
 	uint32_t hwcaps = 0;
 	unsigned int eax = 1;
 	unsigned int ebx = 0, ecx = 0, edx = 0;
-	
+
 	cpuid(&eax, &ebx, &ecx, &edx);
 
 	if (edx & (1 << 23))
@@ -67,6 +68,10 @@ detect_x86_simd()
 
 	if (ebx & (1 << 5))
 		hwcaps |= (1 << MOEPGF_HWCAPS_SIMD_AVX2);
+	if (ebx & (1 << 16))
+		hwcaps |= (1 << MOEPGF_HWCAPS_SIMD_AVX512);
+	if (ebx & (1 << 30))
+		hwcaps |= (1 << MOEPGF_HWCAPS_SIMD_AVX512BW);
 
 	return hwcaps;
 }

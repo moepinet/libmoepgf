@@ -1,4 +1,4 @@
-AC_INIT([Moep Galois Field Library], [1.1], [moepi@moepi.net], [libmoepgf], [http://moep80211.net])
+AC_INIT([Moep Galois Field Library], [1.2], [moepi@moepi.net], [libmoepgf], [http://moep80211.net])
 #AC_PREREQ([2.69])
 
 AC_PROG_CC
@@ -28,6 +28,13 @@ AS_CASE([$host_cpu],
 		AX_CHECK_COMPILE_FLAG([-mavx2],
 			[AC_SUBST([AVX2_CFLAGS], ["-mavx2"])],
 			[AC_MSG_ERROR("Your compiler does not support AVX2")])
+		AX_CHECK_COMPILE_FLAG([-mavx512f],
+			[AC_SUBST([AVX512_CFLAGS], ["-mavx512f"])],
+			[AC_MSG_ERROR("Your compiler does not support AVX512")])
+		AX_CHECK_COMPILE_FLAG([-mavx512f -mavx512bw],
+			[AC_SUBST([AVX512BW_CFLAGS], ["-mavx512f -mavx512bw"])],
+			[AC_MSG_ERROR("Your compiler does not support AVX512BW")])
+
 	],
 	[arm*], [
 		arch="arm"

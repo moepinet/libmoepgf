@@ -40,13 +40,17 @@ void mulrc4_imul_gpr64(uint8_t *region, uint8_t constant, size_t length);
 #ifdef __x86_64__
 void mulrc4_imul_sse2(uint8_t *region, uint8_t constant, size_t length);
 void mulrc4_imul_avx2(uint8_t *region, uint8_t constant, size_t length);
+void mulrc4_imul_avx512(uint8_t *region, uint8_t constant, size_t length);
 void mulrc4_shuffle_ssse3(uint8_t *region, uint8_t constant, size_t length);
 void mulrc4_shuffle_avx2(uint8_t *region, uint8_t constant, size_t length);
+void mulrc4_shuffle_avx512(uint8_t *region, uint8_t constant, size_t length);
 
 void maddrc4_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc4_imul_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc4_imul_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc4_shuffle_ssse3(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc4_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc4_shuffle_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 #endif
 
 #ifdef __arm__

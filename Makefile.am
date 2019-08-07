@@ -38,7 +38,7 @@ libmoepgf_la_include_HEADERS  = include/moepgf/moepgf.h
 
 libmoepgf_la_LIBADD =
 if ARCH_X86_64
-libmoepgf_la_LIBADD += libmoepgf_sse2.la libmoepgf_ssse3.la libmoepgf_avx2.la
+libmoepgf_la_LIBADD += libmoepgf_sse2.la libmoepgf_ssse3.la libmoepgf_avx2.la libmoepgf_avx512.la libmoepgf_avx512bw.la
 endif
 if ARCH_ARM
 libmoepgf_la_LIBADD += libmoepgf_neon.la
@@ -50,7 +50,7 @@ endif
 noinst_LTLIBRARIES =
 
 if ARCH_X86_64
-noinst_LTLIBRARIES += libmoepgf_sse2.la libmoepgf_ssse3.la libmoepgf_avx2.la
+noinst_LTLIBRARIES += libmoepgf_sse2.la libmoepgf_ssse3.la libmoepgf_avx2.la libmoepgf_avx512.la libmoepgf_avx512bw.la
 
 
 libmoepgf_sse2_la_SOURCES  = src/gf4_sse2.c
@@ -74,6 +74,20 @@ libmoepgf_avx2_la_SOURCES += src/gf256_avx2.c
 libmoepgf_avx2_la_SOURCES += src/xor_avx2.c
 
 libmoepgf_avx2_la_CFLAGS = $(libmoepgf_la_CFLAGS) $(AVX2_CFLAGS)
+
+libmoepgf_avx512_la_SOURCES  = src/gf4_avx512.c
+libmoepgf_avx512_la_SOURCES += src/gf16_avx512.c
+libmoepgf_avx512_la_SOURCES += src/gf256_avx512.c
+libmoepgf_avx512_la_SOURCES += src/xor_avx512.c
+
+libmoepgf_avx512_la_CFLAGS = $(libmoepgf_la_CFLAGS) $(AVX512_CFLAGS)
+
+libmoepgf_avx512bw_la_SOURCES  = src/gf4_avx512bw.c
+libmoepgf_avx512bw_la_SOURCES += src/gf16_avx512bw.c
+libmoepgf_avx512bw_la_SOURCES += src/gf256_avx512bw.c
+
+libmoepgf_avx512bw_la_CFLAGS = $(libmoepgf_la_CFLAGS) $(AVX512BW_CFLAGS)
+
 endif
 
 if ARCH_ARM

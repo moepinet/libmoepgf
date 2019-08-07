@@ -78,12 +78,12 @@ maddrc4_imul_gpr32(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 	uint32_t r64[4];
 
 	if (constant == 0)
-	       return;
+		return;
 
-        if (constant == 1) {
-	       xorr_gpr32(region1, region2, length);
-	       return;
-        }
+	if (constant == 1) {
+	   xorr_gpr32(region1, region2, length);
+	   return;
+	}
 
 	for (end=region1+length; region1<end; region1+=4, region2+=4) {
 		r64[0] = ((*(uint32_t *)region2 & 0x55555555)>>0)*p[0];
@@ -101,12 +101,12 @@ maddrc4_imul_gpr64(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 	uint64_t r64[4];
 
 	if (constant == 0)
-	       return;
+		return;
 
-        if (constant == 1) {
-	       xorr_gpr64(region1, region2, length);
-	       return;
-        }
+	if (constant == 1) {
+		xorr_gpr64(region1, region2, length);
+		return;
+	}
 
 	for (end=region1+length; region1<end; region1+=8, region2+=8) {
 		r64[0] = ((*(uint64_t *)region2 & 0x5555555555555555)>>0)*p[0];
@@ -120,12 +120,12 @@ maddrc4_flat_table(uint8_t *region1, const uint8_t *region2, uint8_t constant,
 								size_t length)
 {
 	if (constant == 0)
-	       return;
+		return;
 
-        if (constant == 1) {
+	if (constant == 1) {
 		xorr_scalar(region1, region2, length);
-	       return;
-        }
+		return;
+	}
 
 	for (; length; region1++, region2++, length--) {
 		*region1 ^= multab[constant][*region2];
@@ -167,7 +167,7 @@ mulrc4_imul_gpr32(uint8_t *region, uint8_t constant, size_t length)
 
 	if (constant == 1)
 		return;
-	
+
 	for (end=region+length; region<end; region+=4, length-=4) {
 		r64[0] = ((*(uint32_t *)region & 0x55555555)>>0)*p[0];
 		r64[1] = ((*(uint32_t *)region & 0xaaaaaaaa)>>1)*p[1];
@@ -189,7 +189,7 @@ mulrc4_imul_gpr64(uint8_t *region, uint8_t constant, size_t length)
 
 	if (constant == 1)
 		return;
-	
+
 	for (end=region+length; region<end; region+=8) {
 		r64[0] = ((*(uint64_t *)region & 0x5555555555555555)>>0)*p[0];
 		r64[1] = ((*(uint64_t *)region & 0xaaaaaaaaaaaaaaaa)>>1)*p[1];

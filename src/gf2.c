@@ -80,6 +80,14 @@ maddrc2_avx2(uint8_t *region1, const uint8_t *region2,
 	if (constant != 0)
 		xorr_avx2(region1, region2, length);
 }
+
+inline void
+maddrc2_avx512(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, size_t length)
+{
+	if (constant != 0)
+		xorr_avx512(region1, region2, length);
+}
 #endif
 
 #ifdef __arm__

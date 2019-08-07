@@ -1,8 +1,9 @@
 /*
  * This file is part of moep80211gf.
  *
- * Copyright (C) 2014   Stephan M. Guenther <moepi@moepi.net>
- * Copyright (C) 2014   Maximilian Riemensberger <riemensberger@tum.de>
+ * Copyright (C) 2014,2019   Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2016        Nicolas Appel <n.appel@tum.de>
+ * Copyright (C) 2014        Maximilian Riemensberger <riemensberger@tum.de>
  *
  *
  * This library is free software; you can redistribute it and/or modify it under
@@ -27,17 +28,18 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "xor.h"
+
 void
-xorr_avx2(uint8_t *region1, const uint8_t *region2, size_t length)
+xorr_avx512(uint8_t *region1, const uint8_t *region2, size_t length)
 {
 	uint8_t *end;
-	register __m256i in, out;
+	register __m512i in, out;
 
-	for (end=region1+length; region1<end; region1+=32, region2+=32) {
-		in  = _mm256_load_si256((void *)region2);
-		out = _mm256_load_si256((void *)region1);
-		out = _mm256_xor_si256(in, out);
-		_mm256_store_si256((void *)region1, out);
+	for (end=region1+length; region1<end; region1+=64, region2+=64) {
+		in  = _mm512_load_si512((void *)region2);
+		out = _mm512_load_si512((void *)region1);
+		out = _mm512_xor_si512(in, out);
+		_mm512_store_si512((void *)region1, out);
 	}
 }
-

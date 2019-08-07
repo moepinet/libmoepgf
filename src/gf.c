@@ -1,7 +1,8 @@
 /*
  * This file is part of moep80211gf.
  *
- * Copyright (C) 2014   Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2014,2019   Stephan M. Guenther <moepi@moepi.net>
+ * Copyright (C) 2016        Nicolas Appel <n.appel@tum.de>
  *
  *
  * This library is free software; you can redistribute it and/or modify it under
@@ -50,6 +51,7 @@ const char *gf_names[] =
 	[MOEPGF_XOR_GPR64]		= "xor_gpr64",
 	[MOEPGF_XOR_SSE2]		= "xor_sse2",
 	[MOEPGF_XOR_AVX2]		= "xor_avx2",
+	[MOEPGF_XOR_AVX512]		= "xor_avx512",
 	[MOEPGF_XOR_NEON_128]		= "xor_neon_128",
 	[MOEPGF_XOR_MSA]		= "xor_msa",
 	[MOEPGF_LOG_TABLE]		= "log_table",
@@ -59,10 +61,13 @@ const char *gf_names[] =
 	[MOEPGF_IMUL_GPR64]		= "imul_gpr64",
 	[MOEPGF_IMUL_SSE2]		= "imul_sse2",
 	[MOEPGF_IMUL_AVX2]		= "imul_avx2",
+	[MOEPGF_IMUL_AVX512]		= "imul_avx512",
+	[MOEPGF_IMUL_AVX512BW]		= "imul_avx512bw",
 	[MOEPGF_IMUL_NEON_64]		= "imul_neon_64",
 	[MOEPGF_IMUL_NEON_128]		= "imul_neon_128",
 	[MOEPGF_SHUFFLE_SSSE3]		= "shuffle_ssse3",
 	[MOEPGF_SHUFFLE_AVX2]		= "shuffle_avx2",
+	[MOEPGF_SHUFFLE_AVX512]		= "shuffle_avx512",
 	[MOEPGF_SHUFFLE_NEON_64]	= "shuffle_neon_64"
 };
 
@@ -87,6 +92,15 @@ const struct {
 		.mulrc	= mulrc2,
 		.maddrc	= maddrc2_avx2
 	},
+	[MOEPGF2][MOEPGF_HWCAPS_SIMD_AVX512]  = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_avx512
+	},
+	[MOEPGF2][MOEPGF_HWCAPS_SIMD_AVX512BW]  = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_avx512
+	},
+
 #endif
 #ifdef __arm__
 	[MOEPGF2][MOEPGF_HWCAPS_SIMD_NEON]  = {
@@ -111,6 +125,14 @@ const struct {
 	[MOEPGF4][MOEPGF_HWCAPS_SIMD_AVX2]  = {
 		.mulrc	= mulrc4_shuffle_avx2,
 		.maddrc	= maddrc4_shuffle_avx2
+	},
+	[MOEPGF4][MOEPGF_HWCAPS_SIMD_AVX512]  = {
+		.mulrc	= mulrc4_imul_avx512,
+		.maddrc	= maddrc4_imul_avx512
+	},
+	[MOEPGF4][MOEPGF_HWCAPS_SIMD_AVX512BW]  = {
+		.mulrc	= mulrc4_shuffle_avx512,
+		.maddrc	= maddrc4_shuffle_avx512
 	},
 #endif
 #ifdef __arm__
@@ -137,6 +159,15 @@ const struct {
 		.mulrc	= mulrc16_shuffle_avx2,
 		.maddrc	= maddrc16_shuffle_avx2
 	},
+	[MOEPGF16][MOEPGF_HWCAPS_SIMD_AVX512]  = {
+		.mulrc	= mulrc16_imul_avx512,
+		.maddrc	= maddrc16_imul_avx512
+	},
+	[MOEPGF16][MOEPGF_HWCAPS_SIMD_AVX512BW]  = {
+		.mulrc	= mulrc16_shuffle_avx512,
+		.maddrc	= maddrc16_shuffle_avx512
+	},
+
 #endif
 #ifdef __arm__
 	[MOEPGF16][MOEPGF_HWCAPS_SIMD_NEON]  = {
@@ -162,6 +193,15 @@ const struct {
 		.mulrc	= mulrc256_shuffle_avx2,
 		.maddrc	= maddrc256_shuffle_avx2
 	},
+	[MOEPGF256][MOEPGF_HWCAPS_SIMD_AVX512]  = {
+		.mulrc	= mulrc256_imul_avx512,
+		.maddrc	= maddrc256_imul_avx512
+	},
+	[MOEPGF256][MOEPGF_HWCAPS_SIMD_AVX512BW]  = {
+		.mulrc	= mulrc256_shuffle_avx512,
+		.maddrc	= maddrc256_shuffle_avx512
+	},
+
 #endif
 #ifdef __arm__
 	[MOEPGF256][MOEPGF_HWCAPS_SIMD_NEON]  = {
@@ -207,8 +247,9 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 
 	hwcaps = moepgf_check_available_simd_extensions();
 
+	gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_NONE);
+
 	switch (type) {
-		gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_NONE);
 	case MOEPGF2:
 		strcpy(gf->name, "MOEPGF2");
 		gf->type		= MOEPGF2;
@@ -278,6 +319,16 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 
 	case MOEPGF_ALGORITHM_BEST:
 #ifdef __x86_64__
+		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512)){
+			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512);
+			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512].mulrc;
+			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512].maddrc;
+		}
+		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512BW)){
+			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512BW);
+			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].mulrc;
+			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].maddrc;
+		}
 		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX2)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX2);
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX2].mulrc;
@@ -358,6 +409,9 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_XOR_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc2_avx2, NULL);
+		add_algorithm(algs, field, MOEPGF_XOR_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512,
+				maddrc2_avx512, NULL);
 #endif
 #ifdef __arm__
 		add_algorithm(algs, field, MOEPGF_XOR_NEON_128,
@@ -387,12 +441,18 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_IMUL_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc4_imul_avx2, NULL);
+		add_algorithm(algs, field, MOEPGF_IMUL_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512,
+				maddrc4_imul_avx512, NULL);
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_SSSE3,
 				MOEPGF_HWCAPS_SIMD_SSSE3,
 				maddrc4_shuffle_ssse3, NULL);
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc4_shuffle_avx2, NULL);
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512BW,
+				maddrc4_shuffle_avx512, NULL);
 #endif
 #ifdef __arm__
 		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,
@@ -426,12 +486,18 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_IMUL_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc16_imul_avx2, NULL);
+		add_algorithm(algs, field, MOEPGF_IMUL_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512,
+				maddrc16_imul_avx512, NULL);
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_SSSE3,
 				MOEPGF_HWCAPS_SIMD_SSSE3,
 				maddrc16_shuffle_ssse3, NULL);
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc16_shuffle_avx2, NULL);
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512BW,
+				maddrc16_shuffle_avx512, NULL);
 #endif
 #ifdef __arm__
 		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,
@@ -465,12 +531,18 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_IMUL_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc256_imul_avx2, NULL);
+		add_algorithm(algs, field, MOEPGF_IMUL_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512,
+				maddrc256_imul_avx512, NULL);
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_SSSE3,
 				MOEPGF_HWCAPS_SIMD_SSSE3,
 				maddrc256_shuffle_ssse3, NULL);
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX2,
 				MOEPGF_HWCAPS_SIMD_AVX2,
 				maddrc256_shuffle_avx2, NULL);
+		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512BW,
+				maddrc256_shuffle_avx512, NULL);
 #endif
 #ifdef __arm__
 		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,

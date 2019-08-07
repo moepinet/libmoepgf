@@ -41,12 +41,16 @@ void mulrc16_imul_gpr64(uint8_t *region, uint8_t constant, size_t length);
 #ifdef __x86_64__
 void maddrc16_imul_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc16_imul_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc16_imul_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc16_shuffle_ssse3(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc16_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc16_shuffle_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 
 void mulrc16_imul_sse2(uint8_t *region, uint8_t constant, size_t length);
 void mulrc16_shuffle_ssse3(uint8_t *region, uint8_t constant, size_t length);
 void mulrc16_shuffle_avx2(uint8_t *region, uint8_t constant, size_t length);
+void mulrc16_shuffle_avx512(uint8_t *region, uint8_t constant, size_t length);
+void mulrc16_imul_avx512(uint8_t *region, uint8_t constant, size_t length);
 #endif
 
 #ifdef __arm__

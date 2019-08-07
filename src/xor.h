@@ -38,6 +38,7 @@ void xorr_gpr64(uint8_t *region1, const uint8_t *region2, size_t length);
 #ifdef __x86_64__
 void xorr_sse2(uint8_t *region1, const uint8_t *region2, size_t length);
 void xorr_avx2(uint8_t *region1, const uint8_t *region2, size_t length);
+void xorr_avx512(uint8_t *region1, const uint8_t *region2, size_t length);
 #endif
 
 #ifdef __arm__

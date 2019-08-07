@@ -37,6 +37,7 @@ void mulrc2(uint8_t *region, uint8_t constant, size_t length);
 #ifdef __x86_64__
 void maddrc2_sse2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc2_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc2_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 #endif
 
 #ifdef __arm__

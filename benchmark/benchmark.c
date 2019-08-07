@@ -1,6 +1,6 @@
 /*
- * Copyright 2014	Stephan M. Guenther <moepi@moepi.net>
- * 			Maximilian Riemensberger <riemensberger@tum.de>
+ * Copyright 2014,2019	Stephan M. Guenther <moepi@moepi.net>
+ * Copyright 2014	Maximilian Riemensberger <riemensberger@tum.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -184,15 +184,19 @@ selftest()
 		fprintf(stderr, "AVX ");
 	if (fset & (1 << MOEPGF_HWCAPS_SIMD_AVX2))
 		fprintf(stderr, "AVX2 ");
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_AVX512))
+		fprintf(stderr, "AVX512 ");
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_AVX512BW))
+		fprintf(stderr, "AVX512BW ");
 	if (fset & (1 << MOEPGF_HWCAPS_SIMD_NEON))
 		fprintf(stderr, "NEON ");
 	fprintf(stderr, "\n\n");
 
-	if (posix_memalign((void *)&test1, 32, tlen))
+	if (posix_memalign((void *)&test1, 64, tlen))
 		exit(-1);
-	if (posix_memalign((void *)&test2, 32, tlen))
+	if (posix_memalign((void *)&test2, 64, tlen))
 		exit(-1);
-	if (posix_memalign((void *)&test3, 32, tlen))
+	if (posix_memalign((void *)&test3, 64, tlen))
 		exit(-1);
 
 	for (i=0; i<4; i++) {
@@ -284,10 +288,10 @@ encode_thread(void *args)
 		encode = encode_permutation;
 	}
 
-	if (posix_memalign((void *)&frame, 32, ta->length))
+	if (posix_memalign((void *)&frame, 64, ta->length))
 		exit(-1);
 			
-	if (cb_init(&cb, ta->count, ta->length, 32))
+	if (cb_init(&cb, ta->count, ta->length, 64))
 		exit(-1);
 				
 	fill_random(&cb);

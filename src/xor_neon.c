@@ -27,11 +27,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "gf2.h"
-#include "gf4.h"
-#include "gf16.h"
-#include "gf256.h"
-
 void
 xorr_neon_64(uint8_t *region1, const uint8_t *region2, size_t length)
 {
