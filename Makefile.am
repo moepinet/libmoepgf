@@ -43,6 +43,8 @@ endif
 if ARCH_ARM
 libmoepgf_la_LIBADD += libmoepgf_neon.la
 endif
+if ARCH_POWERPC64LE
+endif
 if ARCH_MIPS
 endif
 
