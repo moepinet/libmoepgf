@@ -69,7 +69,9 @@ const char *gf_names[] =
 	[MOEPGF_SHUFFLE_AVX2]		= "shuffle_avx2",
 	[MOEPGF_SHUFFLE_AVX512]		= "shuffle_avx512",
 	[MOEPGF_SHUFFLE_NEON_64]	= "shuffle_neon_64",
-	[MOEPGF_GFNI_AVX512]		= "gfni_avx512"
+	[MOEPGF_GFNI128]		= "gfni128",
+	[MOEPGF_GFNI256]		= "gfni256",
+	[MOEPGF_GFNI512]		= "gfni512"
 };
 
 const struct {
@@ -203,8 +205,8 @@ const struct {
 		.maddrc	= maddrc256_shuffle_avx512
 	},
 	[MOEPGF256][MOEPGF_HWCAPS_SIMD_AVX512GFNI]  = {
-		.mulrc	= mulrc256_gfni_avx512,
-		.maddrc	= maddrc256_gfni_avx512
+		.mulrc	= mulrc256_gfni512,
+		.maddrc	= maddrc256_gfni512
 	},
 
 #endif
@@ -334,11 +336,11 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].mulrc;
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].maddrc;
 		}
-		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI)) {
-			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI);
-			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].mulrc;
-			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].maddrc;
-		}
+		// if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI)) {
+		// 	gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI);
+		// 	gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].mulrc;
+		// 	gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].maddrc;
+		// }
 		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX2)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX2);
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX2].mulrc;
@@ -553,9 +555,15 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX512,
 				MOEPGF_HWCAPS_SIMD_AVX512BW,
 				maddrc256_shuffle_avx512, NULL);
-		add_algorithm(algs, field, MOEPGF_GFNI_AVX512,
+		add_algorithm(algs, field, MOEPGF_GFNI128,
 				MOEPGF_HWCAPS_SIMD_AVX512GFNI,
-				maddrc256_gfni_avx512, NULL);
+				maddrc256_gfni128, NULL);
+		add_algorithm(algs, field, MOEPGF_GFNI256,
+				MOEPGF_HWCAPS_SIMD_AVX512GFNI,
+				maddrc256_gfni256, NULL);
+		add_algorithm(algs, field, MOEPGF_GFNI512,
+				MOEPGF_HWCAPS_SIMD_AVX512GFNI,
+				maddrc256_gfni512, NULL);
 #endif
 #ifdef __arm__
 		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,
