@@ -174,7 +174,7 @@ print_polynomial_div_table(struct galois_field *gf)
 {
 	int i,j;
 	
-	fprintf(stdout, "#define GF%d_POLYNOMIAL_DIV_TABLE { \\\n", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_POLYNOMIAL_DIV_TABLE { \\\n", gf->size);
 
 	for (i=0; i<gf->size; i++) {
 		fprintf(stdout, "{");
@@ -196,7 +196,7 @@ print_mul_table(struct galois_field *gf)
 {
 	int i,j;
 	
-	fprintf(stdout, "#define GF%d_MUL_TABLE { \\\n", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_MUL_TABLE { \\\n", gf->size);
 
 	for (i=0; i<gf->size; i++) {
 		fprintf(stdout, "{");
@@ -225,7 +225,7 @@ print_lookup_table(struct galois_field *gf)
 	wsize	= gf->exponent;
 	wcount	= 8 / wsize;
 
-	fprintf(stdout, "#define GF%d_LOOKUP_TABLE { \\\n", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_LOOKUP_TABLE { \\\n", gf->size);
 
 	table = malloc(gf->size * sizeof(uint8_t *));
 	for (i=0; i<gf->size; i++)
@@ -265,7 +265,7 @@ print_inv_table(struct galois_field *gf)
 {
 	int i, j, k;
 
-	fprintf(stdout, "#define GF%d_INV_TABLE {\\\n", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_INV_TABLE {\\\n", gf->size);
 
 	k = 1;
 	fprintf(stdout, "0x00,");
@@ -353,9 +353,9 @@ print_shuffle_table(struct galois_field *gf)
 	}
 
 	fprintf(stdout, "#ifdef __x86_64__\n");
-	fprintf(stdout, "#define GF%d_SHUFFLE_LOW_TABLE { \\", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_SHUFFLE_LOW_TABLE { \\", gf->size);
 	print_2d_table(lt, gf->size, 16);
-	fprintf(stdout, "#define GF%d_SHUFFLE_HIGH_TABLE { \\", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_SHUFFLE_HIGH_TABLE { \\", gf->size);
 	print_2d_table(ht, gf->size, 16);
 	fprintf(stdout, "#endif //__x86_64__\n");
 
@@ -374,9 +374,9 @@ print_shuffle_table(struct galois_field *gf)
 		ht_arm[i][15] = t;
 	}
 	fprintf(stdout, "#ifdef __arm__\n");
-	fprintf(stdout, "#define GF%d_SHUFFLE_LOW_TABLE { \\", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_SHUFFLE_LOW_TABLE { \\", gf->size);
 	print_2d_table(lt_arm, gf->size, 16);
-	fprintf(stdout, "#define GF%d_SHUFFLE_HIGH_TABLE { \\", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_SHUFFLE_HIGH_TABLE { \\", gf->size);
 	print_2d_table(ht_arm, gf->size, 16);
 	fprintf(stdout, "#endif //__arm__\n");
 
@@ -451,14 +451,14 @@ generate_log_tables(struct galois_field *gf)
 		exit(-1);
 	}
 
-	fprintf(stdout, "#define GF%d_ALOG_TABLE {", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_ALOG_TABLE {", gf->size);
 	for (i=0; i<gf->size*2-1; i++) {
 		if (i % 16 == 0)
 			fprintf(stdout, "\\\n");
 		fprintf(stdout, "0x%02x,", alog[i]);
 	}
 	fprintf(stdout, "\\\n}\n");
-	fprintf(stdout, "#define GF%d_LOG_TABLE {", gf->size);
+	fprintf(stdout, "#define MOEPGF%d_LOG_TABLE {", gf->size);
 	for (i=0; i<gf->size; i++) {
 		if (i % 16 == 0)
 			fprintf(stdout, "\\\n");
