@@ -34,7 +34,9 @@ AS_CASE([$host_cpu],
 		AX_CHECK_COMPILE_FLAG([-mavx512f -mavx512bw],
 			[AC_SUBST([AVX512BW_CFLAGS], ["-mavx512f -mavx512bw"])],
 			[AC_MSG_ERROR("Your compiler does not support AVX512BW")])
-
+		AX_CHECK_COMPILE_FLAG([-mavx512bw -mgfni],
+			[AC_SUBST([AVX512GFNI_CFLAGS], ["-mavx512bw -mgfni"])],
+			[AC_MSG_ERROR("Your compiler does not support AVX512 GFNI")])
 	],
 	[arm*], [
 		arch="arm"
