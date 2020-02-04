@@ -35,6 +35,8 @@
 
 #if MOEPGF256_POLYNOMIAL == 285
 #include "gf256tables285.h"
+#elif MOEPGF256_POLYNOMIAL == 283 
+#include "gf256tables283.h"
 #else
 #error "Invalid prime polynomial or tables not available."
 #endif
