@@ -188,6 +188,8 @@ selftest()
 		fprintf(stderr, "AVX512 ");
 	if (fset & (1 << MOEPGF_HWCAPS_SIMD_AVX512BW))
 		fprintf(stderr, "AVX512BW ");
+	if (fset & (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI))
+		fprintf(stderr, "AVX512GFNI ");
 	if (fset & (1 << MOEPGF_HWCAPS_SIMD_NEON))
 		fprintf(stderr, "NEON ");
 	fprintf(stderr, "\n\n");
@@ -290,19 +292,19 @@ encode_thread(void *args)
 
 	if (posix_memalign((void *)&frame, 64, ta->length))
 		exit(-1);
-			
+
 	if (cb_init(&cb, ta->count, ta->length, 64))
 		exit(-1);
-				
+
 	fill_random(&cb);
 
 	clock_gettime(CLOCK_MONOTONIC, &start);
 	for (i=0; i<ta->rep; i++)
 		encode(ta->madd, ta->mask, frame, &cb, &state);
 	clock_gettime(CLOCK_MONOTONIC, &end);
-				
+
 	timespecsub(&end, &start);
-				
+
 	ta->gbps = (double)ta->rep/((double)end.tv_sec
 			+ (double)end.tv_nsec*1e-9);
 	ta->gbps *= ta->length*8.0*1e-9;
@@ -328,13 +330,13 @@ benchmark(struct args *args)
 
 	fset = moepgf_check_available_simd_extensions();
 
-	fprintf(stderr, 
+	fprintf(stderr,
 		"\nEncoding benchmark: "
 		"Encoding throughput in Gbps (1e9 bits per sec)\n"
 		"maxsize=%d, count=%d, repetitions=%d, "
-		"threads=%d\n\n",	args->maxsize, args->count, args->repeat, 
+		"threads=%d\n\n",	args->maxsize, args->count, args->repeat,
 		args->threads);
-		
+
 	s = rand();
 	for (i=0; i<RVAL_COUNT; i++)
 		_rval[i] = moepgf_rand(&s) & 0xff;
@@ -377,11 +379,11 @@ benchmark(struct args *args)
 					tinfo[m].args.random = args->random;
 					tinfo[m].args.count = args->count;
 				}
-				
+
 				for (m=0; m<args->threads; m++) {
-					tinfo[m].tid = 
+					tinfo[m].tid =
 						pthread_create(
-							&tinfo[m].thread, NULL, 
+							&tinfo[m].thread, NULL,
 							encode_thread,
 							(void *)&tinfo[m].args);
 				}

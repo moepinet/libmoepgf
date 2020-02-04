@@ -37,20 +37,21 @@
  */
 enum MOEPGF_HWCAPS
 {
-	MOEPGF_HWCAPS_SIMD_NONE		= 0,
-	MOEPGF_HWCAPS_SIMD_MMX		= 1,
-	MOEPGF_HWCAPS_SIMD_SSE		= 2,
-	MOEPGF_HWCAPS_SIMD_SSE2		= 3,
-	MOEPGF_HWCAPS_SIMD_SSSE3	= 4,
-	MOEPGF_HWCAPS_SIMD_SSE41	= 5,
-	MOEPGF_HWCAPS_SIMD_SSE42	= 6,
-	MOEPGF_HWCAPS_SIMD_AVX		= 7,
-	MOEPGF_HWCAPS_SIMD_AVX2		= 8,
-	MOEPGF_HWCAPS_SIMD_AVX512	= 9,
-	MOEPGF_HWCAPS_SIMD_AVX512BW	= 10,
-	MOEPGF_HWCAPS_SIMD_NEON		= 11,
-	MOEPGF_HWCAPS_SIMD_MSA		= 12,
-	MOEPGF_HWCAPS_COUNT		= 13,
+	MOEPGF_HWCAPS_SIMD_NONE			= 0,
+	MOEPGF_HWCAPS_SIMD_MMX			= 1,
+	MOEPGF_HWCAPS_SIMD_SSE			= 2,
+	MOEPGF_HWCAPS_SIMD_SSE2			= 3,
+	MOEPGF_HWCAPS_SIMD_SSSE3		= 4,
+	MOEPGF_HWCAPS_SIMD_SSE41		= 5,
+	MOEPGF_HWCAPS_SIMD_SSE42		= 6,
+	MOEPGF_HWCAPS_SIMD_AVX			= 7,
+	MOEPGF_HWCAPS_SIMD_AVX2			= 8,
+	MOEPGF_HWCAPS_SIMD_AVX512		= 9,
+	MOEPGF_HWCAPS_SIMD_AVX512BW		= 10,
+	MOEPGF_HWCAPS_SIMD_AVX512GFNI	= 11,
+	MOEPGF_HWCAPS_SIMD_NEON			= 12,
+	MOEPGF_HWCAPS_SIMD_MSA			= 13,
+	MOEPGF_HWCAPS_COUNT				= 14,
 };
 
 /*
@@ -71,7 +72,7 @@ enum MOEPGF_HWCAPS
 #define MOEPGF16_SIZE			(1 << MOEPGF16_EXPONENT)
 #define MOEPGF16_MASK			(MOEPGF16_SIZE - 1)
 
-#define MOEPGF256_POLYNOMIAL		283
+#define MOEPGF256_POLYNOMIAL		285
 #define MOEPGF256_EXPONENT		8
 #define MOEPGF256_SIZE			(1 << MOEPGF256_EXPONENT)
 #define MOEPGF256_MASK			(MOEPGF256_SIZE - 1)
@@ -154,7 +155,7 @@ struct moepgf_algorithm {
  *
  * IMPORTANT: If len is not a multiple of MOEPGF_MAX_ALIGNMENT, SIMD
  * implementations may silently access memory addresses up to the next multiple
- * of MOEPGF_MAX_ALIGNMENT. The rational behind this behavior is to allow for 
+ * of MOEPGF_MAX_ALIGNMENT. The rational behind this behavior is to allow for
  * 1) easy usage since len may be the true length of data to be multiplied
  *    instead of the length of a zero-padded memory region, and
  * 2) efficient processing since no special treatment of the border cases are
@@ -206,7 +207,7 @@ int moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type,
 struct moepgf_algorithm ** moepgf_get_algs(enum MOEPGF_TYPE type);
 
 /*
- * Frees an array of algorithms previously initialized by moepgf_get_algs(). 
+ * Frees an array of algorithms previously initialized by moepgf_get_algs().
  * Pointer is unusable after calling this function.
  */
 void moepgf_free_algs(struct moepgf_algorithm **algs);

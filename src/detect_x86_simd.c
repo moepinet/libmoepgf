@@ -72,6 +72,8 @@ detect_x86_simd()
 		hwcaps |= (1 << MOEPGF_HWCAPS_SIMD_AVX512);
 	if (ebx & (1 << 30))
 		hwcaps |= (1 << MOEPGF_HWCAPS_SIMD_AVX512BW);
+	if (ecx & (1 << 8))
+		hwcaps |= (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI);
 
 	return hwcaps;
 }
