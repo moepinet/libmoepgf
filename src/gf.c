@@ -555,6 +555,7 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX512,
 				MOEPGF_HWCAPS_SIMD_AVX512BW,
 				maddrc256_shuffle_avx512, NULL);
+#if MOEPGF256_POLYNOMIAL == 283
 		add_algorithm(algs, field, MOEPGF_GFNI128,
 				MOEPGF_HWCAPS_SIMD_AVX512GFNI,
 				maddrc256_gfni128, NULL);
@@ -564,6 +565,7 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_GFNI512,
 				MOEPGF_HWCAPS_SIMD_AVX512GFNI,
 				maddrc256_gfni512, NULL);
+#endif
 #endif
 #ifdef __arm__
 		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,
