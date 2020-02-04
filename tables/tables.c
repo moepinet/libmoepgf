@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <sys/types.h>
+#include <stdint.h>
 
 enum GF_TYPE {
 	GF2	= 0,
@@ -27,14 +28,14 @@ struct galois_field {
 struct {
 	uint16_t gf2[1];
 	uint16_t gf4[1];
-	uint16_t gf16[2];
-	uint16_t gf256[16];
-} primitive_polynomials =
+	uint16_t gf16[3];
+	uint16_t gf256[30];
+} irreducible_polynomials =
 {
 	.gf2	= {3},
 	.gf4	= {7},
-	.gf16	= {19,25},
-	.gf256	= {285,299,301,333,351,355,357,361,369,391,397,425,451,463,487,501}
+	.gf16	= {19,25,31},
+	.gf256	= {283,285,299,301,313,319,333,351,355,357,361,369,375,379,391,395,397,415,419,425,433,445,451,463,471,477,487,499,501,505}
 };
 
 static void
@@ -101,7 +102,7 @@ ld(int x)
 }
 
 static int
-is_primitive(uint16_t poly, enum GF_TYPE gf_type)
+is_irreducible(uint16_t poly, enum GF_TYPE gf_type)
 {
 	int i, count;
 	uint16_t *p;
@@ -109,19 +110,19 @@ is_primitive(uint16_t poly, enum GF_TYPE gf_type)
 	switch (gf_type) {
 	case GF2:
 		count = 1;
-		p = primitive_polynomials.gf2;
+		p = irreducible_polynomials.gf2;
 		break;
 	case GF4:
 		count = 1;
-		p = primitive_polynomials.gf4;
+		p = irreducible_polynomials.gf4;
 		break;
 	case GF16:
 		count = 2;
-		p = primitive_polynomials.gf16;
+		p = irreducible_polynomials.gf16;
 		break;
 	case GF256:
 		count = 16;
-		p = primitive_polynomials.gf256;
+		p = irreducible_polynomials.gf256;
 		break;
 	}
 
@@ -499,8 +500,8 @@ main(int argc, char **argv)
 	}
 
 	gf.ppoly = (uint32_t)atoi(argv[2]);
-	if (!is_primitive(gf.ppoly, gf.type)) {
-		fprintf(stdout, "polynomial %d is not primitive\n\n", gf.ppoly);
+	if (!is_irreducible(gf.ppoly, gf.type)) {
+		fprintf(stdout, "polynomial %d is not irreducible\n\n", gf.ppoly);
 		return 0;
 	}
 
