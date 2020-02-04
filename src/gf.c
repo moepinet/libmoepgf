@@ -68,7 +68,8 @@ const char *gf_names[] =
 	[MOEPGF_SHUFFLE_SSSE3]		= "shuffle_ssse3",
 	[MOEPGF_SHUFFLE_AVX2]		= "shuffle_avx2",
 	[MOEPGF_SHUFFLE_AVX512]		= "shuffle_avx512",
-	[MOEPGF_SHUFFLE_NEON_64]	= "shuffle_neon_64"
+	[MOEPGF_SHUFFLE_NEON_64]	= "shuffle_neon_64",
+	[MOEPGF_GFNI_AVX512]		= "gfni_avx512"
 };
 
 const struct {
@@ -201,6 +202,10 @@ const struct {
 		.mulrc	= mulrc256_shuffle_avx512,
 		.maddrc	= maddrc256_shuffle_avx512
 	},
+	[MOEPGF256][MOEPGF_HWCAPS_SIMD_AVX512GFNI]  = {
+		.mulrc	= mulrc256_gfni_avx512,
+		.maddrc	= maddrc256_gfni_avx512
+	},
 
 #endif
 #ifdef __arm__
@@ -319,15 +324,20 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 
 	case MOEPGF_ALGORITHM_BEST:
 #ifdef __x86_64__
-		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512)){
+		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512);
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512].mulrc;
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512].maddrc;
 		}
-		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512BW)){
+		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512BW)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512BW);
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].mulrc;
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].maddrc;
+		}
+		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI)) {
+			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI);
+			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].mulrc;
+			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].maddrc;
 		}
 		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX2)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX2);
@@ -543,6 +553,9 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_SHUFFLE_AVX512,
 				MOEPGF_HWCAPS_SIMD_AVX512BW,
 				maddrc256_shuffle_avx512, NULL);
+		add_algorithm(algs, field, MOEPGF_GFNI_AVX512,
+				MOEPGF_HWCAPS_SIMD_AVX512GFNI,
+				maddrc256_gfni_avx512, NULL);
 #endif
 #ifdef __arm__
 		add_algorithm(algs, field, MOEPGF_IMUL_NEON_64,

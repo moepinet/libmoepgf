@@ -26,7 +26,7 @@
 #include <stdint.h>
 
 /*
- * Maximum memory alignemnt used by kernels. Any memory regions supplied to the
+ * Maximum memory alignment used by kernels. Any memory regions supplied to the
  * library must be aligned to this value and the length of those regions must
  * be a multiple of this value.
  */
@@ -37,21 +37,21 @@
  */
 enum MOEPGF_HWCAPS
 {
-	MOEPGF_HWCAPS_SIMD_NONE			= 0,
-	MOEPGF_HWCAPS_SIMD_MMX			= 1,
-	MOEPGF_HWCAPS_SIMD_SSE			= 2,
-	MOEPGF_HWCAPS_SIMD_SSE2			= 3,
-	MOEPGF_HWCAPS_SIMD_SSSE3		= 4,
-	MOEPGF_HWCAPS_SIMD_SSE41		= 5,
-	MOEPGF_HWCAPS_SIMD_SSE42		= 6,
-	MOEPGF_HWCAPS_SIMD_AVX			= 7,
-	MOEPGF_HWCAPS_SIMD_AVX2			= 8,
-	MOEPGF_HWCAPS_SIMD_AVX512		= 9,
-	MOEPGF_HWCAPS_SIMD_AVX512BW		= 10,
+	MOEPGF_HWCAPS_SIMD_NONE		= 0,
+	MOEPGF_HWCAPS_SIMD_MMX		= 1,
+	MOEPGF_HWCAPS_SIMD_SSE		= 2,
+	MOEPGF_HWCAPS_SIMD_SSE2		= 3,
+	MOEPGF_HWCAPS_SIMD_SSSE3	= 4,
+	MOEPGF_HWCAPS_SIMD_SSE41	= 5,
+	MOEPGF_HWCAPS_SIMD_SSE42	= 6,
+	MOEPGF_HWCAPS_SIMD_AVX		= 7,
+	MOEPGF_HWCAPS_SIMD_AVX2		= 8,
+	MOEPGF_HWCAPS_SIMD_AVX512	= 9,
+	MOEPGF_HWCAPS_SIMD_AVX512BW	= 10,
 	MOEPGF_HWCAPS_SIMD_AVX512GFNI	= 11,
-	MOEPGF_HWCAPS_SIMD_NEON			= 12,
-	MOEPGF_HWCAPS_SIMD_MSA			= 13,
-	MOEPGF_HWCAPS_COUNT				= 14,
+	MOEPGF_HWCAPS_SIMD_NEON		= 12,
+	MOEPGF_HWCAPS_SIMD_MSA		= 13,
+	MOEPGF_HWCAPS_COUNT		= 14,
 };
 
 /*
@@ -82,7 +82,7 @@ typedef void	(*mulrc_t)	(uint8_t *, uint8_t, size_t);
 typedef uint8_t	(*inv_t)	(uint8_t);
 
 /*
- * Used to identify differen GFs.
+ * Used to identify different GFs.
  */
 enum MOEPGF_TYPE {
 	MOEPGF2		= 0,
@@ -121,12 +121,13 @@ enum MOEPGF_ALGORITHM
 	MOEPGF_SHUFFLE_AVX2,
 	MOEPGF_SHUFFLE_AVX512,
 	MOEPGF_SHUFFLE_NEON_64,
+	MOEPGF_GFNI_AVX512,
 	MOEPGF_ALGORITHM_BEST,
 	MOEPGF_ALGORITHM_COUNT
 };
 
 /*
- * Structure representing a moepgf algorithm, including function poitners and
+ * Structure representing a moepgf algorithm, including function pointers and
  * informations about the algorithm, required hwcaps and field.
  */
 struct moepgf_algorithm {
@@ -194,7 +195,7 @@ uint32_t moepgf_check_available_simd_extensions();
  * Initializes the GF pointed to by gf according to the requested type. SIMD
  * extensions may be explicitly requested by the parameter fset. If fset is set
  * to zero, the fastest implementation available for the current architecture is
- * automatically determined. The function returns 0 on succes and -1 on any
+ * automatically determined. The function returns 0 on success and -1 on any
  * error, e.g. the requested SIMD extensions are not available.
  */
 int moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type,

@@ -46,11 +46,13 @@ void maddrc256_imul_avx512(uint8_t *region1, const uint8_t *region2, uint8_t con
 void maddrc256_shuffle_ssse3(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc256_shuffle_avx2(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 void maddrc256_shuffle_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+void maddrc256_gfni_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 
 void mulrc256_imul_sse2(uint8_t *region, uint8_t constant, size_t length);
 void mulrc256_shuffle_ssse3(uint8_t *region, uint8_t constant, size_t length);
 void mulrc256_shuffle_avx2(uint8_t *region, uint8_t constant, size_t length);
 void mulrc256_shuffle_avx512(uint8_t *region, uint8_t constant, size_t length);
+void mulrc256_gfni_avx512(uint8_t *region, uint8_t constant, size_t length);
 #endif
 
 #ifdef __arm__
