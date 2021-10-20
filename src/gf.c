@@ -326,22 +326,22 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 
 	case MOEPGF_ALGORITHM_BEST:
 #ifdef __x86_64__
-		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512)) {
+		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI)) {
+			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI);
+			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].mulrc;
+			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].maddrc;
+		}
+		else if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512);
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512].mulrc;
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512].maddrc;
 		}
-		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512BW)) {
+		else if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512BW)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512BW);
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].mulrc;
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512BW].maddrc;
 		}
-		// if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI)) {
-		// 	gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX512GFNI);
-		// 	gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].mulrc;
-		// 	gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX512GFNI].maddrc;
-		// }
-		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX2)) {
+		else if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_AVX2)) {
 			gf->hwcaps = (1 << MOEPGF_HWCAPS_SIMD_AVX2);
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX2].mulrc;
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_AVX2].maddrc;
