@@ -370,7 +370,7 @@ moepgf_init(struct moepgf *gf, enum MOEPGF_TYPE type, enum MOEPGF_ALGORITHM atyp
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_NONE].maddrc;
 		}
 #endif
-		else if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_NONE)) {
+		if (hwcaps & (1 << MOEPGF_HWCAPS_SIMD_NONE)) {
 			gf->mulrc  = best_algorithms[type][MOEPGF_HWCAPS_SIMD_NONE].mulrc;
 			gf->maddrc = best_algorithms[type][MOEPGF_HWCAPS_SIMD_NONE].maddrc;
 		}
