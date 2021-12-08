@@ -6,15 +6,20 @@ The moepgf finite field arithmetic library offers high-performance operations
 over GF(2), GF(4), GF(16), and GF(256) using SSE/AVX/NEON SIMD extensions on
 x86/ARM platforms.
 
+There is basic support for MIPS and RISC-V with more optimizations planned.
+
 
 Installation
 ------------
 
 To install moepgf you can use the following commands:
 
+	autoreconf -fi
 	./configure
 	make
 	make install
+
+Make sure to have installed autoconf, automake, libtool etc.
 
 See ./configure --help for details on the available parameters. For example you
 can use --prefix=DIR to specify the installation prefix.
