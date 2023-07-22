@@ -100,3 +100,13 @@ maddrc2_neon(uint8_t *region1, const uint8_t *region2,
 }
 #endif
 
+#ifdef __powerpc__
+inline void
+maddrc2_vsx(uint8_t *region1, const uint8_t *region2,
+				uint8_t constant, size_t length)
+{
+	if (constant !=0)
+		xorr_vsx_128(region1, region2, length);
+}
+#endif
+

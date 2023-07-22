@@ -44,4 +44,8 @@ void maddrc2_avx512(uint8_t *region1, const uint8_t *region2, uint8_t constant, 
 void maddrc2_neon(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
 #endif
 
+#ifdef __powerpc__
+void maddrc2_vsx(uint8_t *region1, const uint8_t *region2, uint8_t constant, size_t length);
+#endif
+
 #endif

@@ -46,4 +46,8 @@ void xorr_neon_64(uint8_t *region1, const uint8_t *region2, size_t length);
 void xorr_neon_128(uint8_t *region1, const uint8_t *region2, size_t length);
 #endif
 
+#ifdef __powerpc__
+void xorr_vsx_128(uint8_t *region1, const uint8_t *region2, size_t length);
+#endif
+
 #endif // _XOR_H_

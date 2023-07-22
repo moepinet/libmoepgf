@@ -53,6 +53,7 @@ const char *gf_names[] =
 	[MOEPGF_XOR_AVX2]		= "xor_avx2",
 	[MOEPGF_XOR_AVX512]		= "xor_avx512",
 	[MOEPGF_XOR_NEON_128]		= "xor_neon_128",
+	[MOEPGF_XOR_VSX_128]		= "xor_vsx_128",
 	[MOEPGF_XOR_MSA]		= "xor_msa",
 	[MOEPGF_LOG_TABLE]		= "log_table",
 	[MOEPGF_FLAT_TABLE]		= "flat_table",
@@ -109,6 +110,12 @@ const struct {
 	[MOEPGF2][MOEPGF_HWCAPS_SIMD_NEON]  = {
 		.mulrc	= mulrc2,
 		.maddrc	= maddrc2_neon
+	},
+#endif
+#ifdef __powerpc__
+	[MOEPGF2][MOEPGF_HWCAPS_SIMD_VSX]  = {
+		.mulrc	= mulrc2,
+		.maddrc	= maddrc2_vsx
 	},
 #endif
 
@@ -239,6 +246,10 @@ moepgf_check_available_simd_extensions()
 
 #ifdef __arm__
 	ret |= detect_arm_neon();
+#endif
+
+#ifdef __powerpc__
+	ret |= (1 << MOEPGF_HWCAPS_SIMD_VSX);
 #endif
 
 	return ret;
@@ -440,6 +451,11 @@ moepgf_get_algs(enum MOEPGF_TYPE field)
 		add_algorithm(algs, field, MOEPGF_XOR_MSA,
 				MOEPGF_HWCAPS_SIMD_MSA,
 				maddrc2_msa, NULL);
+#endif
+#ifdef __powerpc__
+		add_algorithm(algs, field, MOEPGF_XOR_VSX_128,
+				MOEPGF_HWCAPS_SIMD_VSX,
+				maddrc2_vsx, NULL);
 #endif
 		break;
 	case MOEPGF4:

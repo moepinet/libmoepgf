@@ -44,6 +44,7 @@ if ARCH_ARM
 libmoepgf_la_LIBADD += libmoepgf_neon.la
 endif
 if ARCH_POWERPC64LE
+libmoepgf_la_LIBADD += libmoepgf_vsx.la
 endif
 if ARCH_MIPS
 endif
@@ -113,6 +114,12 @@ if ARCH_MIPS
 endif
 
 if ARCH_POWERPC64LE
+noinst_LTLIBRARIES += libmoepgf_vsx.la
+
+
+libmoepgf_vsx_la_SOURCES = src/xor_vsx.c
+
+libmoepgf_neon_la_CFLAGS = $(libmoepgf_la_CFLAGS) $(VSX_CFLAGS)
 endif
 
 
