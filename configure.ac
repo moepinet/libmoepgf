@@ -46,6 +46,9 @@ AS_CASE([$host_cpu],
 	],
 	[powerpc64le], [
 		arch="powerpc64le"
+		AX_CHECK_COMPILE_FLAG([-mvsx],
+			[AC_SUBST([VSX_CFLAGS], ["-mvsx"])],
+			[AC_MSG_ERROR("Your compiler does not support VSX")])
 	],
 	[mips*], [
 		arch="mips"

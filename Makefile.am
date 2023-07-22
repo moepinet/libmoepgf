@@ -108,7 +108,11 @@ libmoepgf_neon_la_SOURCES += src/xor_neon.c
 
 libmoepgf_neon_la_CFLAGS = $(libmoepgf_la_CFLAGS) $(NEON_CFLAGS)
 endif
+
 if ARCH_MIPS
+endif
+
+if ARCH_POWERPC64LE
 endif
 
 
